@@ -20,6 +20,8 @@ import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +47,7 @@ public class TestInterpreter {
         mockTask = mock(TaskSupervisor.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testMethod() throws Exception {
         // Arrange
         String text = ""
@@ -56,7 +58,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .addScriptVariable("common", new InTest2())
                 .build();
@@ -68,14 +70,14 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(5.23));
     }
 
-    @org.junit.Test
+    @Test
     public void testMethodWithEnumParameter() throws Exception {
         // Arrange
         String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
                 + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");";
 
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .addScriptVariable("temp", new TheTest())
                 .addScriptVariable("temp2", new TheTest2())
                 .build();
@@ -91,7 +93,7 @@ public class TestInterpreter {
         assertEquals("Something", test.getGlobalVar("temp2"));
     }
 
-    @org.junit.Test
+    @Test
     public void testReference() throws Exception {
         // Arrange
         String text = ""
@@ -117,7 +119,7 @@ public class TestInterpreter {
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
         TheTest reference = new TheTest();
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .addScriptVariable("player", reference)
                 .addScriptVariable("text", "hello")
@@ -131,7 +133,7 @@ public class TestInterpreter {
         assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
     }
 
-    @org.junit.Test
+    @Test
     public void testStringAppend() throws Exception {
         // Arrange
         String text = ""
@@ -145,7 +147,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .addScriptVariable("player", new TheTest())
                 .overrideSelfReference(new SelfReference() {
@@ -162,7 +164,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"beh0.82", "0.82beh", "beh11", "beh2"}));
     }
 
-    @org.junit.Test(expected = InterpreterException.class)
+    @Test(expected = InterpreterException.class)
     public void testLiteralStringTrueOrFalseParse() throws Exception {
         // Arrange
         String text = ""
@@ -177,7 +179,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -188,7 +190,7 @@ public class TestInterpreter {
         verify(mockExecutor, times(0)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testGlobalVariable() throws Exception {
         // Arrange
         String text = ""
@@ -198,7 +200,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .build();
 
@@ -209,7 +211,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(12.54));
     }
 
-    @org.junit.Test
+    @Test
     public void testTempGlobalVariable() throws Exception {
         // Arrange
         String text = ""
@@ -223,7 +225,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .putExecutor("MESSAGE2", mockExecutor2)
                 .build();
@@ -236,7 +238,7 @@ public class TestInterpreter {
         verify(mockExecutor2).evaluate(any(), anyMap(), any(), eq(null));
     }
 
-    @org.junit.Test
+    @Test
     public void testGlobalVariableDeletion() throws Exception {
         // Arrange
         String text = "key = \"temp\";" +
@@ -250,7 +252,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor)
                 .putExecutor("TEST2", mockExecutor2)
                 .build();
@@ -265,7 +267,7 @@ public class TestInterpreter {
         assertNull(test.getGlobalVar("temp"));
     }
 
-    @org.junit.Test
+    @Test
     public void testArray() throws Exception {
         // Arrange
         String text = ""
@@ -276,7 +278,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .addScriptVariable("args", new Object[2])
                 .build();
@@ -288,7 +290,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("arg1, arg2"));
     }
 
-    @org.junit.Test
+    @Test
     public void testCustomArray() throws Exception {
         // Arrange
         String text = ""
@@ -300,7 +302,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .overrideSelfReference(new SelfReference() {
                     public Object[] array(int size) {
@@ -316,7 +318,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("arg1, arg2"));
     }
 
-    @org.junit.Test
+    @Test
     public void testIteration2() throws Exception {
         // Arrange
         String text = ""
@@ -327,7 +329,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .build();
 
@@ -340,7 +342,7 @@ public class TestInterpreter {
         }
     }
 
-    @org.junit.Test
+    @Test
     public void testIteration3() throws Exception {
         // Arrange
         String text = ""
@@ -353,7 +355,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .build();
 
@@ -366,7 +368,7 @@ public class TestInterpreter {
         }
     }
 
-    @org.junit.Test
+    @Test
     public void testIteration4() throws Exception {
         // Arrange
         String text = ""
@@ -379,7 +381,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .build();
 
@@ -392,7 +394,7 @@ public class TestInterpreter {
         }
     }
 
-    @org.junit.Test
+    @Test
     public void testIteration5() throws Exception {
         // Arrange
         String text = ""
@@ -403,7 +405,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .overrideSelfReference(new SelfReference() {
                     public Collection<String> getPlayers() {
@@ -424,7 +426,7 @@ public class TestInterpreter {
         }
     }
 
-    @org.junit.Test(expected = InterpreterException.class)
+    @Test(expected = InterpreterException.class)
     public void testOnlyTry() throws Exception {
         // Arrange
 
@@ -436,7 +438,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -468,7 +470,7 @@ public class TestInterpreter {
         // invoked 0 times? why?
     }
 
-    @org.junit.Test
+    @Test
     public void testTryCatch1() throws Exception {
         // Arrange
 
@@ -482,7 +484,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("CASE", mockExecutor)
                 .build();
 
@@ -494,7 +496,7 @@ public class TestInterpreter {
         verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(2));
     }
 
-    @org.junit.Test
+    @Test
     public void testTryCatch2() throws Exception {
         // Arrange
 
@@ -516,7 +518,7 @@ public class TestInterpreter {
         Executor mockExecutorCatch = mock(Executor.class);
         when(mockExecutorCatch.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("PRE", mockExecutorPreError)
                 .putExecutor("POST", mockExecutorPostError)
                 .putExecutor("ERROR", mockExecutorError)
@@ -533,7 +535,7 @@ public class TestInterpreter {
         verify(mockExecutorCatch).evaluate(any(), anyMap(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testTryFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -547,7 +549,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("CASE", mockExecutor)
                 .build();
 
@@ -559,7 +561,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
     }
 
-    @org.junit.Test
+    @Test
     public void testTryCatchFinally1() throws Exception {
         // Arrange
 
@@ -575,7 +577,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("CASE", mockExecutor)
                 .build();
 
@@ -588,7 +590,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
     }
 
-    @org.junit.Test
+    @Test
     public void testTryCatchFinally2() throws Exception {
         // Arrange
 
@@ -614,7 +616,7 @@ public class TestInterpreter {
         Executor mockExecutorFinally = mock(Executor.class);
         when(mockExecutorFinally.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("PRE", mockExecutorPreError)
                 .putExecutor("POST", mockExecutorPostError)
                 .putExecutor("ERROR", mockExecutorError)
@@ -633,7 +635,7 @@ public class TestInterpreter {
         verify(mockExecutorFinally).evaluate(any(), anyMap(), any(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testTryCatchInvokedMethod() throws Exception {
         // Arrange
 
@@ -650,7 +652,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("VERIFY", mockExecutor)
                 .build();
 
@@ -662,7 +664,7 @@ public class TestInterpreter {
         verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(false));
     }
 
-    @org.junit.Test
+    @Test
     public void testNegation() throws Exception {
         // Arrange
         String text = ""
@@ -679,7 +681,7 @@ public class TestInterpreter {
         Executor mockTask = mock(Executor.class);
         when(mockTask.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockTask)
                 .overrideSelfReference(new SelfReference() {
                     public Object[] array(int size) {
@@ -696,7 +698,7 @@ public class TestInterpreter {
                 eq(new Object[]{true, false, false, true, true, true}));
     }
 
-    @org.junit.Test
+    @Test
     public void testShortCircuitAnd() throws Exception {
         // Arrange
         String text = ""
@@ -707,7 +709,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .addScriptVariable("player", new InTest())
                 .build();
@@ -719,7 +721,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testShortCircuitAndNull() throws Exception {
         // Arrange
         String text = ""
@@ -730,7 +732,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -742,7 +744,7 @@ public class TestInterpreter {
         // and no exception
     }
 
-    @org.junit.Test
+    @Test
     public void testShortCircuitOr() throws Exception {
         // Arrange
         String text = ""
@@ -753,7 +755,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .addScriptVariable("player2", new InTest())
                 .build();
@@ -765,7 +767,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), anyMap(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testShortCircuitOrNull() throws Exception {
         // Arrange
         String text = ""
@@ -776,7 +778,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -788,7 +790,7 @@ public class TestInterpreter {
         // player2 is null but still executes without NPE
     }
 
-    @org.junit.Test
+    @Test
     public void testWhile() throws Exception {
         // Arrange
         String text = ""
@@ -797,7 +799,7 @@ public class TestInterpreter {
                 + "number = number + 1;"
                 + "ENDWHILE;";
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .overrideTaskSupervisor(mockTask)
                 .build();
 
@@ -808,7 +810,7 @@ public class TestInterpreter {
         assertEquals(3, test.getScriptVar("number"));
     }
 
-//    @org.junit.Test
+//    @Test
 //    public void testEnumParse() throws Exception {
 //        // Arrange
 //        String text = ""
@@ -825,7 +827,7 @@ public class TestInterpreter {
 //        assertEquals(TestEnum.IMTEST, test.getScriptVar("result"));
 //    }
 
-    @org.junit.Test
+    @Test
     public void testPlaceholder() throws Exception {
         // Arrange
         String text = "x = 100.0;"
@@ -860,7 +862,7 @@ public class TestInterpreter {
         Placeholder mockPlaceholderBoolean = mock(Placeholder.class);
         when(mockPlaceholderBoolean.evaluate(any(), any(), any(), any())).thenReturn(true);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("MESSAGE", mockMessage)
                 .putExecutor("TESTSTRING", mockTestString)
                 .putExecutor("TESTINTEGER", mockTestInteger)
@@ -895,7 +897,7 @@ public class TestInterpreter {
         verify(mockPlaceholderBoolean).evaluate(any(), any(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testPlaceholderNull() throws Exception {
         // Arrange
         String text = "a = $merp";
@@ -903,7 +905,7 @@ public class TestInterpreter {
         Placeholder mockPlaceholder = mock(Placeholder.class);
         when(mockPlaceholder.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putPlaceholder("merp", mockPlaceholder)
                 .build();
 
@@ -914,7 +916,7 @@ public class TestInterpreter {
         assertNull(test.getScriptVar("a"));
     }
 
-    @org.junit.Test
+    @Test
     public void testUnaryMinus() throws Exception {
         // Arrange
         String text = "x = 4.0;"
@@ -929,7 +931,7 @@ public class TestInterpreter {
         Placeholder mockPlaceholder = mock(Placeholder.class);
         when(mockPlaceholder.evaluate(any(), any(), any(), any())).thenReturn(3.0);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .putPlaceholder("test3", mockPlaceholder)
                 .build();
@@ -944,7 +946,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(-9.0));
     }
 
-    @org.junit.Test
+    @Test
     public void testIncrementAndDecrement1() throws Exception {
         // Arrange
         String text = "a = 2;"
@@ -965,7 +967,7 @@ public class TestInterpreter {
         Executor mockExecutor5 = mock(Executor.class);
         when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .putExecutor("TEST3", mockExecutor3)
@@ -984,7 +986,7 @@ public class TestInterpreter {
         verify(mockExecutor5).evaluate(any(), any(), any(), eq(2));
     }
 
-    @org.junit.Test
+    @Test
     public void testIncrementAndDecrement2() throws Exception {
         // Arrange
         String text = "a = 2.1;"
@@ -1005,7 +1007,7 @@ public class TestInterpreter {
         Executor mockExecutor5 = mock(Executor.class);
         when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .putExecutor("TEST3", mockExecutor3)
@@ -1024,7 +1026,7 @@ public class TestInterpreter {
         verify(mockExecutor5).evaluate(any(), any(), any(), eq(2.1));
     }
 
-    @org.junit.Test
+    @Test
     public void testBitwiseAndBitshift() throws Exception {
         // Arrange
         String text = "x = -129;"
@@ -1061,7 +1063,7 @@ public class TestInterpreter {
         Executor mockExecutor10 = mock(Executor.class);
         when(mockExecutor10.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .putExecutor("TEST3", mockExecutor3)
@@ -1090,12 +1092,12 @@ public class TestInterpreter {
         verify(mockExecutor10).evaluate(any(), any(), any(), eq(false));
     }
 
-    @org.junit.Test(expected = InterpreterException.class)
+    @Test(expected = InterpreterException.class)
     public void testBitwiseException1() throws Exception {
         // Arrange
         String text = "x = 1&true;";
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .build();
 
         // Act
@@ -1105,12 +1107,12 @@ public class TestInterpreter {
         // Exception
     }
 
-    @org.junit.Test(expected = InterpreterException.class)
+    @Test(expected = InterpreterException.class)
     public void testBitwiseException2() throws Exception {
         // Arrange
         String text = "x = false^2.0;";
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .build();
 
         // Act
@@ -1120,12 +1122,12 @@ public class TestInterpreter {
         // Exception
     }
 
-    @org.junit.Test(expected = InterpreterException.class)
+    @Test(expected = InterpreterException.class)
     public void testBitwiseException3() throws Exception {
         // Arrange
         String text = "x = 1|2.1;";
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .build();
 
         // Act
@@ -1135,7 +1137,7 @@ public class TestInterpreter {
         // Exception
     }
 
-    @org.junit.Test
+    @Test
     public void testSimpleIf() throws Exception {
         // Arrange
 
@@ -1149,7 +1151,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -1161,7 +1163,7 @@ public class TestInterpreter {
         verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("failed"));
     }
 
-    @org.junit.Test
+    @Test
     public void testSimpleIf2() throws Exception {
         // Arrange
         String text = ""
@@ -1174,7 +1176,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .addScriptVariable("someunknown", 0.0)
                 .build();
@@ -1187,7 +1189,7 @@ public class TestInterpreter {
         verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("pass"));
     }
 
-    @org.junit.Test
+    @Test
     public void testSimpleIf3() throws Exception {
         // Arrange
         String text = ""
@@ -1200,7 +1202,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .addScriptVariable("someunknown", 0.0)
                 .build();
@@ -1213,7 +1215,7 @@ public class TestInterpreter {
         verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("pass"));
     }
 
-    @org.junit.Test
+    @Test
     public void testSimpleIf4() throws Exception {
         // Arrange
         String text = ""
@@ -1226,7 +1228,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -1238,7 +1240,7 @@ public class TestInterpreter {
         verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("failed"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf() throws Exception {
         // Arrange
         String text = "x = 4.0;"
@@ -1253,7 +1255,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1266,7 +1268,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq("case3"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf2() throws Exception {
         // Arrange
         String text = "x = 4.0;"
@@ -1281,7 +1283,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1294,7 +1296,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq("case2"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf3_1() throws Exception {
         // Arrange
         String text = ""
@@ -1315,7 +1317,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .addScriptVariable("x", 1000)
                 .build();
@@ -1327,7 +1329,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq("test1"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf3_2() throws Exception {
         // Arrange
         String text = ""
@@ -1348,7 +1350,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .addScriptVariable("x", 100)
                 .build();
@@ -1360,7 +1362,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq("test2"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf3_3() throws Exception {
         // Arrange
         String text = ""
@@ -1381,7 +1383,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .addScriptVariable("x", 10)
                 .build();
@@ -1393,7 +1395,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq("test5"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf3_4() throws Exception {
         // Arrange
         String text = ""
@@ -1414,7 +1416,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .addScriptVariable("x", 5)
                 .build();
@@ -1426,7 +1428,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq("test3"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf3_5() throws Exception {
         // Arrange
         String text = ""
@@ -1447,7 +1449,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .addScriptVariable("x", 0)
                 .build();
@@ -1459,7 +1461,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq("test4"));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf4() throws Exception {
         // Arrange
         String text = "x = 4.0;"
@@ -1477,7 +1479,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1490,7 +1492,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq(3));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf4_2() throws Exception {
         // Arrange
         String text = "x = 5.0;"
@@ -1508,7 +1510,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1521,7 +1523,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq(3));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf4_3() throws Exception {
         // Arrange
         String text = "x = -99;"
@@ -1539,7 +1541,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1552,7 +1554,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq(2));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIf5() throws Exception {
         // Arrange
         String text = "x = 4.0;"
@@ -1574,7 +1576,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1587,7 +1589,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq(3));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedIfNoElse() throws Exception {
         // Arrange
         String text = "x = 4.0;"
@@ -1608,7 +1610,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1621,7 +1623,7 @@ public class TestInterpreter {
         verify(executor, never()).evaluate(any(), any(), any(), eq(3));
     }
 
-    @org.junit.Test
+    @Test
     public void testImport() throws Exception {
         // Arrange
         String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
@@ -1643,7 +1645,7 @@ public class TestInterpreter {
         Executor mockExecutor5 = mock(Executor.class);
         when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .putExecutor("TEST3", mockExecutor3)
@@ -1662,7 +1664,7 @@ public class TestInterpreter {
         verify(mockExecutor5).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
-    @org.junit.Test
+    @Test
     public void testImportAs() throws Exception {
         // Arrange
         String text = "IMPORT " + TheTest.class.getName() + " as SomeClass;"
@@ -1676,7 +1678,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .build();
 
@@ -1691,7 +1693,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
-    @org.junit.Test
+    @Test
     public void testComparison() throws Exception {
         // Arrange
         String text = "#TEST 1 < 2, 2 < 1;"
@@ -1714,7 +1716,7 @@ public class TestInterpreter {
         Executor mockExecutor6 = mock(Executor.class);
         when(mockExecutor6.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .putExecutor("TEST3", mockExecutor3)
@@ -1734,7 +1736,7 @@ public class TestInterpreter {
         verify(mockExecutor5).evaluate(any(), any(), any(), eq(true), eq(false));
     }
 
-    @org.junit.Test
+    @Test
     public void testNullComparison() throws Exception {
         // Arrange
         String text = "IF {\"temp\"} == null;"
@@ -1744,7 +1746,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -1755,7 +1757,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testLineBreak() throws Exception {
         // Arrange
         String text = "#TEST \"abcd\\nABCD\"";
@@ -1763,7 +1765,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -1774,7 +1776,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq("abcd\nABCD"));
     }
 
-    @org.junit.Test
+    @Test
     public void testCarriageReturn() throws Exception {
         // Arrange
         String text = "#TEST \"abcd\\rABCD\"";
@@ -1782,7 +1784,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -1793,7 +1795,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq("abcd\rABCD"));
     }
 
-    @org.junit.Test
+    @Test
     public void testISStatement() throws Exception {
         // Arrange
         String text = "IMPORT " + TheTest.class.getName() + ";" +
@@ -1807,7 +1809,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .addScriptVariable("test", new TheTest())
@@ -1824,28 +1826,48 @@ public class TestInterpreter {
 
     @Test
     public void testRangeFor_Exclusive() throws Exception {
-        final String text = String.join(
-            "\n",
-            "FOR i = 0..2",
-            "  #TEST i",
-            "ENDFOR"
-        );
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 0..2",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
 
-        final Lexer lexer = new Lexer(text, charset);
-        final Parser parser = new Parser(lexer);
+        // Arrange
+        String text = "FOR i = 0..2;" +
+                "#TEST i;" +
+                "ENDFOR;";
 
-        final Node root = parser.parse();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        final Map<String, Executor> executors = new HashMap<>();
-        final Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("TEST", mockExecutor);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        final Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executors);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
+        // Assert
         InOrder inOrder = inOrder(mockExecutor);
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
@@ -1853,28 +1875,49 @@ public class TestInterpreter {
 
     @Test
     public void testRangeFor_ReversedExclusive() throws Exception {
-        final String text = String.join(
-            "\n",
-            "FOR i = 3..0",
-            "  #TEST i",
-            "ENDFOR"
-        );
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 3..0",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
 
-        final Lexer lexer = new Lexer(text, charset);
-        final Parser parser = new Parser(lexer);
+        // Arrange
+        String text = "FOR i = 3..0;" +
+                "#TEST i;" +
+                "ENDFOR;";
 
-        final Node root = parser.parse();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        final Map<String, Executor> executors = new HashMap<>();
-        final Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("TEST", mockExecutor);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        final Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executors);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
+        // Assert
         InOrder inOrder = inOrder(mockExecutor);
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
@@ -1883,28 +1926,49 @@ public class TestInterpreter {
 
     @Test
     public void testRangeFor_Inclusive() throws Exception {
-        final String text = String.join(
-            "\n",
-            "FOR i = 0..=2",
-            "  #TEST i",
-            "ENDFOR"
-        );
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 0..=2",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
 
-        final Lexer lexer = new Lexer(text, charset);
-        final Parser parser = new Parser(lexer);
+        // Arrange
+        String text = "FOR i = 0..=2;" +
+                "#TEST i;" +
+                "ENDFOR;";
 
-        final Node root = parser.parse();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        final Map<String, Executor> executors = new HashMap<>();
-        final Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("TEST", mockExecutor);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        final Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executors);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
+        // Assert
         InOrder inOrder = inOrder(mockExecutor);
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
@@ -1913,28 +1977,50 @@ public class TestInterpreter {
 
     @Test
     public void testRangeFor_ReversedInclusive() throws Exception {
-        final String text = String.join(
-            "\n",
-            "FOR i = 3..=0",
-            "  #TEST i",
-            "ENDFOR"
-        );
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 3..=0",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
 
-        final Lexer lexer = new Lexer(text, charset);
-        final Parser parser = new Parser(lexer);
+        // Arrange
+        String text = "FOR i = 3..=0;" +
+                "#TEST i;" +
+                "ENDFOR;";
 
-        final Node root = parser.parse();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        final Map<String, Executor> executors = new HashMap<>();
-        final Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("TEST", mockExecutor);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        final Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executors);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
+        // Assert
         InOrder inOrder = inOrder(mockExecutor);
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
@@ -1942,7 +2028,7 @@ public class TestInterpreter {
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
     }
 
-    @org.junit.Test
+    @Test
     public void testBreak() throws Exception {
         // Arrange
         String text = "" +
@@ -1967,7 +2053,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .overrideTaskSupervisor(mockTask)
@@ -1982,7 +2068,7 @@ public class TestInterpreter {
     }
 
 
-    @org.junit.Test
+    @Test
     public void testBreak2() throws Exception {
         // Arrange
         String text = "" +
@@ -1996,7 +2082,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -2007,7 +2093,7 @@ public class TestInterpreter {
         verify(mockExecutor, times(3)).evaluate(any(), any(), any(), any());
     }
 
-    @org.junit.Test
+    @Test
     public void testContinue() throws Exception {
         // Arrange
         String text = "" +
@@ -2036,7 +2122,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .overrideTaskSupervisor(mockTask)
@@ -2050,7 +2136,7 @@ public class TestInterpreter {
         verify(mockExecutor2).evaluate(any(), any(), any(), eq(2), eq(5));
     }
 
-    @org.junit.Test
+    @Test
     public void testContinueIterator() throws Exception {
         // Arrange
         String text = "" +
@@ -2078,7 +2164,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .addScriptVariable("arr", new int[]{1, 2, 3, 4, 5})
@@ -2093,7 +2179,7 @@ public class TestInterpreter {
         verify(mockExecutor2).evaluate(any(), any(), any(), eq(9));
     }
 
-    @org.junit.Test
+    @Test
     public void testSyncAsync() throws Exception {
         // Arrange
         String text = ""
@@ -2110,7 +2196,7 @@ public class TestInterpreter {
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
         TaskSupervisor mockTaskSupervisor = mock(TaskSupervisor.class);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .overrideTaskSupervisor(mockTaskSupervisor)
@@ -2135,7 +2221,7 @@ public class TestInterpreter {
         verify(mockTaskSupervisor).submitAsync(any());
     }
 
-    @org.junit.Test
+    @Test
     public void testSyncAsync2() throws Exception {
         // Arrange
         String text = ""
@@ -2156,7 +2242,7 @@ public class TestInterpreter {
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
         TaskSupervisor mockTaskSupervisor = mock(TaskSupervisor.class);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .overrideTaskSupervisor(mockTaskSupervisor)
@@ -2181,7 +2267,7 @@ public class TestInterpreter {
         verify(mockTaskSupervisor).submitAsync(any());
     }
 
-    @org.junit.Test
+    @Test
     public void testConstructorNoArg() throws Exception {
         // Arrange
         String text = ""
@@ -2192,7 +2278,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -2203,7 +2289,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest()));
     }
 
-    @org.junit.Test
+    @Test
     public void testConstructorOneArg() throws Exception {
         // Arrange
         String text = ""
@@ -2214,7 +2300,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -2225,7 +2311,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest(1)));
     }
 
-    @org.junit.Test
+    @Test
     public void testConstructorThreeArg() throws Exception {
         // Arrange
         String text = ""
@@ -2236,7 +2322,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -2247,7 +2333,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest(2, 5.0, "hoho")));
     }
 
-    @org.junit.Test
+    @Test
     public void testConstructorVarArg() throws Exception {
         // Arrange
         String text = ""
@@ -2258,7 +2344,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -2270,7 +2356,7 @@ public class TestInterpreter {
                 eq(new ConstTest(1, 2, Arrays.toString(new int[]{1, 2, 3, 4, 5}))));
     }
 
-    @org.junit.Test
+    @Test
     public void testConstructorCustom() throws Exception {
         // Arrange
         String text = ""
@@ -2284,7 +2370,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .overrideSelfReference(new SelfReference() {
                     public float toFloat(Number number) {
@@ -2304,7 +2390,7 @@ public class TestInterpreter {
                 eq(new Vector(3.2f, 4.3f, 5.4f)));
     }
 
-    @org.junit.Test
+    @Test
     public void testArrayAndClass() throws Exception {
         // Arrange
         String text = ""
@@ -2317,7 +2403,7 @@ public class TestInterpreter {
         Executor executor = mock(Executor.class);
         when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", executor)
                 .overrideSelfReference(new SelfReference() {
                     public Object array(int size) {
@@ -2333,7 +2419,7 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
-    @org.junit.Test
+    @Test
     public void testNestedAccessor() throws Exception {
         // Arrange
         String text = ""
@@ -2344,7 +2430,7 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
                 .build();
 
@@ -2355,7 +2441,7 @@ public class TestInterpreter {
         verify(mockExecutor).evaluate(any(), any(), any(), eq(123456789123456789L));
     }
 
-    @org.junit.Test
+    @Test
     public void testGlobalVariableAsFactor() throws Exception {
         // Arrange
         String text = ""
@@ -2367,7 +2453,7 @@ public class TestInterpreter {
         Executor mockExecutor2 = mock(Executor.class);
         when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .putExecutor("TEST1", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
                 .addGlobalVariable("some.temp.var", 22)
@@ -2382,7 +2468,7 @@ public class TestInterpreter {
         verify(mockExecutor2).evaluate(any(), any(), any(), eq(33 - 5));
     }
 
-    @org.junit.Test
+    @Test
     public void testLambdaFunction() throws Exception {
         // Arrange
         String text = "" +
@@ -2418,7 +2504,7 @@ public class TestInterpreter {
             return run.apply(456, 78);
         }).when(obj).twoArg(any(BiFunction.class));
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .addScriptVariable("instance", instance)
                 .build();
 
@@ -2431,7 +2517,7 @@ public class TestInterpreter {
         assertEquals(456 + 78, instance.twoArgResult);
     }
 
-    @org.junit.Test
+    @Test
     public void testLambdaFunctionNullReturn() throws Exception {
         // Arrange
         String text = "" +
@@ -2451,7 +2537,7 @@ public class TestInterpreter {
             return run.apply(456, 78);
         }).when(obj).twoArg(any(BiFunction.class));
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .addScriptVariable("instance", instance)
                 .build();
 
@@ -2462,7 +2548,7 @@ public class TestInterpreter {
         assertNull(instance.twoArgResult);
     }
 
-    @org.junit.Test
+    @Test
     public void testLambdaFunctionComplex() throws Exception {
         // Arrange
         String text = "" +
@@ -2484,7 +2570,7 @@ public class TestInterpreter {
             return run.apply("Something");
         }).when(obj).oneArg(any(Function.class));
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .addScriptVariable("instance", instance)
                 .build();
 
@@ -2495,7 +2581,7 @@ public class TestInterpreter {
         assertEquals(50, instance.oneArgResult);
     }
 
-    @org.junit.Test
+    @Test
     public void testLambdaFunctionComplex2() throws Exception {
         // Arrange
         String text = "" +
@@ -2517,7 +2603,7 @@ public class TestInterpreter {
             return run.apply("NotSomething");
         }).when(obj).oneArg(any(Function.class));
 
-        Test test = Test.Builder.of(text)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
                 .addScriptVariable("instance", instance)
                 .build();
 
@@ -2528,7 +2614,7 @@ public class TestInterpreter {
         assertEquals(100, instance.oneArgResult);
     }
 
-    @org.junit.Test
+    @Test
     public void testWait() throws Exception {
         // Arrange
         ExecutorService EXEC = Executors.newCachedThreadPool();
@@ -2546,7 +2632,7 @@ public class TestInterpreter {
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(() -> {
                 try {
-                    Test.Builder.of(interpreter)
+                    InterpreterTest.Builder.of(interpreter)
                             .overrideTaskSupervisor(mockTask)
                             .build()
                             .test();
