@@ -36,8 +36,8 @@ function BROADCAST(args) {
 
   message = ChatColor.translateAlternateColorCodes('&', message);
 
-  if (Bukkit.getPluginManager().isPluginEnabled('PlaceholderAPI')) {}
-    PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+    PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
   }
 
   var platform = plugin.getPlatform();
