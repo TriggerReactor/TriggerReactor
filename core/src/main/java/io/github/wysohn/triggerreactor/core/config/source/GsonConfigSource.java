@@ -107,6 +107,7 @@ public class GsonConfigSource implements IConfigSource {
         this.writerFactory = writerFactory;
         this.typeValidator = VALIDATOR_BUILDER.build();
 
+        saveWorker.setPriority(Thread.NORM_PRIORITY - 1);
         saveWorker.start();
     }
 
@@ -134,11 +135,11 @@ public class GsonConfigSource implements IConfigSource {
         synchronized (file) {
             ensureFile();
             try (Reader fr = this.readerFactory.apply(file)) {
-                synchronized (cache) {
-                    Map<String, Object> loaded = null;
-                    if (file.exists() && file.length() > 0L)
-                        loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+                Map<String, Object> loaded = null;
+                if (file.exists() && file.length() > 0L)
+                    loaded = GsonHelper.readJson(new JsonReader(fr), gson);
 
+                synchronized (cache) {
                     cache.clear();
                     if (loaded != null)
                         cache.putAll(loaded);
@@ -164,10 +165,13 @@ public class GsonConfigSource implements IConfigSource {
      */
     private void cacheToFile() {
         try (Writer fw = this.writerFactory.apply(file)) {
+            String ser;
+
             synchronized (cache) {
-                String ser = gson.toJson(cache);
-                fw.write(ser);
+                ser = gson.toJson(cache);
             }
+
+            fw.write(ser);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -220,6 +224,7 @@ public class GsonConfigSource implements IConfigSource {
 
                         l.add(elem);
                     }
+
                     map.put(key, l);
                 } else {
                     if (!typeValidator.isSerializable(value))
@@ -241,8 +246,9 @@ public class GsonConfigSource implements IConfigSource {
     public void put(String key, Object value) {
         synchronized (cache) {
             put(cache, IConfigSource.toPath(key), value);
-            saveWorker.flush();
         }
+
+        saveWorker.flush();
     }
 
     @Override
