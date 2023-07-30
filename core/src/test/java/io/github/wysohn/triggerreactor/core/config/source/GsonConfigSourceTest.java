@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -102,7 +104,8 @@ public class GsonConfigSourceTest {
     @Test
     public void put() {
         // arrange
-        int max = 100000;
+        int tries = 30;
+        int max = 10000;
 
         Map<String, Object> values1 = new HashMap<>();
 
@@ -111,7 +114,18 @@ public class GsonConfigSourceTest {
         }
 
         // act
-        values1.forEach(gsonConfigSource::put);
+        long[] duration = new long[tries];
+        for (int i = 0; i < tries; i++) {
+            long start = System.currentTimeMillis();
+            values1.forEach(gsonConfigSource::put);
+            duration[i] = System.currentTimeMillis() - start;
+        }
+
+        LongSummaryStatistics summary = Arrays.stream(duration).summaryStatistics();
+        System.out.println("put: " + summary);
+        //        put: LongSummaryStatistics{count=30, sum=3451, min=82, average=115.033333, max=257}
+        //        put: LongSummaryStatistics{count=30, sum=489, min=8, average=16.300000, max=103}
+        //        new implementation is about 7 times faster
 
         // assert
         for (int i = 0; i < max; i++) {
