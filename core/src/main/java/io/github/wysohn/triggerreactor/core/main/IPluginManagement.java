@@ -34,4 +34,11 @@ public interface IPluginManagement {
      * @param command the command to be executed (without the slash)
      */
     void runCommandAsConsole(String command);
+
+    /**
+     * Gets the current running platform type for the server implementation.
+     *
+     * @return the current platform type
+     */
+    Platform getPlatform();
 }

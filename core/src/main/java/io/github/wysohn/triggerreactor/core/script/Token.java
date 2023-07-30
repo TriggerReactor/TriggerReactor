@@ -172,6 +172,13 @@ public class Token {
          * Logical
          **/
         OPERATOR_L,
+        /**
+         * Represents `..` or `..=` operators. For example, `0..3` expression is equivalent to
+         * from 0 to 2 (exclusive; 0, 1), and `0..=2` expression is equivalent to from 0 to 3 (inclusive; 0, 1, 2).
+         *
+         * @implSpec The value must be kind of {@code <RANGE_INCLUSIVE>} or {@code <RANGE_EXCLUSIVE>}.
+         */
+        RANGE,
 
         GID, GID_TEMP, ID, PLACEHOLDER, NULLVALUE,
 
@@ -200,6 +207,29 @@ public class Token {
 
         public boolean isLiteral() {
             return literal;
+        }
+    }
+
+    /**
+     * Base of numeric literal encoding according to its prefix.
+     */
+    public enum Base {
+        /** Literal starts with <strong><code>0b</code></strong>. */
+        Binary(2),
+
+        /** Literal starts with <strong><code>0o</code></strong>. */
+        Octal(8),
+
+        /** Literal doesn't contains a prefix. */
+        Decimal(10),
+
+        /** Literal starts with <strong><code>0x</code></strong> */
+        Hexadecimal(16);
+
+        public final int radix;
+
+        Base(final int radix) {
+            this.radix = radix;
         }
     }
 

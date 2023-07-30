@@ -189,7 +189,12 @@ public class Parser {
                     throw new ParserException("Could not find initial value for FOR statement! " + forNode.getToken());
                 iteration.getChildren().add(first);
 
-                if (":".equals(token.value)) {
+                if (token.type == Type.RANGE || (token.type == Type.OPERATOR && ":".equals(token.value))) {
+                    final Node range = token.type == Type.RANGE
+                        ? new Node(token)
+                        : new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>"));  // Compatibility for `:` operator
+                    iteration.getChildren().add(range);
+
                     nextToken();
                     Node second = parseBitShift();
                     if (second == null)
