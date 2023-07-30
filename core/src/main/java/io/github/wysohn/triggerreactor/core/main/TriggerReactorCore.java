@@ -1005,6 +1005,20 @@ public abstract class TriggerReactorCore
                         sender.sendMessage("Successfully changed title");
 
                         return true;
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("sync")) {
+                        String name = args[1];
+                        InventoryTrigger trigger = getInvManager().get(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        trigger.getInfo().setSync(!trigger.getInfo().isSync());
+                        saveAsynchronously(getInvManager());
+                        sender.sendMessage(
+                                "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
+                                        .isSync());
+
                     } else {
                         sendCommandDesc(sender,
                                         "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]",
@@ -1039,6 +1053,9 @@ public abstract class TriggerReactorCore
                         sendCommandDesc(sender,
                                         "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>",
                                         "set title of inventory");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> sync",
+                                        "Enable/Disable sync mode.");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("item")) {
@@ -2133,7 +2150,8 @@ public abstract class TriggerReactorCore
                                                     "item",
                                                     "open",
                                                     "row",
-                                                    "settitle"), args[2]);
+                                                    "settitle",
+                                                    "sync"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);
