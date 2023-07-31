@@ -27,7 +27,7 @@ public class LambdaFunction implements InvocationHandler {
     private final LambdaParameter[] parameters;
     private final Node body;
     private final InterpreterLocalContext lambdaContext;
-    private final Interpreter lambdaBody;
+    private final InterpreterGlobalContext globalContext;
 
     public LambdaFunction(LambdaParameter[] parameters,
                           Node body,
@@ -36,25 +36,38 @@ public class LambdaFunction implements InvocationHandler {
         this.parameters = parameters;
         this.body = body;
         this.lambdaContext = localContext.copyState("LAMBDA");
+        this.globalContext = globalContext;
 
         // if duplicated variable name is found, parameter name always has priority
         for (LambdaParameter parameter : parameters) {
             lambdaContext.setVar(parameter.id, parameter.defValue);
         }
-
-        this.lambdaBody = InterpreterBuilder.start(globalContext, body)
-                .build();
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        int argsLength = args == null ? 0 : args.length;
+    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        final int argsLength = args == null ? 0 : args.length;
 
         if(parameters.length != argsLength)
             throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+argsLength+
                     " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
 
-        // initialize arguments as variables in the lambda
+        // Should copy any states of local, global contexts on evaluation, so we can use access variables that
+        // is defined after the lambda has been captured.
+        //
+        // Example:
+        // ```trg
+        // testFn = LAMBDA =>
+        //   #MESSAGE "Hello " + playerName
+        // ENDLAMBDA
+        //
+        // playerName = player.getName()   // <- Should be copied from the local context
+        // testFn()
+        final Interpreter lambdaBody = InterpreterBuilder.start(globalContext, body)
+                .build();
+        final Interpreter lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
+
+        // Initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {
             lambdaContext.setVar(parameters[i].id, args[i]);
         }
