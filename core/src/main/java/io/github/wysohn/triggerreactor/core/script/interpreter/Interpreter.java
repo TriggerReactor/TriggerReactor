@@ -603,7 +603,7 @@ public class Interpreter {
             }
         } else {
             try {
-                final Object obj = context.getVars().get(right.value);
+                final Object obj = localContext.getVar((String) right.value);
                 if (obj instanceof LambdaFunction) {
                     result = ReflectionUtil.invokeMethod(obj, "invoke", null, null, args);
                 } else {

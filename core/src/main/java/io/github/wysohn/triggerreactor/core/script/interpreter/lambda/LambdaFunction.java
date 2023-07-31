@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 public class LambdaFunction implements InvocationHandler {
     private final LambdaParameter[] parameters;
     private final Node body;
-    private final InterpreterLocalContext lambdaContext;
+    private final InterpreterLocalContext originalLocalContext;
     private final InterpreterGlobalContext globalContext;
 
     public LambdaFunction(LambdaParameter[] parameters,
@@ -35,12 +35,12 @@ public class LambdaFunction implements InvocationHandler {
                           InterpreterGlobalContext globalContext) {
         this.parameters = parameters;
         this.body = body;
-        this.lambdaContext = localContext.copyState("LAMBDA");
+        this.originalLocalContext = localContext;
         this.globalContext = globalContext;
 
         // if duplicated variable name is found, parameter name always has priority
         for (LambdaParameter parameter : parameters) {
-            lambdaContext.setVar(parameter.id, parameter.defValue);
+            originalLocalContext.setVar(parameter.id, parameter.defValue);
         }
     }
 
@@ -63,17 +63,33 @@ public class LambdaFunction implements InvocationHandler {
         //
         // playerName = player.getName()   // <- Should be copied from the local context
         // testFn()
+        // ```
         final Interpreter lambdaBody = InterpreterBuilder.start(globalContext, body)
                 .build();
-        final Interpreter lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
+
+        // TODO consider the case where testFn() is executed in a different thread, and the playerName is changed
+        //   in the main thread. Since the order of thread execution is not guaranteed, the playerName may be
+        //   different from the one when the lambda was captured.
+        // Example:
+        // ```trg
+        // testFn = LAMBDA =>
+        //   #MESSAGE "Hello " + playerName
+        // ENDLAMBDA
+        //
+        // ASYNC
+        //   testFn()
+        // ENDASYNC
+        // playerName = player.getName()   // <- This may be changed before the testFn() is executed.
+        // ```
+        final InterpreterLocalContext copiedLocalContext = originalLocalContext.copyState("LAMBDA");
 
         // Initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {
-            lambdaContext.setVar(parameters[i].id, args[i]);
+            copiedLocalContext.setVar(parameters[i].id, args[i]);
         }
 
-        lambdaBody.start(lambdaContext.getTriggerCause(), lambdaContext);
+        lambdaBody.start(originalLocalContext.getTriggerCause(), copiedLocalContext);
 
-        return lambdaBody.result(lambdaContext);
+        return lambdaBody.result(copiedLocalContext);
     }
 }
