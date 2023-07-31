@@ -32,10 +32,9 @@ public class LambdaFunction implements InvocationHandler {
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
         final int argsLength = args == null ? 0 : args.length;
 
-        if (parameters.length != argsLength) {
-            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided " + args.length + "" +
-                                               " arguments, yet the LAMBDA only has " + parameters.length + " ids. " + body);
-        }
+        if(parameters.length != argsLength)
+            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+argsLength+
+                    " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
 
         // Should copy any states of local, global contexts on evaluation, so we can use access variables that
         // is defined after the lambda has been captured.

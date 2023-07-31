@@ -46,6 +46,7 @@ task writePluginYml {
             "ProtocolLib",
             "WorldGuard",
             "NashornJs",
+            "JShader"
     ])
     map.put("commands", new HashMap<String, Object>() {
         {
