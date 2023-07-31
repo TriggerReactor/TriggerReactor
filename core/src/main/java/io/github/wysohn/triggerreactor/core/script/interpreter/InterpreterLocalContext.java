@@ -97,13 +97,7 @@ public class InterpreterLocalContext {
      * @return copied context.
      */
     public InterpreterLocalContext copyState(String timingsName) {
-        //TODO not sure if giving exception to copy the state is a good idea.
-        //  The only use case is when the LAMBDA block is executed in ASYNC block.
-        //  Come back to this later and think about it.
-
-        lock.lock();
-
-        try {
+        return tryOrThrow(() -> {
             // attach lambda timings to the caller timings
             InterpreterLocalContext context = new InterpreterLocalContext(
                     Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO), interrupter);
@@ -114,9 +108,7 @@ public class InterpreterLocalContext {
             context.extras.putAll(extras);
 
             return context;
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     private <R> R tryOrThrow(Supplier<R> fn) {

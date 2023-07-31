@@ -8,6 +8,10 @@ import org.junit.Test;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -78,5 +82,39 @@ public class InterpreterLocalContextTest {
         assertFalse(otherContext.isBreakFlag()); // part of execution stack
         assertFalse(otherContext.isContinueFlag()); // part of execution stack
         otherContext.popToken();
+    }
+
+    @Test
+    public void copyState_condition() throws InterruptedException, ExecutionException {
+        // arrange
+        int count = 100000;
+
+        Runnable stateChange = () -> {
+            for (int i = 0; i < count; i++) {
+                context.setBreakFlag(!context.isBreakFlag());
+                context.setContinueFlag(!context.isContinueFlag());
+                context.setStopFlag(!context.isStopFlag());
+                context.setWaitFlag(!context.isWaitFlag());
+            }
+        };
+
+        Runnable stateCopy = () -> {
+            for (int i = 0; i < count; i++) {
+                context.copyState("timingsName");
+            }
+        };
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        // act
+        Future<?> thread1 = executorService.submit(stateChange);
+        Future<?> thread2 = executorService.submit(stateCopy);
+
+        executorService.shutdown();
+        executorService.awaitTermination(1, java.util.concurrent.TimeUnit.MINUTES);
+
+        // assert
+        thread1.get();
+        thread2.get();
     }
 }
