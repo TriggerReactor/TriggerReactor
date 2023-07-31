@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -8,15 +25,22 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<InventoryTrigger> {
-    private final IInventoryHandle<ItemStack> inventoryHandle;
+@Singleton
+public class InventoryTriggerLoader implements ITriggerLoader<InventoryTrigger> {
+    @Inject
+    private IInventoryTriggerFactory factory;
+    @Inject
+    private IInventoryHandle inventoryHandle;
 
-    public InventoryTriggerLoader(IInventoryHandle<ItemStack> inventoryHandle) {
-        this.inventoryHandle = inventoryHandle;
+    @Inject
+    private InventoryTriggerLoader() {
+
     }
 
     @Override
@@ -44,7 +68,9 @@ public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<Invento
             IItemStack[] itemArray = new IItemStack[size];
             for (int i = 0; i < size; i++)
                 itemArray[i] = items.getOrDefault(i, null);
-            return new InventoryTrigger(info, script, itemArray);
+            InventoryTrigger inventoryTrigger = factory.create(info, script, itemArray);
+            inventoryTrigger.init();
+            return inventoryTrigger;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -56,8 +82,8 @@ public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<Invento
         try {
             FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-            IItemStack[] items = trigger.items;
-            int size = trigger.items.length;
+            IItemStack[] items = trigger.getItems();
+            int size = items.length;
 
             trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, size);
             trigger.getInfo()

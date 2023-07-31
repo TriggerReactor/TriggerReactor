@@ -17,8 +17,9 @@
 
 package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.script.interpreter.SynchronizableTask;
+import com.google.inject.Inject;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
@@ -29,6 +30,11 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 abstract class Evaluable<R> implements IEvaluable {
+    @Inject
+    private TaskSupervisor taskSupervisor;
+    @Inject
+    private IPluginManagement pluginManagement;
+
     private final String indentifier;
     private final String timingsGroup;
     private final String functionName;
@@ -39,8 +45,12 @@ abstract class Evaluable<R> implements IEvaluable {
     private CompiledScript compiled = null;
     private boolean firstRun = true;
     private Validator validator = null;
+    private boolean slowExecution = false;
 
-    public Evaluable(String indentifier, String timingsGroup, String functionName, String sourceCode,
+    public Evaluable(String indentifier,
+                     String timingsGroup,
+                     String functionName,
+                     String sourceCode,
                      ScriptEngine engine) throws ScriptException {
         this.indentifier = indentifier;
         this.timingsGroup = timingsGroup;
@@ -50,9 +60,20 @@ abstract class Evaluable<R> implements IEvaluable {
         this.engine = engine;
 
         synchronized (this.engine) {
-            Compilable compiler = (Compilable) this.engine;
-            compiled = compiler.compile(sourceCode);
+            if (this.engine instanceof Compilable) {
+                Compilable compiler = (Compilable) this.engine;
+                compiled = compiler.compile(sourceCode);
+            } else {
+                slowExecution = true;
+            }
         }
+    }
+
+    private void eval(ScriptContext context) throws ScriptException {
+        if (compiled != null)
+            compiled.eval(context);
+        else
+            engine.eval(sourceCode, context);
     }
 
     @Override
@@ -78,7 +99,7 @@ abstract class Evaluable<R> implements IEvaluable {
         }
 
         try (Timings.Timing t = time.getTiming("JS <eval>").begin()) {
-            compiled.eval(scriptContext);
+            eval(scriptContext);
         } catch (ScriptException e2) {
             e2.printStackTrace();
         }
@@ -113,7 +134,7 @@ abstract class Evaluable<R> implements IEvaluable {
             return (R) result;
         };
 
-        if (TriggerReactorCore.getInstance().isServerThread()) {
+        if (taskSupervisor.isServerThread()) {
             R result = null;
 
             try {
@@ -124,10 +145,10 @@ abstract class Evaluable<R> implements IEvaluable {
             }
             return result;
         } else {
-            Future<R> future = SynchronizableTask.runSyncTaskForFuture(call);
+            Future<R> future = taskSupervisor.submitSync(call);
             if (future == null) {
                 //probably server is shutting down
-                if (!TriggerReactorCore.getInstance().isEnabled()) {
+                if (!pluginManagement.isEnabled()) {
                     return call.call();
                 } else {
                     throw new Exception(
@@ -162,5 +183,9 @@ abstract class Evaluable<R> implements IEvaluable {
     @Override
     public ValidationResult validate(Object... args) {
         return validator.validate(args);
+    }
+
+    public boolean isSlowExecution() {
+        return slowExecution;
     }
 }

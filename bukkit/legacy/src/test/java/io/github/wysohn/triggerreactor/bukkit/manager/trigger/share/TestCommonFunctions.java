@@ -1,6 +1,9 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Provides;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -14,6 +17,8 @@ import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Test environment for bukkit-legacy.
@@ -35,7 +40,14 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{new CommonFunctions(null)}});
+        return Arrays.asList(new Object[][]{{Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    public AreaTriggerManager areaTriggerManager() {
+                        return mock(AreaTriggerManager.class);
+                    }
+                }
+        ).getInstance(CommonFunctions.class)}});
     }
 
     @Override

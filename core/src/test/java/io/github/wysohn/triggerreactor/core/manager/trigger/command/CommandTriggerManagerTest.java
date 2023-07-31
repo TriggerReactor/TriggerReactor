@@ -1,19 +1,42 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.IEventManagement;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
+import javax.inject.Named;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -24,26 +47,43 @@ public class CommandTriggerManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
     ICommandHandler commandHandler;
+    IEventManagement eventManager;
     CommandTriggerLoader loader;
     CommandTriggerManager manager;
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
-
-        when(core.getExecutorManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getPlaceholderManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getVariableManager().getGlobalVariableAdapter()).thenReturn(new HashMap<>());
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
-
         commandHandler = mock(ICommandHandler.class);
+        eventManager = mock(IEventManagement.class);
         loader = mock(CommandTriggerLoader.class);
-        manager = new CommandTriggerManager(core, commandHandler, loader);
+        manager = Guice.createInjector(
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(ICommandTriggerFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    @Named("CommandTriggerManagerFolder")
+                    public String provideFolder() {
+                        return "CommandTrigger";
+                    }
+
+                    @Provides
+                    public ITriggerLoader<CommandTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    public ICommandHandler provideCommandHandler() {
+                        return commandHandler;
+                    }
+
+                    @Provides
+                    public IEventManagement provideEventManager() {
+                        return eventManager;
+                    }
+                }
+        ).getInstance(CommandTriggerManager.class);
     }
 
     @Test
@@ -87,6 +127,7 @@ public class CommandTriggerManagerTest {
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
+        when(loader.toTriggerInfo(any(), any())).thenReturn(mockInfo);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
         manager.reload("test");

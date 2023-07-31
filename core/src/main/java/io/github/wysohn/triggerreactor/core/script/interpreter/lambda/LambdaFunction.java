@@ -1,31 +1,49 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.script.interpreter.lambda;
 
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterGlobalContext;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.core.script.interpreter.*;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 public class LambdaFunction implements InvocationHandler {
-
     private final LambdaParameter[] parameters;
     private final Node body;
-    private final InterpreterLocalContext localContext;
-    private final InterpreterGlobalContext globalContext;
+    private final InterpreterLocalContext lambdaContext;
+    private final Interpreter lambdaBody;
 
-    public LambdaFunction(
-        final LambdaParameter[] parameters,
-        final Node body,
-        final InterpreterLocalContext localContext,
-        final InterpreterGlobalContext globalContext
-    ) {
+    public LambdaFunction(LambdaParameter[] parameters,
+                          Node body,
+                          InterpreterLocalContext localContext,
+                          InterpreterGlobalContext globalContext) {
         this.parameters = parameters;
         this.body = body;
-        this.localContext = localContext;
-        this.globalContext = globalContext;
+        this.lambdaContext = localContext.copyState("LAMBDA");
+
+        // if duplicated variable name is found, parameter name always has priority
+        for (LambdaParameter parameter : parameters) {
+            lambdaContext.setVar(parameter.id, parameter.defValue);
+        }
+
+        this.lambdaBody = InterpreterBuilder.start(globalContext, body)
+                .build();
     }
 
     @Override
@@ -36,27 +54,13 @@ public class LambdaFunction implements InvocationHandler {
             throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+argsLength+
                     " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
 
-        // Should copy any states of local, global contexts on evaluation, so we can use access variables that
-        // is defined after the lambda has been captured.
-        //
-        // Example:
-        // ```trg
-        // testFn = LAMBDA =>
-        //   #MESSAGE "Hello " + playerName
-        // ENDLAMBDA
-        //
-        // playerName = player.getName()   // <- Should be copied from the local context
-        // testFn()
-        final Interpreter lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
-
         // Initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {
-            lambdaBody.getVars().put(parameters[i].id, args[i]);
+            lambdaContext.setVar(parameters[i].id, args[i]);
         }
 
-        lambdaBody.start();
+        lambdaBody.start(lambdaContext.getTriggerCause(), lambdaContext);
 
-        return lambdaBody.result();
+        return lambdaBody.result(lambdaContext);
     }
-
 }

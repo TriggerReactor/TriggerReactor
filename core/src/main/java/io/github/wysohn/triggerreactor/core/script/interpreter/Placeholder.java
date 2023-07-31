@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
 
-public interface Placeholder extends IEvaluable, SynchronizableTask {
+public interface Placeholder extends IEvaluable {
     /**
      * Replace this placeholder with appropriate value.
      *

@@ -16,18 +16,19 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Player = Java.type('org.bukkit.entity.Player');
+var Player = Java.type("org.bukkit.entity.Player");
+var InventoryTriggerManager = Java.type(
+  "io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager"
+);
 
 var validation = {
   overloads: [
+    [{ type: "string", name: "guiName" }],
     [
-      { type: 'string', name: 'guiName' }
+      { type: Player.class, name: "player" },
+      { type: "string", name: "guiName" },
     ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: 'string', name: 'guiName' }
-    ]
-  ]
+  ],
 };
 
 function GUI(args) {
@@ -41,11 +42,11 @@ function GUI(args) {
     guiName = args[1];
   }
 
-  if (!target) throw new Error('Player is null.');
+  if (!target) throw new Error("Player is null.");
 
-  var inventory = plugin.getInvManager().openGUI(target.getName(), guiName);
-  if (!inventory)
-    throw new Error('No such Inventory Trigger named ' + guiName);
+  var invManager = injector.getInstance(InventoryTriggerManager.class);
+  var inventory = invManager.openGUI(target.getName(), guiName);
+  if (!inventory) throw new Error("No such Inventory Trigger named " + guiName);
 
   return null;
 }

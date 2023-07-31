@@ -18,22 +18,34 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Singleton
 public class ScriptEditManager extends Manager {
+    @Inject
+    private IExceptionHandle pluginManagement;
+
     private final Map<ScriptEditor.User, ScriptEditor> editings = new HashMap<>();
     private final Set<ScriptEditor.User> viewingUsage = new HashSet<>();
     private final Set<ScriptEditor.User> exitDoublecheck = new HashSet<>();
 
-    public ScriptEditManager(TriggerReactorCore plugin) {
-        super(plugin);
+    @Inject
+    private ScriptEditManager() {
+        super();
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -42,7 +54,7 @@ public class ScriptEditManager extends Manager {
     }
 
     @Override
-    public void saveAll() {
+    public void shutdown() {
 
     }
 
@@ -59,7 +71,7 @@ public class ScriptEditManager extends Manager {
      * @param saveHandler the callback interface that allows you to save the script written by editor.
      */
     public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler) {
-        UserImpl editorUser = new UserImpl(sender.get());
+        UserImpl editorUser = new UserImpl((IPlayer) sender);
 
         if (editings.containsKey(editorUser))
             return;
@@ -94,7 +106,7 @@ public class ScriptEditManager extends Manager {
                 try {
                     editor.save();
                 } catch (IOException | ScriptException ex) {
-                    plugin.handleException(null, ex);
+                    pluginManagement.handleException(null, ex);
                 } finally {
                     editings.remove(editorUser);
                     editorUser.sendMessage("&aSaved!");
@@ -120,7 +132,7 @@ public class ScriptEditManager extends Manager {
                 try {
                     lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
                 } catch (NumberFormatException ex) {
-                    plugin.handleException(null, ex);
+                    pluginManagement.handleException(null, ex);
                 }
 
                 editor.up(lines);
@@ -131,7 +143,7 @@ public class ScriptEditManager extends Manager {
                 try {
                     lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
                 } catch (NumberFormatException ex) {
-                    plugin.handleException(null, ex);
+                    pluginManagement.handleException(null, ex);
                 }
 
                 editor.down(lines);

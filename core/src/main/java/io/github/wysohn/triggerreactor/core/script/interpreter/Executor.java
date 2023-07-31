@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
 
-public interface Executor extends IEvaluable, SynchronizableTask {
+public interface Executor extends IEvaluable {
     int STOP = 0;
     int WAIT = 1;
     int BREAK = 2;
