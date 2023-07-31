@@ -26,8 +26,8 @@ import java.lang.reflect.Method;
 public class LambdaFunction implements InvocationHandler {
     private final LambdaParameter[] parameters;
     private final Node body;
-    private final InterpreterLocalContext originalLocalContext;
-    private final InterpreterGlobalContext globalContext;
+    private final InterpreterLocalContext lambdaContext;
+    private final Interpreter lambdaBody;
 
     public LambdaFunction(LambdaParameter[] parameters,
                           Node body,
@@ -35,13 +35,15 @@ public class LambdaFunction implements InvocationHandler {
                           InterpreterGlobalContext globalContext) {
         this.parameters = parameters;
         this.body = body;
-        this.originalLocalContext = localContext;
-        this.globalContext = globalContext;
+        this.lambdaContext = localContext.copyState("LAMBDA");
 
         // if duplicated variable name is found, parameter name always has priority
         for (LambdaParameter parameter : parameters) {
-            originalLocalContext.setVar(parameter.id, parameter.defValue);
+            lambdaContext.setVar(parameter.id, parameter.defValue);
         }
+
+        this.lambdaBody = InterpreterBuilder.start(globalContext, body)
+                .build();
     }
 
     @Override
@@ -52,44 +54,13 @@ public class LambdaFunction implements InvocationHandler {
             throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+argsLength+
                     " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
 
-        // Should copy any states of local, global contexts on evaluation, so we can use access variables that
-        // is defined after the lambda has been captured.
-        //
-        // Example:
-        // ```trg
-        // testFn = LAMBDA =>
-        //   #MESSAGE "Hello " + playerName
-        // ENDLAMBDA
-        //
-        // playerName = player.getName()   // <- Should be copied from the local context
-        // testFn()
-        // ```
-        final Interpreter lambdaBody = InterpreterBuilder.start(globalContext, body)
-                .build();
-
-        // TODO consider the case where testFn() is executed in a different thread, and the playerName is changed
-        //   in the main thread. Since the order of thread execution is not guaranteed, the playerName may be
-        //   different from the one when the lambda was captured.
-        // Example:
-        // ```trg
-        // testFn = LAMBDA =>
-        //   #MESSAGE "Hello " + playerName
-        // ENDLAMBDA
-        //
-        // ASYNC
-        //   testFn()
-        // ENDASYNC
-        // playerName = player.getName()   // <- This may be changed before the testFn() is executed.
-        // ```
-        final InterpreterLocalContext copiedLocalContext = originalLocalContext.copyState("LAMBDA");
-
         // Initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {
-            copiedLocalContext.setVar(parameters[i].id, args[i]);
+            lambdaContext.setVar(parameters[i].id, args[i]);
         }
 
-        lambdaBody.start(originalLocalContext.getTriggerCause(), copiedLocalContext);
+        lambdaBody.start(lambdaContext.getTriggerCause(), lambdaContext);
 
-        return lambdaBody.result(copiedLocalContext);
+        return lambdaBody.result(lambdaContext);
     }
 }
