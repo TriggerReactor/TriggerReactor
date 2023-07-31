@@ -2721,6 +2721,7 @@ public class TestInterpreter {
 
         // arrange
         String text = "" +
+                "abc = 33\n" +
                 "noArgFn = LAMBDA =>\n" +
                 "  abc * 3\n" +
                 "ENDLAMBDA\n" +
@@ -2734,7 +2735,6 @@ public class TestInterpreter {
                 "  a + b\n" +
                 "ENDLAMBDA\n" +
                 "\n" +
-                "abc = 33\n" +
                 "noArgResult = noArgFn()\n" +
                 "oneArgFnResult = oneArgFn(\"Something\")\n" +
                 "twoArgFnResult = twoArgFn(456, 78)\n";
