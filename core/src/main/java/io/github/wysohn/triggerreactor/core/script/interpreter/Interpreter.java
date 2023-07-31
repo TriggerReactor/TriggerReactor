@@ -731,7 +731,12 @@ public class Interpreter {
             }
         } else {
             try {
-                result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+                final Object obj = context.getVars().get(right.value);
+                if (obj instanceof LambdaFunction) {
+                    result = ReflectionUtil.invokeMethod(obj, "invoke", null, null, args);
+                } else {
+                    result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+                }
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
