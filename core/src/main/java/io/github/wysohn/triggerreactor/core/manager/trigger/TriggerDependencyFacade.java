@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
@@ -28,6 +29,8 @@ public class TriggerDependencyFacade implements ITriggerDependencyFacade {
     private IGlobalVariableManager globalVariableManager;
     @Inject
     private IPluginManagement pluginManagement;
+    @Inject
+    private Injector injector;
 
 
     @Inject
@@ -58,6 +61,7 @@ public class TriggerDependencyFacade implements ITriggerDependencyFacade {
         Optional.of(pluginManagement)
                 .map(m -> m.getCustomVarsForTrigger(e))
                 .ifPresent(extraVars::putAll);
+        extraVars.put("injector", injector);
 
         return extraVars;
     }
