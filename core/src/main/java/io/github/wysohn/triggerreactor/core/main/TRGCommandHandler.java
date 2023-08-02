@@ -1568,6 +1568,8 @@ public class TRGCommandHandler {
                         return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
                     case "call":
                         return filter(triggerNames(namedTriggerManager), args[1]);
+                    case "reload":
+                        return filter(Collections.singletonList("confirm"), args[1]);
                 }
             case 3:
                 switch (args[0].toLowerCase()) {
