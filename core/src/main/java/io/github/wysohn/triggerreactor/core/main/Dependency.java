@@ -4,8 +4,8 @@ import static io.github.wysohn.triggerreactor.core.util.ClassUtils.classExists;
 
 public enum Dependency {
 
-    Adventure("net.kyori.adventure.Adventure", Platform.Paper),
-    MiniMessage("net.kyori.adventure.text.minimessage.MiniMessage", Platform.Paper);
+    Adventure("net.kyori.adventure.Adventure"),
+    MiniMessage("net.kyori.adventure.text.minimessage.MiniMessage");
 
     private final boolean classExists;
     private final Platform[] nativeSupportPlatforms;
