@@ -71,7 +71,19 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
     private AreaTriggerManager(@Named("DataFolder") File dataFolder,
                                @Named("AreaTriggerManagerFolder") String folderName) {
         super(new File(dataFolder, folderName));
+    }
 
+    protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
+        getAreaForLocation(from).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(entity));
+    }
+
+    @Override
+    public void initialize() {
         Thread entityTrackingThread = new Thread(new Runnable() {
 
             private Collection<WeakReference<IEntity>> getEntitiesSync(IWorld w) {
@@ -185,20 +197,6 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
         referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
         referenceCleaningThread.setDaemon(true);
         referenceCleaningThread.start();
-    }
-
-    protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
-        getAreaForLocation(from).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
-        getAreaForLocation(current).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(entity));
-    }
-
-    @Override
-    public void initialize() {
-
     }
 
     @Override
