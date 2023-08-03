@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -175,7 +176,7 @@ public class AreaTrigger extends Trigger {
             if (entity != null) {
                 entities.add(entity);
             } else {
-                remove.remove(entry.getKey());
+                remove.add(entry.getKey());
             }
         }
 
@@ -183,6 +184,7 @@ public class AreaTrigger extends Trigger {
             this.trackedEntities.remove(uuid);
         }
 
+        ValidationUtil.validate(entities.size() == this.trackedEntities.size(), "Post cond: Size mismatch");
         return entities;
     }
 }
