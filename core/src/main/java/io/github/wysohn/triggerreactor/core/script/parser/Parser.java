@@ -455,7 +455,7 @@ public class Parser {
     private Node parseSwitch(final Token switchToken) throws IOException, LexerException, ParserException {
         final Node switchNode = new Node(new Token(Type.SWITCH, "<SWITCH>", switchToken));
 
-        final Node varName = parseId();
+        final Node varName = parseBitwise();
         if (varName == null) {
             throw new ParserException("Could not find variable name for SWITCH statement! " + switchNode.getToken());
         }
