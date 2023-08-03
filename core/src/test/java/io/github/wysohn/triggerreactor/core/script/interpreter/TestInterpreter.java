@@ -2828,6 +2828,62 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testSwitchWithBoolean() throws Exception {
+        // arrange
+        final String text = ""
+            + "SWITCH true\n"
+            + "  CASE true => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithString() throws Exception {
+        // arrange
+        final String text = ""
+            + "SWITCH \"THAT\"\n"
+            + "  CASE \"that\" => #FAIL\n"
+            + "  CASE \"tHaT\" => #FAIL\n"
+            + "  CASE \"THAT\" => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
     public void testSwitchWithInteger() throws Exception {
         // arrange
         final String text = ""
