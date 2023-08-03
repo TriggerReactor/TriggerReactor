@@ -73,20 +73,12 @@ public class ExceptionHandle implements IExceptionHandle {
 
     @Override
     public void handleException(ICommandSender sender, Exception ex) {
-        if (sender == null)
-            sender = pluginManagement.getConsoleSender();
-
-        sendExceptionMessage(sender, ex);
+        handleException(sender, (Throwable) ex);
     }
 
     @Override
     public void handleException(Object e, Exception ex) {
-        ICommandSender player = pluginManagement.extractPlayerFromContext(e);
-
-        if (player == null)
-            player = pluginManagement.getConsoleSender();
-
-        sendExceptionMessage(player, ex);
+        handleException(e, (Throwable) ex);
     }
 
     private void sendExceptionMessage(ICommandSender sender, Throwable e) {
