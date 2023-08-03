@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,250 +16,146 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaParameter;
-import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class Interpreter {
-    private final Node root;
-    private final InterpreterLocalContext context;
-    private final InterpreterGlobalContext globalContext;
-    private final Object waitLock = new Object();
+    InterpreterGlobalContext globalContext;
+    private Node root;
 
-    private boolean started = false;
-
-    /*    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
-                SelfReference selfReference, InterpretCondition condition) {
-            this.root = root;
-            for(Entry<String, Executor> entry : executorMap.entrySet())
-                this.executorMap.put(entry.getKey(), entry.getValue());
-            this.gvars = gvars;
-            this.vars = new HashMap<>();
-            this.selfReference = selfReference;
-            this.condition = condition;
-
-            initDefaultExecutors();
-        }
-    */
-    public Interpreter(Node root, InterpreterLocalContext context, InterpreterGlobalContext globalContext){
+    Interpreter(Node root) {
         this.root = root;
-        this.context = context;
-        this.globalContext = globalContext;
-    }
-
-    public Interpreter(Node root) {
-        this(root, new InterpreterLocalContext(), new InterpreterGlobalContext());
-    }
-
-    public void setTaskSupervisor(TaskSupervisor taskSupervisor) {
-        if(started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.task = taskSupervisor;
     }
 
     public Map<String, Executor> getExecutorMap() {
         return globalContext.executorMap;
     }
 
-    public void setExecutorMap(Map<String, Executor> executorMap) {
-        if(started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        for (Entry<String, Executor> entry : executorMap.entrySet())
-            globalContext.executorMap.put(entry.getKey(), entry.getValue());
-    }
-
     public Map<String, Placeholder> getPlaceholderMap() {
         return globalContext.placeholderMap;
-    }
-
-    public void setPlaceholderMap(Map<String, Placeholder> placeholderMap) {
-        if(started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        for (Entry<String, Placeholder> entry : placeholderMap.entrySet())
-            globalContext.placeholderMap.put(entry.getKey(), entry.getValue());
     }
 
     public Map<Object, Object> getGvars() {
         return globalContext.gvars;
     }
 
-    public void setGvars(Map<Object, Object> gvars) {
-        if(started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.gvars = gvars;
-    }
-
     public SelfReference getSelfReference() {
         return globalContext.selfReference;
     }
 
-    public void setSelfReference(SelfReference selfReference) {
-        if(started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.selfReference = selfReference;
-    }
-
-    public void setVars(Map<String, Object> vars) {
-        context.setVars(vars);
-    }
-
-    public boolean isStopFlag() {
-        return context.isStopFlag();
-    }
-
-    public boolean isWaitFlag() {
-        return context.isWaitFlag();
-    }
-
     /**
-     * Map of local variables. Fill this map with necessary pairs depends on the context.
-     *
-     * @return
+     * Check if the root node, local context, and global context are all set.
+     * <p>
+     * Otherwise, it will throw an exception.
      */
-    public Map<String, Object> getVars() {
-        return context.getVars();
-    }
-
-    public void startWithContext(Object context) throws InterpreterException {
-        started = true;
-        startWithContextAndInterrupter(context, null, Timings.LIMBO);
+    void verifyPreCondition() {
+        ValidationUtil.notNull(this.root);
+        ValidationUtil.notNull(this.globalContext);
     }
 
     /**
      * Start interpretation.
      *
-     * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
+     * @param triggerCause The triggerCause that can be used by Executors.
+     *                     This is usually Event object for Bukkit plugin.
      * @throws InterpreterException
      */
-    public void startWithContext(Object context, Timings.Timing timing) throws InterpreterException {
-        started = true;
-        startWithContextAndInterrupter(context, null, timing);
-    }
+    public void start(Object triggerCause, InterpreterLocalContext context) throws InterpreterException {
+        ValidationUtil.notNull(context);
+        verifyPreCondition();
 
-    /**
-     * Start interpretation.
-     *
-     * @param triggerCause     The triggerCause that can be used by Executors.
-     *                         This is usually Event object for Bukkit plugin.
-     * @param interrupter gives the caller to interrupt the execution
-     * @throws InterpreterException
-     */
-    public void startWithContextAndInterrupter(Object triggerCause,
-                                               ProcessInterrupter interrupter,
-                                               Timings.Timing timing) throws InterpreterException {
-        this.context.setTriggerCause(triggerCause);
-        this.globalContext.interrupter = interrupter;
-        this.context.setTiming(timing);
-
-        try (Timings.Timing t = this.context.getTiming()
+        try (Timings.Timing t = context.getTiming()
                 .getTiming("Code Interpretation")
                 .begin(globalContext.task.isServerThread())) {
             for (int i = 0; i < root.getChildren().size(); i++)
-                start(root.getChildren().get(i));
+                start(root.getChildren().get(i), context);
         }
     }
 
     /**
-     * Start interpretation without changing any context information.
-     * @throws InterpreterException
-     */
-    public void start() throws InterpreterException {
-        for (int i = 0; i < root.getChildren().size(); i++)
-            start(root.getChildren().get(i));
-    }
-
-    /**
      * Get possible result produced by this interpreter execution.
-     *
+     * <p>
      * For example, if the code is simply 4 + 5 * 6 without any assignment,
      * the result will be 34.
+     *
+     * @param localContext
+     * @param localContext
      * @return the result (top of the stack); null if there is no result.
      */
-    public Object result() throws InterpreterException {
-        if(context.stackEmpty())
+    public Object result(InterpreterLocalContext localContext) throws InterpreterException {
+        if (localContext.stackEmpty())
             return null;
 
-        Token token = context.popToken();
-        if(isVariable(token)){
-            token = unwrapVariable(token);
+        Token token = localContext.popToken();
+        if (isVariable(token)) {
+            token = unwrapVariable(token, localContext);
         }
 
         return token.value;
     }
 
     //Check if stopFlag is on before pop Token from stack.
-    private void start(Node node) throws InterpreterException {
-        if (context.isStopFlag())
+    private void start(Node node, InterpreterLocalContext localContext) throws InterpreterException {
+        if (localContext.isStopFlag())
             return;
 
         //IF children -- [0] : condition , [1] : true body , [2] : false body(may not exist)
         if ("ELSEIF".equals(node.getToken().value) || "IF".equals(node.getToken().value)) {
-            start(node.getChildren().get(0));//[0] condition
-            if (context.isStopFlag())
+            start(node.getChildren().get(0), localContext);//[0] condition
+            if (localContext.isStopFlag())
                 return;
 
-            Token resultToken = context.popToken();
+            Token resultToken = localContext.popToken();
 
             if (isVariable(resultToken)) {
-                resultToken = unwrapVariable(resultToken);
+                resultToken = unwrapVariable(resultToken, localContext);
             }
 
             if (resultToken.type == Type.NULLVALUE) { // null check failed
                 if (node.getChildren().size() > 2) {
-                    start(node.getChildren().get(2));
+                    start(node.getChildren().get(2), localContext);
                 }
             } else { // normal IF statement
                 if (resultToken.isBoolean()) {
                     boolean result = (boolean) resultToken.value;
                     if (result) {
-                        start(node.getChildren().get(1));//[1] true body
+                        start(node.getChildren().get(1), localContext);//[1] true body
                     } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2));//[2] false body
+                        start(node.getChildren().get(2), localContext);//[2] false body
                     }
                 } else if (resultToken.isInteger()) {
                     int value = resultToken.toInteger();
                     if (value != 0) {
-                        start(node.getChildren().get(1));
+                        start(node.getChildren().get(1), localContext);
                     } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2));
+                        start(node.getChildren().get(2), localContext);
                     }
                 } else if (resultToken.isDecimal()) {
                     double value = resultToken.toDecimal();
                     if (value != 0.0) {
-                        start(node.getChildren().get(1));
+                        start(node.getChildren().get(1), localContext);
                     } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2));
+                        start(node.getChildren().get(2), localContext);
                     }
                 } else if (resultToken.value != null) {//always true if not null
-                    start(node.getChildren().get(1));
+                    start(node.getChildren().get(1), localContext);
                 } else {
                     throw new InterpreterException("Unexpected token for IF statement! -- " + resultToken);
                 }
@@ -267,33 +163,35 @@ public class Interpreter {
         } else if ("TRY".equals(node.getToken().value)) {
             if (node.getChildren().size() == 2 || node.getChildren().size() == 3) {
                 try {
-                    start(node.getChildren().get(0));
+                    start(node.getChildren().get(0), localContext);
                 } catch (Throwable e) {
                     if (node.getChildren().get(1).getToken().type == Type.CATCHBODY) {
                         Node catchBody = node.getChildren().get(1);
 
-                        start(catchBody.getChildren().get(0));
+                        start(catchBody.getChildren().get(0), localContext);
 
                         Throwable throwable = e;
 
-                        Token idToken = context.popToken();
+                        Token idToken = localContext.popToken();
                         Token valueToken = new Token(Type.OBJECT, throwable);
 
                         while ((throwable = throwable.getCause()) != null) {
                             valueToken = new Token(Type.OBJECT, throwable);
                         }
 
-                        assignValue(idToken, valueToken);
+                        assignValue(idToken, valueToken, localContext);
 
-                        start(catchBody.getChildren().get(1));
+                        start(catchBody.getChildren().get(1), localContext);
                     } else {
                         throw e;
                     }
                 } finally {
-                    if ((node.getChildren().size() == 2 && node.getChildren().get(1).getToken().type == Type.FINALLYBODY)) {
-                        start(node.getChildren().get(1));
-                    } else if (node.getChildren().size() == 3 && node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
-                        start(node.getChildren().get(2));
+                    if ((node.getChildren().size() == 2
+                            && node.getChildren().get(1).getToken().type == Type.FINALLYBODY)) {
+                        start(node.getChildren().get(1), localContext);
+                    } else if (node.getChildren().size() == 3
+                            && node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
+                        start(node.getChildren().get(2), localContext);
                     }
                 }
             } else if (node.getChildren().size() == 1) {
@@ -306,29 +204,29 @@ public class Interpreter {
 
             Token resultToken = null;
             do {
-                start(node.getChildren().get(0));
+                start(node.getChildren().get(0), localContext);
 
-                if (context.stackEmpty())
+                if (localContext.stackEmpty())
                     throw new InterpreterException("Could not find condition for WHILE statement!");
 
-                resultToken =  context.popToken();
+                resultToken = localContext.popToken();
 
                 if (isVariable(resultToken)) {
-                    resultToken = unwrapVariable(resultToken);
+                    resultToken = unwrapVariable(resultToken, localContext);
                 }
 
                 if (!(resultToken.value instanceof Boolean))
                     throw new InterpreterException("Unexpected token for WHILE statement! -- " + resultToken);
 
                 if ((boolean) resultToken.value) {
-                    start(node.getChildren().get(1));
-                    if (context.isBreakFlag()) {
-                        context.setBreakFlag(false);
+                    start(node.getChildren().get(1), localContext);
+                    if (localContext.isBreakFlag()) {
+                        localContext.setBreakFlag(false);
                         break;
                     }
 
-                    context.setBreakFlag(false);
-                    context.setContinueFlag(false);
+                    localContext.setBreakFlag(false);
+                    localContext.setContinueFlag(false);
                 } else {
                     break;
                 }
@@ -336,17 +234,18 @@ public class Interpreter {
                 if (globalContext.task.isServerThread()) {
                     long timeTook = System.currentTimeMillis() - start;
                     if (timeTook > 3000L)
-                        throw new InterpreterException("WHILE loop took more than 3 seconds in Server Thread. This is usually "
-                                + "considered as 'too long' and can crash the server.");
+                        throw new InterpreterException(
+                                "WHILE loop took more than 3 seconds in Server Thread. This is usually "
+                                        + "considered as 'too long' and can crash the server.");
                 }
-            } while (!context.isStopFlag());
+            } while (!localContext.isStopFlag());
         } else if ("FOR".equals(node.getToken().value)) {
-            start(node.getChildren().get(0));
+            start(node.getChildren().get(0), localContext);
 
 
-            if (context.isStopFlag())
+            if (localContext.isStopFlag())
                 return;
-            Token idToken =  context.popToken();
+            Token idToken = localContext.popToken();
 
             if (idToken == null)
                 throw new InterpreterException("Iteration variable for FOR statement not found!");
@@ -356,14 +255,14 @@ public class Interpreter {
             Node iterNode = node.getChildren().get(1);
 
             if (iterNode.getChildren().size() == 1) {
-                start(iterNode.getChildren().get(0));
+                start(iterNode.getChildren().get(0), localContext);
 
-                if (context.isStopFlag())
+                if (localContext.isStopFlag())
                     return;
-                Token valueToken =  context.popToken();
+                Token valueToken = localContext.popToken();
 
                 if (isVariable(valueToken)) {
-                    valueToken = unwrapVariable(valueToken);
+                    valueToken = unwrapVariable(valueToken, localContext);
                 }
 
                 if (!valueToken.isIterable())
@@ -372,47 +271,47 @@ public class Interpreter {
                 if (valueToken.isArray()) {
                     for (int i = 0; i < Array.getLength(valueToken.value); i++) {
                         Object obj = Array.get(valueToken.value, i);
-                        if (context.isStopFlag())
+                        if (localContext.isStopFlag())
                             break;
 
-                        assignValue(idToken, parseValue(obj, valueToken));
-                        start(node.getChildren().get(2));
-                        if (context.isBreakFlag()) {
-                            context.setBreakFlag(false);
+                        assignValue(idToken, parseValue(obj, valueToken), localContext);
+                        start(node.getChildren().get(2), localContext);
+                        if (localContext.isBreakFlag()) {
+                            localContext.setBreakFlag(false);
                             break;
                         }
 
-                        context.setBreakFlag(false);
-                        context.setContinueFlag(false);
+                        localContext.setBreakFlag(false);
+                        localContext.setContinueFlag(false);
                     }
                 } else {
                     for (Object obj : (Iterable<?>) valueToken.value) {
-                        if (context.isStopFlag())
+                        if (localContext.isStopFlag())
                             break;
 
-                        assignValue(idToken, parseValue(obj, valueToken));
-                        start(node.getChildren().get(2));
-                        if (context.isBreakFlag()) {
-                            context.setBreakFlag(false);
+                        assignValue(idToken, parseValue(obj, valueToken), localContext);
+                        start(node.getChildren().get(2), localContext);
+                        if (localContext.isBreakFlag()) {
+                            localContext.setBreakFlag(false);
                             break;
                         }
 
-                        context.setBreakFlag(false);
-                        context.setContinueFlag(false);
+                        localContext.setBreakFlag(false);
+                        localContext.setContinueFlag(false);
                     }
                 }
             } else if (iterNode.getChildren().size() == 3) {
                 // # Init
                 Node initNode = iterNode.getChildren().get(0);
-                start(initNode);
+                start(initNode, localContext);
 
-                if (context.isStopFlag()) {
+                if (localContext.isStopFlag()) {
                     return;
                 }
 
-                Token initToken = context.popToken();
+                Token initToken = localContext.popToken();
                 if (isVariable(initToken)) {
-                    initToken = unwrapVariable(initToken);
+                    initToken = unwrapVariable(initToken, localContext);
                 }
 
                 if (!initToken.isInteger())
@@ -420,15 +319,15 @@ public class Interpreter {
 
                 // # Bound
                 final Node boundNode = iterNode.getChildren().get(1);
-                start(boundNode);
+                start(boundNode, localContext);
 
-                if (context.isStopFlag()) {
+                if (localContext.isStopFlag()) {
                     return;
                 }
 
-                Token boundToken = context.popToken();
+                Token boundToken = localContext.popToken();
                 if (isVariable(boundToken)) {
-                    boundToken = unwrapVariable(boundToken);
+                    boundToken = unwrapVariable(boundToken, localContext);
                 }
 
                 final String boundVal = (String) boundToken.getValue();
@@ -441,15 +340,15 @@ public class Interpreter {
 
                 // # Limit
                 Node limitNode = iterNode.getChildren().get(2);
-                start(limitNode);
+                start(limitNode, localContext);
 
-                if (context.isStopFlag()) {
+                if (localContext.isStopFlag()) {
                     return;
                 }
 
-                Token limitToken = context.popToken();
+                Token limitToken = localContext.popToken();
                 if (isVariable(limitToken)) {
-                    limitToken = unwrapVariable(limitToken);
+                    limitToken = unwrapVariable(limitToken, localContext);
                 }
 
                 if (!limitToken.isInteger()) {
@@ -464,15 +363,15 @@ public class Interpreter {
                     if (reversed && i <= end - bound) break;
                     else if (!reversed && i >= end + bound) break;
 
-                    assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()));
-                    start(node.getChildren().get(2));
-                    if (context.isBreakFlag()) {
-                        context.setBreakFlag(false);
+                    assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()), localContext);
+                    start(node.getChildren().get(2), localContext);
+                    if (localContext.isBreakFlag()) {
+                        localContext.setBreakFlag(false);
                         break;
                     }
 
-                    context.setBreakFlag(false);
-                    context.setContinueFlag(false);
+                    localContext.setBreakFlag(false);
+                    localContext.setContinueFlag(false);
 
                     if (reversed) i--;
                     else i++;
@@ -483,28 +382,29 @@ public class Interpreter {
 
         } else if (node.getToken().getType() == Type.LAMBDA) {
             if (node.getChildren().size() != 2)
-                throw new InterpreterException("The LAMBDA node has " + node.getChildren().size() + " children instead of 2. " +
-                        "Report this to us: " + node);
+                throw new InterpreterException(
+                        "The LAMBDA node has " + node.getChildren().size() + " children instead of 2. " +
+                                "Report this to us: " + node);
 
             Node parameters = node.getChildren().get(0);
-            if(parameters.getToken().getType() != Type.PARAMETERS)
-                throw new InterpreterException("Expected parameters but found "+node);
+            if (parameters.getToken().getType() != Type.PARAMETERS)
+                throw new InterpreterException("Expected parameters but found " + node);
 
             Node lambdaBody = node.getChildren().get(1);
-            if(lambdaBody.getToken().getType() != Type.LAMBDABODY)
-                throw new InterpreterException("Expected lambda expression body but found "+node);
+            if (lambdaBody.getToken().getType() != Type.LAMBDABODY)
+                throw new InterpreterException("Expected lambda expression body but found " + node);
 
             LambdaParameter[] lambdaParameters = new LambdaParameter[parameters.getChildren().size()];
             for (int i = 0; i < lambdaParameters.length; i++) {
                 Node idNode = parameters.getChildren().get(i);
-                if(idNode.getToken().getType() != Type.ID)
-                    throw new InterpreterException("Expected lambda parameter to be an id but found "+idNode);
+                if (idNode.getToken().getType() != Type.ID)
+                    throw new InterpreterException("Expected lambda parameter to be an id but found " + idNode);
 
                 lambdaParameters[i] = new LambdaParameter(idNode);
             }
 
-             context.pushToken(new Token(Type.EPS,
-                    new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
+            localContext.pushToken(new Token(Type.EPS,
+                    new LambdaFunction(lambdaParameters, lambdaBody, localContext, globalContext),
                     node.getToken()));
         } else if (node.getToken().getType() == Type.SYNC) {
             try {
@@ -515,7 +415,7 @@ public class Interpreter {
                         for (Node node : node.getChildren()) {
                             //ignore whatever returns as it's impossible
                             //to handle it from the caller
-                            start(node);
+                            start(node, localContext);
                         }
                         return null;
                     }
@@ -530,36 +430,35 @@ public class Interpreter {
                 Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
                 rootCopy.getChildren().addAll(node.getChildren());
 
-                Interpreter copy = new Interpreter(rootCopy,
-                        context.copyState("ASYNC"),
-                        globalContext);
+                Interpreter copy = InterpreterBuilder.start(globalContext, rootCopy)
+                        .build();
 
                 try {
-                    copy.start();
+                    copy.start(localContext.getTriggerCause(), localContext.copyState("ASYNC"));
                 } catch (InterpreterException e) {
-                    TriggerReactorCore.getInstance().handleException(context.getTriggerCause(), e);
+                    globalContext.exceptionHandle.handleException(localContext.getTriggerCause(), e);
                 }
             });
             return;
         } else {
             for (int i = 0; i < node.getChildren().size(); i++) {
                 //ignore rest of body and continue if continue flag is set
-                if (context.isContinueFlag())
+                if (localContext.isContinueFlag())
                     continue;
                 //ignore rest of body and stop
-                if (context.isBreakFlag())
+                if (localContext.isBreakFlag())
                     break;
 
                 Node child = node.getChildren().get(i);
-                start(child);
+                start(child, localContext);
 
                 if (i == 0) {
                     if ("&&".equals(node.getToken().value)) {
-                        Token leftBool =  context.popToken();
+                        Token leftBool = localContext.popToken();
                         if (isVariable(leftBool)) {
-                            leftBool = unwrapVariable(leftBool);
+                            leftBool = unwrapVariable(leftBool, localContext);
                         }
-                         context.pushToken(leftBool);
+                        localContext.pushToken(leftBool);
 
                         if (!leftBool.isBoolean())
                             throw new InterpreterException("Left of && operator should be Boolean but was " + leftBool);
@@ -570,11 +469,11 @@ public class Interpreter {
                             return;
                         }
                     } else if ("||".equals(node.getToken().value)) {
-                        Token leftBool =  context.popToken();
+                        Token leftBool = localContext.popToken();
                         if (isVariable(leftBool)) {
-                            leftBool = unwrapVariable(leftBool);
+                            leftBool = unwrapVariable(leftBool, localContext);
                         }
-                         context.pushToken(leftBool);
+                        localContext.pushToken(leftBool);
 
                         if (!leftBool.isBoolean())
                             throw new InterpreterException("Left of || operator should be Boolean but was " + leftBool);
@@ -589,18 +488,18 @@ public class Interpreter {
             }
         }
 
-        Integer result = interpret(node);
+        Integer result = interpret(node, localContext);
         if (result != null) {
             switch (result) {
                 case Executor.STOP:
-                    context.setStopFlag(true);
+                    localContext.setStopFlag(true);
                     return;
                 case Executor.WAIT:
-                    context.setWaitFlag(true);
-                    synchronized (waitLock) {
-                        while (context.isWaitFlag()) {
+                    localContext.setWaitFlag(true);
+                    synchronized (localContext.waitLock) {
+                        while (localContext.isWaitFlag()) {
                             try {
-                                waitLock.wait();
+                                localContext.waitLock.wait();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -608,10 +507,10 @@ public class Interpreter {
                     }
                     break;
                 case Executor.BREAK:
-                    context.setBreakFlag(true);
+                    localContext.setBreakFlag(true);
                     return;
                 case Executor.CONTINUE:
-                    context.setContinueFlag(true);
+                    localContext.setContinueFlag(true);
                     return;
                 default:
                     throw new InterpreterException(result + " is not a valid return code!");
@@ -629,35 +528,8 @@ public class Interpreter {
      * individually per Interpreter and should not be shared with other Interpreter
      * instances.
      */
-    private final Executor EXECUTOR_WAIT = new Executor() {
-        @Override
-        public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object triggerCause, Object... args) {
-            if (globalContext.task.isServerThread()) {
-                throw new RuntimeException("WAIT is illegal in sync mode!");
-            }
 
-            if (args.length < 1)
-                throw new RuntimeException("Missing arguments [Decimal].");
-
-            if (!(args[0] instanceof Number))
-                throw new RuntimeException(args[0] + " is not a number!");
-
-            double secs = ((Number) args[0]).doubleValue();
-            long later = (long) (secs * 1000);
-            SynchronizableTask.runTaskLater(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (waitLock) {
-                        context.setWaitFlag(false);
-                        waitLock.notify();
-                    }
-                }
-            }, later);
-            return WAIT;
-        }
-    };
-
-    private void assignValue(Token id, Token value) throws InterpreterException {
+    private void assignValue(Token id, Token value, InterpreterLocalContext localContext) throws InterpreterException {
         if (id.type == Type.ACCESS) {
             Accessor accessor = (Accessor) id.value;
             try {
@@ -665,7 +537,7 @@ public class Interpreter {
                     accessor.setTargetValue(null);
                 } else {
                     if (isVariable(value)) {
-                        value = unwrapVariable(value);
+                        value = unwrapVariable(value, localContext);
                     }
 
                     accessor.setTargetValue(value.value);
@@ -678,11 +550,11 @@ public class Interpreter {
         } else if (id.type == Type.GID || id.type == Type.GID_TEMP) {
             if (value.type == Type.NULLVALUE) {
                 globalContext.gvars.remove(id.type == Type.GID
-                                                   ? id.value.toString()
-                                                   : new TemporaryGlobalVariableKey(id.value.toString()));
+                        ? id.value.toString()
+                        : new TemporaryGlobalVariableKey(id.value.toString()));
             } else {
                 if (isVariable(value)) {
-                    value = unwrapVariable(value);
+                    value = unwrapVariable(value, localContext);
                 }
 
                 globalContext.gvars.put(
@@ -691,21 +563,21 @@ public class Interpreter {
             }
         } else if (id.type == Type.ID) {
             if (isVariable(value)) {
-                value = unwrapVariable(value);
+                value = unwrapVariable(value, localContext);
             }
 
-            context.getVars().put(id.value.toString(), value.value);
+            localContext.setVar(id.value.toString(), value.value);
         } else {
             throw new InterpreterException(
                     "Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
         }
     }
 
-    private void callFunction(Token right, Token left, Object[] args) throws InterpreterException {
+    private void callFunction(Token right, Token left, Object[] args, InterpreterLocalContext localContext) throws InterpreterException {
         Object result;
 
-        if (context.getImportMap().containsKey(right.value)) {
-            Class<?> clazz = context.getImportMap().get(right.value);
+        if (localContext.hasImport((String) right.value)) {
+            Class<?> clazz = localContext.getImport((String) right.value);
 
             try {
                 result = ReflectionUtil.constructNew(clazz, args);
@@ -722,7 +594,7 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                                               e);
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
@@ -731,12 +603,17 @@ public class Interpreter {
             }
         } else {
             try {
-                result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+                final Object obj = localContext.getVar((String) right.value);
+                if (obj instanceof LambdaFunction) {
+                    result = ReflectionUtil.invokeMethod(obj, "invoke", null, null, args);
+                } else {
+                    result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+                }
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                                               e);
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
@@ -747,12 +624,12 @@ public class Interpreter {
 
         if (result != null) {
             if (isPrimitive(result)) {
-                context.pushToken(new Token(Type.EPS, result, right));
+                localContext.pushToken(new Token(Type.EPS, result, right));
             } else {
-                context.pushToken(new Token(Type.OBJECT, result, right));
+                localContext.pushToken(new Token(Type.OBJECT, result, right));
             }
         } else {
-            context.pushToken(new Token(Type.NULLVALUE, null, right));
+            localContext.pushToken(new Token(Type.NULLVALUE, null, right));
         }
     }
 
@@ -770,21 +647,21 @@ public class Interpreter {
                 || token.type == Type.ACCESS;
     }
 
-    private Token unwrapVariable(Token varToken) throws InterpreterException {
+    private Token unwrapVariable(Token varToken, InterpreterLocalContext localContext) throws InterpreterException {
         if (varToken.type == Type.ID) {
-            if (context.getImportMap().containsKey(varToken.value)) {
-                Class<?> clazz = context.getImportMap().get(varToken.value);
+            if (localContext.hasImport((String) varToken.value)) {
+                Class<?> clazz = localContext.getImport((String) varToken.value);
                 return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
             }
 
-            Object var = context.getVars().get(varToken.value);
+            Object var = localContext.getVars().get(varToken.value);
 
             return parseValue(var, varToken);
         } else if (varToken.type == Type.GID) {
             return parseValue(globalContext.gvars.get(varToken.value), varToken);
         } else if (varToken.type == Type.GID_TEMP) {
             return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)),
-                              varToken);
+                    varToken);
         } else if (varToken.type == Type.ACCESS) {
             Accessor accessor = (Accessor) varToken.value;
             Object var;
@@ -822,12 +699,14 @@ public class Interpreter {
 
     /**
      * @param node
+     * @param localContext
+     * @param localContext
      * @return return codes in Executor. null if execution continues.
      * @throws InterpreterException
      */
-    private Integer interpret(Node node) throws InterpreterException {
+    private Integer interpret(Node node, InterpreterLocalContext localContext) throws InterpreterException {
         try {
-            if (globalContext.interrupter != null && globalContext.interrupter.onNodeProcess(context, node)) {
+            if (localContext.getInterrupter() != null && localContext.getInterrupter().onNodeProcess(localContext, node)) {
                 return Executor.STOP;
             }
 
@@ -840,113 +719,135 @@ public class Interpreter {
                     || "WHILE".equals(node.getToken().value)) {
                 return null;
             } else if ("IS".equals(node.getToken().value)) {
-                Token right =  context.popToken();
-                Token left =  context.popToken();
+                Token right = localContext.popToken();
+                Token left = localContext.popToken();
 
                 if (isVariable(right)) {
-                    right = unwrapVariable(right);
+                    right = unwrapVariable(right, localContext);
                 }
 
                 if (!(right.value instanceof Class))
                     throw new RuntimeException(right + " is not a Class!");
 
                 if (isVariable(left)) {
-                    left = unwrapVariable(left);
+                    left = unwrapVariable(left, localContext);
                 }
 
                 Class<?> clazz = (Class<?>) right.value;
-                 context.pushToken(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
+                localContext.pushToken(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
 
                 Object[] args = new Object[node.getChildren().size()];
                 for (int i = args.length - 1; i >= 0; i--) {
-                    Token argument =  context.popToken();
+                    Token argument = localContext.popToken();
 
                     if (isVariable(argument)) {
-                        argument = unwrapVariable(argument);
+                        argument = unwrapVariable(argument, localContext);
                     }
 
                     args[i] = argument.value;
                 }
 
-                if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context, command, args)) {
+                if (localContext.getInterrupter() != null && localContext.getInterrupter().onCommand(localContext, command, args)) {
                     return null;
                 } else {
                     if ("WAIT".equalsIgnoreCase(command)) {
-                        return EXECUTOR_WAIT.evaluate(context.getTiming(),
-                                                      context.getVars(),
-                                                      context.getTriggerCause(),
-                                                      args);
+                        Executor executorWait = (timing, vars, triggerCause, args1) -> {
+                            if (globalContext.task.isServerThread()) {
+                                throw new RuntimeException("WAIT is illegal in sync mode!");
+                            }
+
+                            if (args1.length < 1)
+                                throw new RuntimeException("Missing arguments [Decimal].");
+
+                            if (!(args1[0] instanceof Number))
+                                throw new RuntimeException(args1[0] + " is not a number!");
+
+                            double secs = ((Number) args1[0]).doubleValue();
+                            long later = (long) (secs * 1000);
+
+                            globalContext.task.runTaskLater(() -> {
+                                synchronized (localContext.waitLock) {
+                                    localContext.setWaitFlag(false);
+                                    localContext.waitLock.notify();
+                                }
+                            }, later);
+                            return Executor.WAIT;
+                        };
+                        return executorWait.evaluate(localContext.getTiming(),
+                                localContext.getVars(),
+                                localContext.getTriggerCause(),
+                                args);
                     }
 
                     if (!globalContext.executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
-                    return globalContext.executorMap.get(command).evaluate(context.getTiming(),
-                                                                           context.getVars(),
-                                                                           context.getTriggerCause(),
-                                                                           args);
+                    return (Integer) globalContext.executorMap.get(command).evaluate(localContext.getTiming(),
+                            localContext.getVars(),
+                            localContext.getTriggerCause(),
+                            args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
 
                 Object[] args = new Object[node.getChildren().size()];
                 for (int i = args.length - 1; i >= 0; i--) {
-                    Token argument =  context.popToken();
+                    Token argument = localContext.popToken();
 
                     if (isVariable(argument)) {
-                        argument = unwrapVariable(argument);
+                        argument = unwrapVariable(argument, localContext);
                     }
 
                     args[i] = argument.value;
                 }
 
                 Object replaced = null;
-                if (globalContext.interrupter != null) {
-                    replaced = globalContext.interrupter.onPlaceholder(context, placeholderName, args);
+                if (localContext.getInterrupter() != null) {
+                    replaced = localContext.getInterrupter().onPlaceholder(localContext, placeholderName, args);
                 }
 
                 if (replaced == null && !globalContext.placeholderMap.containsKey(placeholderName))
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
                 if (replaced == null) {
-                    replaced = globalContext.placeholderMap.get(placeholderName).evaluate(context.getTiming(),
-                                                                                          context.getVars(),
-                                                                                          context.getTriggerCause(),
-                                                                                          args);
+                    replaced = globalContext.placeholderMap.get(placeholderName).evaluate(localContext.getTiming(),
+                            localContext.getVars(),
+                            localContext.getTriggerCause(),
+                            args);
                 }
 
                 if (replaced instanceof Number) {
                     double d = ((Number) replaced).doubleValue();
                     if (d % 1 == 0) {
                         // whole number
-                         context.pushToken(new Token(Type.INTEGER, (int) d, node.getToken()));
+                        localContext.pushToken(new Token(Type.INTEGER, (int) d, node.getToken()));
                     } else {
-                         context.pushToken(new Token(Type.DECIMAL, d, node.getToken()));
+                        localContext.pushToken(new Token(Type.DECIMAL, d, node.getToken()));
                     }
                 } else if (replaced == null) {
-                     context.pushToken(new Token(Type.NULLVALUE, null, node.getToken()));
+                    localContext.pushToken(new Token(Type.NULLVALUE, null, node.getToken()));
                 } else {
-                     context.pushToken(new Token(Type.EPS, replaced, node.getToken()));
+                    localContext.pushToken(new Token(Type.EPS, replaced, node.getToken()));
                 }
             } else if (node.getToken().type == Type.OPERATOR_A) {
                 String tokenValue = (String) node.getToken().value;
 
-                Token right = "~".equals(tokenValue) ? null :  context.popToken();
-                Token left =  context.popToken();
+                Token right = "~".equals(tokenValue) ? null : localContext.popToken();
+                Token left = localContext.popToken();
 
                 if (right != null && isVariable(right)) {
-                    right = unwrapVariable(right);
+                    right = unwrapVariable(right, localContext);
                 }
 
                 if (isVariable(left)) {
-                    left = unwrapVariable(left);
+                    left = unwrapVariable(left, localContext);
                 }
 
                 if ("+".equals(tokenValue)
                         && (left.type == Type.STRING || (right != null && right.type == Type.STRING))) {
-                     context.pushToken(new Token(Type.STRING, String.valueOf(left.value) + Optional.ofNullable(right)
+                    localContext.pushToken(new Token(Type.STRING, String.valueOf(left.value) + Optional.ofNullable(right)
                             .map(r -> r.value).orElse("null"), node.getToken()));
                 } else if ("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue)) {
                     if (left.type == Type.BOOLEAN && right != null && right.type == Type.BOOLEAN) {
@@ -962,10 +863,13 @@ public class Interpreter {
                                 result = left.toBoolean() | right.toBoolean();
                         }
 
-                         context.pushToken(new Token(Type.BOOLEAN, result, node.getToken().row, node.getToken().col));
+                        localContext.pushToken(new Token(Type.BOOLEAN, result, node.getToken().row, node.getToken().col));
                     } else {
-                        if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric() || right.isDecimal())
-                            throw new InterpreterException("Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! Operands should both be boolean or integer.");
+                        if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric()
+                                || right.isDecimal())
+                            throw new InterpreterException(
+                                    "Cannot execute bitwise operation on value [" + left + "] and [" + right
+                                            + "]! Operands should both be boolean or integer.");
 
                         int result;
                         switch (tokenValue) {
@@ -979,14 +883,17 @@ public class Interpreter {
                                 result = left.toInteger() | right.toInteger();
                                 break;
                         }
-                         context.pushToken(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
+                        localContext.pushToken(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
                     }
-                } else if ("~".equals(tokenValue) || "<<".equals(tokenValue) || ">>".equals(tokenValue) || ">>>".equals(tokenValue)) {
+                } else if ("~".equals(tokenValue) || "<<".equals(tokenValue) || ">>".equals(tokenValue) || ">>>".equals(
+                        tokenValue)) {
                     if (!left.isNumeric() || left.isDecimal())
-                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + left + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute bit shift operation on non-integer value [" + left + "]!");
 
                     if (right != null && (!right.isNumeric() || right.isDecimal()))
-                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + right + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute bit shift operation on non-integer value [" + right + "]!");
 
                     int result;
                     switch (tokenValue) {
@@ -995,30 +902,35 @@ public class Interpreter {
                             break;
                         case "<<":
                             if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " << null");
+                                throw new InterpreterException(
+                                        "Bitwise operator encountered null: " + left + " << null");
 
                             result = left.toInteger() << right.toInteger();
                             break;
                         case ">>":
                             if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >> null");
+                                throw new InterpreterException(
+                                        "Bitwise operator encountered null: " + left + " >> null");
 
                             result = left.toInteger() >> right.toInteger();
                             break;
                         default: //case ">>>"
                             if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >>> null");
+                                throw new InterpreterException(
+                                        "Bitwise operator encountered null: " + left + " >>> null");
 
                             result = left.toInteger() >>> right.toInteger();
                             break;
                     }
-                     context.pushToken(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
+                    localContext.pushToken(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
                 } else {
                     if (!left.isNumeric())
-                        throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
 
                     if (right == null || !right.isNumeric())
-                        throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + right + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute arithmetic operation on non-numeric value [" + right + "]!");
 
                     boolean integer = true;
                     if (left.isDecimal() || right.isDecimal()) {
@@ -1028,113 +940,170 @@ public class Interpreter {
                     Number result;
                     switch (tokenValue) {
                         case "+":
-                            result = integer ? left.toInteger() + right.toInteger() : left.toDecimal() + right.toDecimal();
+                            result = integer
+                                    ? left.toInteger() + right.toInteger()
+                                    : left.toDecimal() + right.toDecimal();
                             break;
                         case "-":
-                            result = integer ? left.toInteger() - right.toInteger() : left.toDecimal() - right.toDecimal();
+                            result = integer
+                                    ? left.toInteger() - right.toInteger()
+                                    : left.toDecimal() - right.toDecimal();
                             break;
                         case "*":
-                            result = integer ? left.toInteger() * right.toInteger() : left.toDecimal() * right.toDecimal();
+                            result = integer
+                                    ? left.toInteger() * right.toInteger()
+                                    : left.toDecimal() * right.toDecimal();
                             break;
                         case "/":
-                            result = integer ? left.toInteger() / right.toInteger() : left.toDecimal() / right.toDecimal();
+                            result = integer
+                                    ? left.toInteger() / right.toInteger()
+                                    : left.toDecimal() / right.toDecimal();
                             break;
                         case "%":
-                            result = integer ? left.toInteger() % right.toInteger() : left.toDecimal() % right.toDecimal();
+                            result = integer
+                                    ? left.toInteger() % right.toInteger()
+                                    : left.toDecimal() % right.toDecimal();
                             break;
                         default:
-                            throw new InterpreterException("Cannot interpret the unknown operator " + node.getToken().value);
+                            throw new InterpreterException(
+                                    "Cannot interpret the unknown operator " + node.getToken().value);
                     }
 
                     if (integer) {
-                         context.pushToken(new Token(Type.INTEGER, result.intValue(), node.getToken().row, node.getToken().col));
+                        localContext.pushToken(new Token(Type.INTEGER,
+                                result.intValue(),
+                                node.getToken().row,
+                                node.getToken().col));
                     } else {
-                         context.pushToken(new Token(Type.DECIMAL, result.doubleValue(), node.getToken().row, node.getToken().col));
+                        localContext.pushToken(new Token(Type.DECIMAL,
+                                result.doubleValue(),
+                                node.getToken().row,
+                                node.getToken().col));
                     }
                 }
             } else if (node.getToken().type == Type.OPERATOR_UNARY) {
-                if("-".equals(node.getToken().value)) {
-                    Token value =  context.popToken();
+                if ("-".equals(node.getToken().value)) {
+                    Token value = localContext.popToken();
 
                     if (isVariable(value)) {
-                        value = unwrapVariable(value);
+                        value = unwrapVariable(value, localContext);
                     }
 
                     if (!value.isNumeric())
-                        throw new InterpreterException("Cannot do unary minus operation for non-numeric value " + value);
+                        throw new InterpreterException(
+                                "Cannot do unary minus operation for non-numeric value " + value);
 
-                     context.pushToken(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row, value.col)
+                    localContext.pushToken(value.isInteger() ? new Token(Type.INTEGER,
+                            -value.toInteger(),
+                            value.row,
+                            value.col)
                             : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
                 } else {
-                    Token var =  context.popToken();
+                    Token var = localContext.popToken();
 
                     if (isVariable(var)) {
-                        Token unwrappedVar = unwrapVariable(var);
+                        Token unwrappedVar = unwrapVariable(var, localContext);
 
                         if (!unwrappedVar.isNumeric())
                             throw new InterpreterException("Cannot do unary operation for non-numeric value " + var);
 
                         boolean processed = false;
-                        if("++expr".equals(node.getToken().value)) {
-                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()+1, var.row, var.col)
-                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()+1, var.row, var.col));
+                        if ("++expr".equals(node.getToken().value)) {
+                            assignValue(var,
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() + 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() + 1,
+                                            var.row,
+                                            var.col), localContext);
                             processed = true;
-                        } else if("--expr".equals(node.getToken().value)) {
-                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()-1, var.row, var.col)
-                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()-1, var.row, var.col));
+                        } else if ("--expr".equals(node.getToken().value)) {
+                            assignValue(var,
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() - 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() - 1,
+                                            var.row,
+                                            var.col), localContext);
                             processed = true;
                         }
 
-                        unwrappedVar = unwrapVariable(var);
-                         context.pushToken(unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger(), var.row, var.col)
-                                : new Token(Type.DECIMAL, unwrappedVar.toDecimal(), var.row, var.col));
+                        unwrappedVar = unwrapVariable(var, localContext);
+                        localContext.pushToken(unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                unwrappedVar.toInteger(),
+                                var.row,
+                                var.col)
+                                : new Token(Type.DECIMAL,
+                                unwrappedVar.toDecimal(),
+                                var.row,
+                                var.col));
 
-                        if("expr++".equals(node.getToken().value)) {
-                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()+1, var.row, var.col)
-                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()+1, var.row, var.col));
+                        if ("expr++".equals(node.getToken().value)) {
+                            assignValue(var,
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() + 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() + 1,
+                                            var.row,
+                                            var.col), localContext);
                             processed = true;
-                        } else if("expr--".equals(node.getToken().value)) {
-                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()-1, var.row, var.col)
-                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()-1, var.row, var.col));
+                        } else if ("expr--".equals(node.getToken().value)) {
+                            assignValue(var,
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() - 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() - 1,
+                                            var.row,
+                                            var.col), localContext);
                             processed = true;
                         }
 
-                        if(!processed) {
-                            throw new InterpreterException("Cannot interpret the unknown unary operator " + node.getToken().value);
+                        if (!processed) {
+                            throw new InterpreterException(
+                                    "Cannot interpret the unknown unary operator " + node.getToken().value);
                         }
                     } else {
-                        throw new InterpreterException("Cannot do unary increment/decrement operation for non-variable" + var);
+                        throw new InterpreterException(
+                                "Cannot do unary increment/decrement operation for non-variable" + var);
                     }
                 }
             } else if (node.getToken().type == Type.OPERATOR_L) {
                 if ("!".equals(node.getToken().value)) {
-                    Token boolval =  context.popToken();
+                    Token boolval = localContext.popToken();
 
                     if (isVariable(boolval)) {
-                        boolval = unwrapVariable(boolval);
+                        boolval = unwrapVariable(boolval, localContext);
                     }
 
                     if (boolval.type == Type.NULLVALUE) {// treat null as false
-                         context.pushToken(new Token(Type.BOOLEAN, true, node.getToken()));
+                        localContext.pushToken(new Token(Type.BOOLEAN, true, node.getToken()));
                     } else if (boolval.isBoolean()) {
-                         context.pushToken(new Token(Type.BOOLEAN, !boolval.toBoolean(), node.getToken()));
+                        localContext.pushToken(new Token(Type.BOOLEAN, !boolval.toBoolean(), node.getToken()));
                     } else if (boolval.isDecimal()) {
-                         context.pushToken(new Token(Type.BOOLEAN, boolval.toDecimal() == 0.0, node.getToken()));
+                        localContext.pushToken(new Token(Type.BOOLEAN, boolval.toDecimal() == 0.0, node.getToken()));
                     } else if (boolval.isInteger()) {
-                         context.pushToken(new Token(Type.BOOLEAN, boolval.toInteger() == 0, node.getToken()));
+                        localContext.pushToken(new Token(Type.BOOLEAN, boolval.toInteger() == 0, node.getToken()));
                     } else {
                         throw new InterpreterException("Cannot negate non-boolean value " + boolval);
                     }
                 } else {
-                    Token right =  context.popToken();
-                    Token left =  context.popToken();
+                    Token right = localContext.popToken();
+                    Token left = localContext.popToken();
 
                     if (isVariable(right)) {
-                        right = unwrapVariable(right);
+                        right = unwrapVariable(right, localContext);
                     }
 
                     if (isVariable(left)) {
-                        left = unwrapVariable(left);
+                        left = unwrapVariable(left, localContext);
                     }
 
                     switch ((String) node.getToken().value) {
@@ -1142,62 +1111,86 @@ public class Interpreter {
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
-                             context.pushToken(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) < (right.isInteger()
-                                    ? right.toInteger() : right.toDecimal()), node.getToken()));
+                            localContext.pushToken(new Token(Type.BOOLEAN,
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) < (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case ">":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
-                             context.pushToken(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) > (right.isInteger()
-                                    ? right.toInteger() : right.toDecimal()), node.getToken()));
+                            localContext.pushToken(new Token(Type.BOOLEAN,
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) > (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case "<=":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
-                             context.pushToken(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) <= (right.isInteger()
-                                    ? right.toInteger() : right.toDecimal()), node.getToken()));
+                            localContext.pushToken(new Token(Type.BOOLEAN,
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) <= (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case ">=":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
-                             context.pushToken(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) >= (right.isInteger()
-                                    ? right.toInteger() : right.toDecimal()), node.getToken()));
+                            localContext.pushToken(new Token(Type.BOOLEAN,
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) >= (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case "==":
                             if (left.type == Type.NULLVALUE || right.type == Type.NULLVALUE) {
                                 if (left.value == null && right.value == null) {
-                                     context.pushToken(new Token(Type.BOOLEAN, true, node.getToken()));
+                                    localContext.pushToken(new Token(Type.BOOLEAN, true, node.getToken()));
                                 } else if (left.value == null) {
-                                     context.pushToken(new Token(Type.BOOLEAN, right.value == null, node.getToken()));
+                                    localContext.pushToken(new Token(Type.BOOLEAN, right.value == null, node.getToken()));
                                 } else {
-                                     context.pushToken(new Token(Type.BOOLEAN, left.value == null, node.getToken()));
+                                    localContext.pushToken(new Token(Type.BOOLEAN, left.value == null, node.getToken()));
                                 }
                             } else {
-                                 context.pushToken(new Token(Type.BOOLEAN, left.value.equals(right.value), node.getToken()));
+                                localContext.pushToken(new Token(Type.BOOLEAN,
+                                        left.value.equals(right.value),
+                                        node.getToken()));
                             }
 
                             break;
                         case "!=":
                             if (left.type == Type.NULLVALUE || right.type == Type.NULLVALUE) {
                                 if (left.value == null && right.value == null) {
-                                     context.pushToken(new Token(Type.BOOLEAN, false, node.getToken()));
+                                    localContext.pushToken(new Token(Type.BOOLEAN, false, node.getToken()));
                                 } else if (left.value == null) {
-                                     context.pushToken(new Token(Type.BOOLEAN, right.value != null, node.getToken()));
+                                    localContext.pushToken(new Token(Type.BOOLEAN, right.value != null, node.getToken()));
                                 } else {
-                                     context.pushToken(new Token(Type.BOOLEAN, left.value != null, node.getToken()));
+                                    localContext.pushToken(new Token(Type.BOOLEAN, left.value != null, node.getToken()));
                                 }
                             } else {
-                                 context.pushToken(new Token(Type.BOOLEAN, !left.value.equals(right.value), node.getToken()));
+                                localContext.pushToken(new Token(Type.BOOLEAN,
+                                        !left.value.equals(right.value),
+                                        node.getToken()));
                             }
                             break;
                         case "&&":
-                             context.pushToken(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean(), node.getToken()));
+                            localContext.pushToken(new Token(Type.BOOLEAN,
+                                    left.toBoolean() && right.toBoolean(),
+                                    node.getToken()));
                             break;
                         case "||":
-                             context.pushToken(new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean(), node.getToken()));
+                            localContext.pushToken(new Token(Type.BOOLEAN,
+                                    left.toBoolean() || right.toBoolean(),
+                                    node.getToken()));
                             break;
                     }
                 }
@@ -1205,47 +1198,49 @@ public class Interpreter {
                 Token right, left;
                 switch ((String) node.getToken().value) {
                     case "=":
-                        right =  context.popToken();
-                        left =  context.popToken();
+                        right = localContext.popToken();
+                        left = localContext.popToken();
 
-                        assignValue(left, right);
+                        assignValue(left, right, localContext);
                         break;
                     case ".":
-                        right =  context.popToken();
+                        right = localContext.popToken();
                         //function call
                         if (right.type == Type.CALL) {
-                            Object[] args = new Object[context.getCallArgsSize()];
-                            for (int i = context.getCallArgsSize() - 1; i >= 0; i--) {
-                                Token argument =  context.popToken();
+                            Object[] args = new Object[localContext.getCallArgsSize()];
+                            for (int i = localContext.getCallArgsSize() - 1; i >= 0; i--) {
+                                Token argument = localContext.popToken();
 
                                 if (isVariable(argument)) {
-                                    argument = unwrapVariable(argument);
+                                    argument = unwrapVariable(argument, localContext);
                                 }
 
                                 args[i] = argument.value;
                             }
-                            context.setCallArgsSize(0);
+                            localContext.setCallArgsSize(0);
 
-                            left =  context.popToken();
+                            left = localContext.popToken();
 
                             if (left.type == Type.THIS) {
                                 callFunction(new Token(Type.OBJECT, right.value, node.getToken()),
-                                        new Token(Type.OBJECT, globalContext.selfReference, node.getToken()), args);
+                                        new Token(Type.OBJECT, globalContext.selfReference, node.getToken()),
+                                        args, localContext);
                             } else {
                                 Token temp = left;
 
                                 if (isVariable(left)) {
-                                    left = unwrapVariable(left);
+                                    left = unwrapVariable(left, localContext);
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    throw new InterpreterException("Cannot access " + right + "! " + temp.value + " is null.");
+                                    throw new InterpreterException(
+                                            "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
 
                                 if (left.isObject()) { // method call for target object
-                                    callFunction(right, left, args);
+                                    callFunction(right, left, args, localContext);
                                 } else if (left.isBoxedPrimitive()) { // special case: numeric class access
-                                    callFunction(right, left, args);
+                                    callFunction(right, left, args, localContext);
                                 } else if (left.value instanceof Accessor) {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -1258,32 +1253,37 @@ public class Interpreter {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
 
-                                    callFunction(right, new Token(Type.EPS, var, node.getToken()), args);
+                                    callFunction(right, new Token(Type.EPS, var, node.getToken()), args, localContext);
                                 } else {
-                                    throw new InterpreterException("Unexpected value " + left + " for target of " + right
-                                            + ". " + "Is " + left + "." + right + " what you were trying to do?");
+                                    throw new InterpreterException(
+                                            "Unexpected value " + left + " for target of " + right
+                                                    + ". " + "Is " + left + "." + right
+                                                    + " what you were trying to do?");
                                 }
                             }
                         }
                         //field access
                         else {
-                            left =  context.popToken();
+                            left = localContext.popToken();
 
                             if (left.type == Type.THIS) {
-                                 context.pushToken(right);
+                                localContext.pushToken(right);
                             } else {
                                 Token temp = left;
 
                                 if (isVariable(left)) {
-                                    left = unwrapVariable(left);
+                                    left = unwrapVariable(left, localContext);
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    throw new InterpreterException("Cannot access " + right + "! " + temp.value + " is null.");
+                                    throw new InterpreterException(
+                                            "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
 
                                 if (left.isObject() || left.isArray()) {
-                                     context.pushToken(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value), node.getToken()));
+                                    localContext.pushToken(new Token(Type.ACCESS,
+                                            new Accessor(left.value, (String) right.value),
+                                            node.getToken()));
                                 } else {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -1296,22 +1296,24 @@ public class Interpreter {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
 
-                                     context.pushToken(new Token(Type.ACCESS, new Accessor(var, (String) right.value), node.getToken()));
+                                    localContext.pushToken(new Token(Type.ACCESS,
+                                            new Accessor(var, (String) right.value),
+                                            node.getToken()));
                                 }
                             }
                         }
                         break;
                 }
             } else if (node.getToken().type == Type.ARRAYACCESS) {
-                Token right =  context.popToken();
-                Token left =  context.popToken();
+                Token right = localContext.popToken();
+                Token left = localContext.popToken();
 
                 if (isVariable(left)) {
-                    left = unwrapVariable(left);
+                    left = unwrapVariable(left, localContext);
                 }
 
                 if (isVariable(right)) {
-                    right = unwrapVariable(right);
+                    right = unwrapVariable(right, localContext);
                 }
 
                 if (!left.isArray())
@@ -1320,47 +1322,53 @@ public class Interpreter {
                 if (!right.isInteger())
                     throw new InterpreterException(right + " is not a valid index for array!");
 
-                 context.pushToken(new Token(Type.ACCESS, new Accessor(left.value, right.toInteger()), node.getToken()));
+                localContext.pushToken(new Token(Type.ACCESS, new Accessor(left.value, right.toInteger()), node.getToken()));
             } else if (node.getToken().type == Type.THIS) {
-                 context.pushToken(node.getToken());
+                localContext.pushToken(node.getToken());
             } else if (node.getToken().type == Type.ID) {
-                 context.pushToken(node.getToken());
+                localContext.pushToken(node.getToken());
             } else if (node.getToken().type == Type.GID || node.getToken().type == Type.GID_TEMP) {
-                Token keyToken =  context.popToken();
+                Token keyToken = localContext.popToken();
 
                 if (isVariable(keyToken)) {
-                    keyToken = unwrapVariable(keyToken);
+                    keyToken = unwrapVariable(keyToken, localContext);
                 }
 
                 if (keyToken.getType() != Type.STRING) {
                     throw new InterpreterException(keyToken + " is not a valid global variable id.");
                 }
 
-                 context.pushToken(new Token(node.getToken().type, keyToken.value, node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type, keyToken.value, node.getToken()));
             } else if (node.getToken().type == Type.CALL) {
-                 context.pushToken(node.getToken());
-                context.setCallArgsSize(node.getChildren().size());
+                localContext.pushToken(node.getToken());
+                localContext.setCallArgsSize(node.getChildren().size());
             } else if (node.getToken().type == Type.STRING) {
-                 context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.INTEGER) {
-                 context.pushToken(new Token(node.getToken().type, Integer.parseInt((String) node.getToken().value), node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type,
+                        Integer.parseInt((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.DECIMAL) {
-                 context.pushToken(new Token(node.getToken().type, Double.parseDouble((String) node.getToken().value), node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type,
+                        Double.parseDouble((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.BOOLEAN) {
-                 context.pushToken(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value), node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type,
+                        Boolean.parseBoolean((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.EPS) {
-                 context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.NULLVALUE) {
-                 context.pushToken(new Token(node.getToken().type, null, node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type, null, node.getToken()));
             } else if (node.getToken().type == Type.IMPORT) {
                 Class<?> clazz = Class.forName((String) node.getToken().getValue());
                 String name = clazz.getSimpleName();
                 if (node.getChildren().size() == 1) {
                     name = (String) node.getChildren().get(0).getToken().value;
                 }
-                context.getImportMap().put(name, clazz);
+                localContext.setImport(name, clazz);
             } else if (node.getToken().type == Type.RANGE) {
-                context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
+                localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else {
                 throw new InterpreterException("Cannot interpret the unknown node " + node.getToken().type.name());
             }
@@ -1369,35 +1377,6 @@ public class Interpreter {
         }
 
         return null;
-    }
-
-    public static void main(String[] ar) throws Exception {
-        final String text = String.join("\n",
-                                        "FOR i = 0:2",
-                                        "  #MESSAGE i",
-                                        "ENDFOR"
-        );
-
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-
-        final Map<String, Executor> executors = new HashMap<>();
-        executors.put("MESSAGE", (timing, variables, e, args) -> {
-            System.out.println(args[0]);
-            return null;
-        });
-
-        final Map<String, Placeholder> placeholders = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executors);
-        interpreter.setPlaceholderMap(placeholders);
-        interpreter.setTaskSupervisor(EmptyTaskSupervisor.INSTANCE);
-        interpreter.setGvars(new HashMap<>());
-
-        interpreter.startWithContext(null);
     }
 
     static {

@@ -1,6 +1,21 @@
 dependencies {
+    if (!project.hasProperty("Legacy")) {
+        api 'org.openjdk.nashorn:nashorn-core:15.4'
+    }
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+
+    // https://mvnrepository.com/artifact/com.google.inject/guice
+    api 'com.google.inject:guice:5.1.0'
+    // https://mvnrepository.com/artifact/com.google.inject.extensions/guice-assistedinject
+    api 'com.google.inject.extensions:guice-assistedinject:5.1.0'
+}
+
+allprojects {
+    compileJava {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
 }
 
 allprojects {

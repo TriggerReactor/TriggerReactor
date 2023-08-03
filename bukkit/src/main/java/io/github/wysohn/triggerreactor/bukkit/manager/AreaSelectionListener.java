@@ -27,11 +27,15 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.UUID;
 
+@Singleton
 public class AreaSelectionListener implements Listener {
     private AreaSelectionManager manager;
 
+    @Inject
     public AreaSelectionListener(AreaSelectionManager manager) {
         this.manager = manager;
     }
@@ -54,9 +58,9 @@ public class AreaSelectionListener implements Listener {
         }
 
         manager.onInteract(new BukkitPlayer(player),
-                   BukkitUtil.isLeftHandClick(e),
-                   e::setCancelled,
-                   new BukkitBlock(e.getClickedBlock()),
-                   action);
+                BukkitUtil.isLeftHandClick(e),
+                e::setCancelled,
+                new BukkitBlock(e.getClickedBlock()),
+                action);
     }
 }

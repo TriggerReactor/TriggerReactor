@@ -29,5 +29,11 @@ public interface ITriggerLoader<T extends Trigger> {
 
     T load(TriggerInfo info) throws InvalidTrgConfigurationException;
 
+    //TODO File I/O need to be done asynchronously
     void save(T trigger);
+
+    default void delete(T trigger) {
+        //TODO File I/O need to be done asynchronously
+        trigger.getInfo().delete();
+    }
 }

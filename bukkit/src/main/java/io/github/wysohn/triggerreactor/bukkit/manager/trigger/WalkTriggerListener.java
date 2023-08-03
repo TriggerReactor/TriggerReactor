@@ -21,17 +21,22 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTriggerManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class WalkTriggerListener
         extends LocationBasedTriggerListener<WalkTrigger,
-        LocationBasedTriggerManager<WalkTrigger>> {
+        WalkTriggerManager> {
 
 
-    public WalkTriggerListener(LocationBasedTriggerManager<WalkTrigger> manager) {
+    @Inject
+    public WalkTriggerListener(WalkTriggerManager manager) {
         super(manager);
     }
 
@@ -40,9 +45,9 @@ public class WalkTriggerListener
         SimpleLocation bottomLoc = e.getTo().add(0, -1, 0);
 
         manager.handleWalk(e,
-                           new BukkitPlayer(e.getPlayer()),
-                           e.getFrom(),
-                           e.getTo(),
-                           new BukkitBlock(LocationUtil.convertToBukkitLocation(bottomLoc).getBlock()));
+                new BukkitPlayer(e.getPlayer()),
+                e.getFrom(),
+                e.getTo(),
+                new BukkitBlock(LocationUtil.convertToBukkitLocation(bottomLoc).getBlock()));
     }
 }

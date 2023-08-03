@@ -19,21 +19,33 @@ package io.github.wysohn.triggerreactor.core.manager;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
+import io.github.wysohn.triggerreactor.core.main.IEventManagement;
 import io.github.wysohn.triggerreactor.core.main.IGameManagement;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public final class PlayerLocationManager extends Manager {
-    private final Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
-    private final IGameManagement gameManagement;
+    @Inject
+    private IGameManagement gameManagement;
+    @Inject
+    private IEventManagement eventManagement;
 
-    public PlayerLocationManager(TriggerReactorCore plugin, IGameManagement gameManagement) {
-        super(plugin);
-        this.gameManagement = gameManagement;
+    private final Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
+
+    @Inject
+    private PlayerLocationManager() {
+        super();
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -45,8 +57,7 @@ public final class PlayerLocationManager extends Manager {
     }
 
     @Override
-    public void saveAll() {
-        // TODO Auto-generated method stub
+    public void shutdown() {
 
     }
 
@@ -80,7 +91,7 @@ public final class PlayerLocationManager extends Manager {
         if (event.getFrom().equals(event.getTo()))
             return;
 
-        plugin.callEvent(event);
+        eventManagement.callEvent(event);
         if (event.isCancelled()) {
             event.setCancelled(true);
         } else {

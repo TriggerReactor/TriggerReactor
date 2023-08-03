@@ -17,22 +17,28 @@
 
 package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class JSExecutor extends Evaluable<Integer> implements Executor {
-    public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
-        this(executorName, engine, new FileInputStream(file));
-    }
+//    @Inject
+//    private JSExecutor(@Assisted String executorName,
+//                       @Assisted ScriptEngine engine,
+//                       @Assisted File file) throws ScriptException, IOException {
+//        this(executorName, engine, new FileInputStream(file));
+//    }
 
-    public JSExecutor(String executorName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
+    @Inject
+    private JSExecutor(@Assisted String executorName,
+                       @Assisted ScriptEngine engine,
+                       @Assisted InputStream file) throws ScriptException, IOException {
         super("#", "Executors", executorName, FileUtil.readFromStream(file), engine);
     }
 }

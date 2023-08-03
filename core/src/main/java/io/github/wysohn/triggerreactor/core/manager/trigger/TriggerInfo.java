@@ -3,13 +3,14 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycle;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class TriggerInfo implements IMigratable {
+public abstract class TriggerInfo implements IMigratable, IPluginLifecycle {
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -25,6 +26,28 @@ public abstract class TriggerInfo implements IMigratable {
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = triggerName;
+    }
+
+    @Override
+    public void initialize() {
+
+    }
+
+    /**
+     * See {@link IConfigSource#saveAll()}
+     */
+    public void saveAll() {
+        config.saveAll();
+    }
+
+    @Override
+    public void reload() {
+        config.reload();
+    }
+
+    @Override
+    public void shutdown() {
+        config.disable();
     }
 
     @Override
@@ -44,16 +67,11 @@ public abstract class TriggerInfo implements IMigratable {
     public void migrate(IMigrationHelper migrationHelper) {
         Optional.ofNullable(config)
                 .ifPresent(migrationHelper::migrate);
-        reloadConfig();
+        reload();
     }
 
     public File getSourceCodeFile() {
         return sourceCodeFile;
-    }
-
-    public void reloadConfig() {
-        Optional.ofNullable(config)
-                .ifPresent(IConfigSource::reload);
     }
 
     public String getTriggerName() {

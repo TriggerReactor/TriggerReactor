@@ -17,11 +17,13 @@
 
 package io.github.wysohn.triggerreactor.bukkit.main;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.memento.IMemento;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -29,10 +31,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BukkitInventoryHandle implements IInventoryHandle<ItemStack> {
+@Singleton
+public class BukkitInventoryHandle implements IInventoryHandle {
+
     /**
      * @param item
      * @return copy of colored item
@@ -77,8 +82,11 @@ public class BukkitInventoryHandle implements IInventoryHandle<ItemStack> {
     }
 
     @Override
-    public IItemStack wrapItemStack(ItemStack item) {
-        return new BukkitItemStack(item);
+    public IItemStack wrapItemStack(Object item) {
+        ValidationUtil.validate(item instanceof ItemStack,
+                "ItemStack is not an instance of " + ItemStack.class.getName());
+
+        return new BukkitItemStack((ItemStack) item);
     }
 
     @Override
@@ -108,6 +116,57 @@ public class BukkitInventoryHandle implements IInventoryHandle<ItemStack> {
     public IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
         name = ChatColor.translateAlternateColorCodes('&', name);
-        return BukkitTriggerReactorCore.getWrapper().wrap(Bukkit.createInventory(null, size, name));
+        return new BukkitInventory(Bukkit.createInventory(null, size, name));
+    }
+
+    @Override
+    public void setItemTitle(IItemStack iS, String title) {
+        ItemStack IS = iS.get();
+        ItemMeta IM = IS.getItemMeta();
+        IM.setDisplayName(title);
+        IS.setItemMeta(IM);
+    }
+
+    @Override
+    public void addItemLore(IItemStack iS, String lore) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        lores.add(lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+    }
+
+    @Override
+    public boolean setLore(IItemStack iS, int index, String lore) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        if (lore == null || index < 0 || index > lores.size() - 1)
+            return false;
+
+        lores.set(index, lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+
+        return true;
+    }
+
+    @Override
+    public boolean removeLore(IItemStack iS, int index) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.getLore();
+        if (lores == null || index < 0 || index > lores.size() - 1)
+            return false;
+
+        lores.remove(index);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+
+        return true;
     }
 }

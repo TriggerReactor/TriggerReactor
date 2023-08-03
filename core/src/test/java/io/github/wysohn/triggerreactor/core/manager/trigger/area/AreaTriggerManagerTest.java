@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,25 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.IGameManagement;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Field;
+import javax.inject.Named;
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.junit.Assert.assertNotNull;
@@ -41,27 +46,35 @@ public class AreaTriggerManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
     TaskSupervisor taskSupervisor;
-    IGameManagement gameManagement;
     ITriggerLoader<AreaTrigger> loader;
 
     AreaTriggerManager manager;
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
-
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
-
         taskSupervisor = mock(TaskSupervisor.class);
-        gameManagement = mock(IGameManagement.class);
         loader = mock(ITriggerLoader.class);
 
-        manager = new AreaTriggerManager(core, taskSupervisor, gameManagement, loader);
+        manager = Guice.createInjector(
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(IAreaTriggerFactory.class),
+                new FactoryModuleBuilder().build(IEnterTriggerFactory.class),
+                new FactoryModuleBuilder().build(IExitTriggerFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<AreaTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    @Named("AreaTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "AreaTrigger";
+                    }
+                }
+        ).getInstance(AreaTriggerManager.class);
     }
 
     @Test
@@ -77,17 +90,7 @@ public class AreaTriggerManagerTest {
 
         manager.reload();
 
-        verify(mockInfo, times(1)).reloadConfig();
-    }
-
-    @Test
-    public void saveAll() throws InvalidTrgConfigurationException {
-        manager.createArea("test",
-                           new SimpleLocation("world", 0, 0, 0),
-                           new SimpleLocation("world", 10, 10, 10));
-        manager.saveAll();
-
-        verify(loader, times(1)).save(any());
+        verify(mockInfo, times(1)).reload();
     }
 
     @Test

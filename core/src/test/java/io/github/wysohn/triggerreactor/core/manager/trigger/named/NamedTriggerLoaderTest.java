@@ -1,9 +1,30 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
+import io.github.wysohn.triggerreactor.core.module.manager.trigger.NamedTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,33 +32,31 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NamedTriggerLoaderTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
+
     NamedTriggerLoader loader;
+    ConfigSourceFactory configSourceFactory;
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
-        core = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
+        Injector injector = Guice.createInjector(
+                new NamedTriggerModule(),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build()
+        );
 
-        when(core.getExecutorManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getPlaceholderManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getVariableManager().getGlobalVariableAdapter()).thenReturn(new HashMap<>());
-
-        loader = new NamedTriggerLoader();
+        loader = injector.getInstance(NamedTriggerLoader.class);
+        configSourceFactory = injector.getInstance(ConfigSourceFactory.class);
     }
 
     @Test
@@ -46,7 +65,7 @@ public class NamedTriggerLoaderTest {
         when(info.getTriggerName()).thenReturn("test");
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
 
-        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), ConfigSourceFactory.instance());
+        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), configSourceFactory);
 
         assertEquals(1, loaded.length);
         assertEquals("test", loaded[0].getTriggerName());
@@ -68,16 +87,16 @@ public class NamedTriggerLoaderTest {
         when(info3.getTriggerName()).thenReturn("test3");
         when(info3.getSourceCodeFile()).thenReturn(file3);
 
-        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), ConfigSourceFactory.instance());
+        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), configSourceFactory);
 
         assertEquals(2, loaded.length);
         assertTrue(isIn(loaded, "sub:test2"));
         assertTrue(isIn(loaded, "sub:subsub:test3"));
     }
 
-    private boolean isIn(TriggerInfo[] infos, String name){
-        for(TriggerInfo info : infos){
-            if(info.getTriggerName().equals(name))
+    private boolean isIn(TriggerInfo[] infos, String name) {
+        for (TriggerInfo info : infos) {
+            if (info.getTriggerName().equals(name))
                 return true;
         }
 

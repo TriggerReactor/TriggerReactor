@@ -49,6 +49,16 @@ public interface IConfigSource {
 
     boolean isSection(String key);
 
+    /**
+     * Reload the config file from the permanent storage.
+     * <p>
+     * Warning) By how the config system works, this will clear all the
+     * contents in memory and reload the configs from the disk. This means
+     * that we respect the file in the disk more than the one in the memory.
+     * <p>
+     * If you want to reload the file without losing the contents in memory,
+     * use {@link #saveAll()} first, then call this method.
+     */
     void reload();
 
     /**

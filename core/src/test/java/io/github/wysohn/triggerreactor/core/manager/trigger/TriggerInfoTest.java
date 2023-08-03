@@ -33,7 +33,7 @@ public class TriggerInfoTest {
         IConfigSource config = mock(IConfigSource.class);
 
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        info.reloadConfig();
+        info.reload();
 
         verify(config).reload();
     }

@@ -18,49 +18,58 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.DelegatedConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-public class GlobalVariableManager extends Manager implements IMigratable {
-    private final IConfigSource configSource;
+@Singleton
+public class GlobalVariableManager extends Manager implements IMigratable, IGlobalVariableManager {
+    @Inject
+    private Logger logger;
+    @Inject
+    @Named("DataFolder")
+    private File dataFolder;
+    @Inject
+    @Named("GlobalVariable")
+    private IConfigSource configSource;
 
-    public GlobalVariableManager(TriggerReactorCore plugin) {
-        this(plugin, ConfigSourceFactory.instance().create(plugin.getDataFolder(), "var"));
+    //    private GlobalVariableManager(TriggerReactorCore plugin) {
+//        this(plugin, ConfigSourceFactory.instance().create(plugin.getDataFolder(), "var"));
+//    }
+    @Inject
+    private GlobalVariableManager() {
+        super();
     }
 
-    public GlobalVariableManager(TriggerReactorCore plugin, IConfigSource configSource) {
-        super(plugin);
-        this.configSource = configSource;
+    @Override
+    public void initialize() {
+
     }
 
     @Override
     public void reload() {
-        plugin.getLogger().info("Reloading global variables...");
+        logger.info("Reloading global variables...");
         configSource.reload();
-        plugin.getLogger().info("Global variables were loaded from " + configSource);
+        logger.info("Global variables were loaded from " + configSource);
     }
 
     @Override
-    public void saveAll() {
-        configSource.saveAll();
-    }
-
-    @Override
-    public void disable() {
+    public void shutdown() {
         configSource.disable();
     }
 
     @Override
     public boolean isMigrationNeeded() {
-        File oldFile = new File(plugin.getDataFolder(), "var.yml");
+        File oldFile = new File(dataFolder, "var.yml");
         // after migration, file will be renamed to .yml.bak, and .json file will be created.
         // so migrate only if old file exist and new file is not yet generated.
         return oldFile.exists() && !configSource.fileExists();
@@ -124,6 +133,7 @@ public class GlobalVariableManager extends Manager implements IMigratable {
      *
      * @return
      */
+    @Override
     public HashMap<Object, Object> getGlobalVariableAdapter() {
         return adapter;
     }
