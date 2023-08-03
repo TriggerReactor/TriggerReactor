@@ -119,7 +119,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      * @throws LexerException  See {@link Trigger#init()}
      * @throws IOException     See {@link Trigger#init()}
      */
-    public boolean createTrigger(int size, String name, String script)
+    public boolean createTrigger(int size, String name, String script, boolean pickup)
             throws TriggerInitFailedException {
         if (has(name))
             return false;
@@ -168,9 +168,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         if (!hasInventoryOpen(inventory))
             return;
         InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
-
-        // just always cancel if it's GUI
-        eventCancelled.accept(true);
+        eventCancelled.accept(!trigger.isPickup());
 
         Map<String, Object> varMap = getSharedVarsForInventory(inventory);
         varMap.put("item", clickedItem.clone().get());
