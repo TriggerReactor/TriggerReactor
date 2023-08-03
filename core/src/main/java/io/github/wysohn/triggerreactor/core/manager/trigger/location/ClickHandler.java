@@ -8,4 +8,7 @@ public interface ClickHandler {
      * @return true if allowed; false if not (the click will be ignored in this case)
      */
     boolean allow(Activity activity);
+
+    ClickHandler DEFAULT = (activity) -> activity == Activity.LEFT_CLICK_BLOCK
+            || activity == Activity.RIGHT_CLICK_BLOCK;
 }

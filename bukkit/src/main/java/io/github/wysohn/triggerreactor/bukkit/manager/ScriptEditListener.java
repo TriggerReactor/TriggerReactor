@@ -24,11 +24,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.server.TabCompleteEvent;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Collections;
 
+@Singleton
 public class ScriptEditListener implements Listener {
     private final ScriptEditManager manager;
 
+    @Inject
     public ScriptEditListener(ScriptEditManager manager) {
         this.manager = manager;
     }
@@ -36,7 +40,7 @@ public class ScriptEditListener implements Listener {
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
         if (manager.onChat(new BukkitPlayer(event.getPlayer()),
-                           event.getMessage())) {
+                event.getMessage())) {
             event.setCancelled(true);
         } else {
             event.getRecipients()

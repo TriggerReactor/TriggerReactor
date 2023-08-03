@@ -1,49 +1,78 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
+import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
+import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import javax.inject.Inject;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CommandTrigger extends Trigger {
-    String[] permissions = new String[0];
-    String[] aliases = new String[0];
-    Map<Integer, Set<ITabCompleter>> tabCompleterMap = new HashMap<>();
+    @Inject
+    private ICommandTriggerFactory factory;
 
+    @TriggerRuntimeDependency
+    Map<Integer, Set<ITabCompleter>> tabCompleterMap = new HashMap<>();
+    @TriggerRuntimeDependency
     private ICommand command;
 
-    public CommandTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
+    @Inject
+    private CommandTrigger(@Assisted TriggerInfo info,
+                           @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
-
-        init();
     }
 
     public String[] getPermissions() {
-        return permissions;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, List.class)
+                .map(list -> list.toArray(new String[0]))
+                .map(list -> (String[]) list)
+                .orElse(new String[0]);
     }
 
     public void setPermissions(String[] permissions) {
         if (permissions == null) {
-            this.permissions = new String[0];
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, new ArrayList<>());
         } else {
-            this.permissions = permissions;
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, permissions);
         }
     }
 
     public String[] getAliases() {
-        return aliases;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, List.class)
+                .map(aliasList -> (((List<String>) aliasList).stream()
+                        .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
+                        .collect(Collectors.toList())))
+                .map(list -> list.toArray(new String[0]))
+                .orElse(new String[0]);
     }
 
     public void setAliases(String[] aliases) {
         if (aliases == null) {
-            this.aliases = new String[0];
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, new ArrayList<>());
         } else {
-            this.aliases = aliases;
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, aliases);
         }
     }
 
@@ -69,19 +98,14 @@ public class CommandTrigger extends Trigger {
 
     @Override
     public CommandTrigger clone() {
-        try {
-            return new CommandTrigger(info, getScript());
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(getInfo(), getScript());
     }
 
     @Override
     public String toString() {
         return super.toString() + "{" +
-                "permissions=" + Arrays.toString(permissions) +
-                ", aliases=" + Arrays.toString(aliases) +
+                "permissions=" + Arrays.toString(getPermissions()) +
+                ", aliases=" + Arrays.toString(getAliases()) +
                 '}';
     }
 }

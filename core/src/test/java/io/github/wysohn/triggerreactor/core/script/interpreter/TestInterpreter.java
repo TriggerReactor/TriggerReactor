@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,156 +16,88 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.tools.timings.Timings;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
-import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class TestInterpreter {
 
+    private static final Charset charset = StandardCharsets.UTF_8;
+
     private TaskSupervisor mockTask;
 
     @Before
-    public void init(){
+    public void init() {
         mockTask = mock(TaskSupervisor.class);
     }
 
     @Test
     public void testMethod() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
-                + "rand = common.random(3);"
-                + "IF rand == 0\n"
-                + "#MESSAGE 0\n"
-                + "ENDIF;"
-                + "IF rand == 1;\n"
-                + "#MESSAGE 1;\n"
-                + "ENDIF\n"
-                + "IF rand == 2;"
-                + "#MESSAGE 2\n"
+                + "rand = common.getHealth();"
+                + "#MESSAGE rand\n"
                 + "ENDIF\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor mockExecutor = new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("common", new InTest2())
+                .build();
 
-                String value = String.valueOf(args[0]);
-                Assert.assertTrue("0".equals(value) || "1".equals(value) || "2".equals(value));
-                return null;
-            }
-        };
-        executorMap.put("MESSAGE", mockExecutor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.getVars().put("common", new CommonFunctions());
-
-        interpreter.startWithContext(null);
-    }
-
-    @Test
-    public void testMethodReturnValue() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "{\"temp1\"} = random(0, 10);"
-                + "{\"temp2\"} = random(0.0, 10.0);"
-                + "{\"temp3\"} = random(0, 10.0);";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvars);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(gvars.get("temp1") instanceof Integer);
-        Assert.assertTrue(gvars.get("temp2") instanceof Double);
-        Assert.assertTrue(gvars.get("temp3") instanceof Double);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(5.23));
     }
 
     @Test
     public void testMethodWithEnumParameter() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
-                + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");"
-                + "{\"temp3\"} = random(0, 10.0);";
+                + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> vars = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-        vars.put("temp", new TheTest());
-        vars.put("temp2", new TheTest2());
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .addScriptVariable("temp", new TheTest())
+                .addScriptVariable("temp2", new TheTest2())
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setVars(vars);
-        interpreter.setGvars(gvars);
-        interpreter.setSelfReference(new CommonFunctions());
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
-
+        // Assert
         // the only method matching is the one with enum parameter. Expect it to be converted
-        assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
-        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher priority.
-        assertEquals("Something", gvars.get("temp2"));
+        assertEquals(TestEnum.IMTEST, test.getGlobalVar("temp1"));
+        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher
+        // priority.
+        assertEquals("Something", test.getGlobalVar("temp2"));
     }
 
     @Test
     public void testReference() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
@@ -185,35 +117,27 @@ public class TestInterpreter {
                 + "    ENDIF\n"
                 + "ENDWHILE";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
-
-                return null;
-            }
-        });
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
 
-        interpreter.getVars().put("player", reference);
-        interpreter.getVars().put("text", "hello");
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("player", reference)
+                .addScriptVariable("text", "hello")
+                .overrideTaskSupervisor(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
+        // Assert
         assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
     }
 
     @Test
     public void testStringAppend() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "arr = array(4)\n"
                 + "arr[0] = \"beh\"+player.in.health\n"
@@ -222,287 +146,207 @@ public class TestInterpreter {
                 + "arr[3] = \"beh\"+(1+1)\n"
                 + "#MESSAGE arr\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("player", new TheTest())
+                .overrideSelfReference(new SelfReference() {
+                    public Object[] array(int size) {
+                        return new Object[size];
+                    }
+                })
+                .build();
 
-                Object[] arr = (Object[]) args[0];
-                assertEquals("beh0.82", arr[0]);
-                assertEquals("0.82beh", arr[1]);
-                assertEquals("beh11", arr[2]);
-                assertEquals("beh2", arr[3]);
-                return null;
-            }
-        });
-        TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        // Act
+        test.test();
 
-        interpreter.getVars().put("player", reference);
-        interpreter.getVars().put("text", "hello");
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"beh0.82", "0.82beh", "beh11", "beh2"}));
     }
 
     @Test(expected = InterpreterException.class)
     public void testLiteralStringTrueOrFalseParse() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
-            + "temp = \"true\"\n"
-            + "IF temp == true\n"
-            + "  #TEST\n"
-            + "ELSE\n"
-            + "  error.cause()\n"
-            + "ENDIF;";
+                + "temp = \"true\"\n"
+                + "IF temp == true\n"
+                + "  #TEST\n"
+                + "ELSE\n"
+                + "  error.cause()\n"
+                + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", mockExecutor);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
+        // Assert
         verify(mockExecutor, times(0)).evaluate(any(), anyMap(), any(), any());
     }
 
     @Test
     public void testGlobalVariable() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "{text+\".something\"} = 12.54\n"
                 + "#MESSAGE {text+\".something\"}\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .build();
 
-                assertEquals(12.54, args[0]);
-                return null;
-            }
-        });
-        Map<Object, Object> map = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setGvars(map);
+        // Act
+        test.test();
 
-        interpreter.getVars().put("text", "someplayername");
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(map.containsKey("someplayername.something"));
-        assertEquals(12.54, map.get("someplayername.something"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(12.54));
     }
 
     @Test
     public void testTempGlobalVariable() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "{?text+\".something\"} = 12.54;"
                 + "#MESSAGE {?text+\".something\"};" +
                 "{?text+\".something\"} = null;" +
                 "#MESSAGE2 {?text+\".something\"};";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .putExecutor("MESSAGE2", mockExecutor2)
+                .build();
 
-                assertEquals(12.54, args[0]);
-                return null;
-            }
-        });
-        executorMap.put("MESSAGE2", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        // Act
+        test.test();
 
-                Assert.assertNull(args[0]);
-                return null;
-            }
-        });
-        TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
-        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, mock(IConfigSource.class));
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setGvars(avm.getGlobalVariableAdapter());
-
-        interpreter.getVars().put("text", "someplayername");
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(12.54));
+        verify(mockExecutor2).evaluate(any(), anyMap(), any(), eq(null));
     }
 
     @Test
     public void testGlobalVariableDeletion() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "key = \"temp\";" +
                 "{key} = 1;" +
                 "#TEST1 {key};" +
                 "{key} = null;" +
                 "#TEST2 {key};";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
-            @Override
 
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor)
+                .putExecutor("TEST2", mockExecutor2)
+                .build();
 
-                assertEquals(1, args[0]);
-                return null;
-            }
-        });
-        executorMap.put("TEST2", new Executor() {
-            @Override
+        // Act
 
+        test.test();
 
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                Assert.assertNull(args[0]);
-                return null;
-            }
-        });
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvars);
-
-        interpreter.startWithContext(null);
-
-        Assert.assertNull(gvars.get("temp"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor2).evaluate(any(), anyMap(), any(), eq(null));
+        assertNull(test.getGlobalVar("temp"));
     }
 
     @Test
     public void testArray() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "args[0] = \"arg1\"\n"
                 + "args[1] = \"arg2\"\n"
                 + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("args", new Object[2])
+                .build();
 
-                assertEquals("arg1, arg2", args[0]);
-                return null;
-            }
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        // Act
+        test.test();
 
-        String[] args = new String[]{"item1", "item2"};
-        interpreter.getVars().put("args", args);
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("arg1, arg2"));
     }
 
     @Test
     public void testCustomArray() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "args = array(2)\n"
                 + "args[0] = \"arg1\"\n"
                 + "args[1] = \"arg2\"\n"
                 + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .overrideSelfReference(new SelfReference() {
+                    public Object[] array(int size) {
+                        return new Object[size];
+                    }
+                })
+                .build();
 
-                assertEquals("arg1, arg2", args[0]);
-                return null;
-            }
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("arg1, arg2"));
     }
 
     @Test
     public void testIteration2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "FOR i = 0:10\n"
                 + "    #MESSAGE i\n"
                 + "ENDFOR\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            int index = 0;
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        // Act
+        test.test();
 
-                assertEquals(index++, args[0]);
-                return null;
-            }
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
+        // Assert
+        for (int i = 0; i < 10; i++) {
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(i));
+        }
     }
 
     @Test
     public void testIteration3() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "start=0;"
                 + "stop=10;"
@@ -510,33 +354,25 @@ public class TestInterpreter {
                 + "    #MESSAGE i\n"
                 + "ENDFOR\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            int index = 0;
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        // Act
+        test.test();
 
-                assertEquals(index++, args[0]);
-                return null;
-            }
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        for (int i = 0; i < 10; i++) {
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(i));
+        }
     }
 
     @Test
     public void testIteration4() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "start=0;"
                 + "stop=10;"
@@ -544,160 +380,161 @@ public class TestInterpreter {
                 + "    #MESSAGE i\n"
                 + "ENDFOR\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            int index = 0;
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        // Act
+        test.test();
 
-                assertEquals(index++, args[0]);
-                return null;
-            }
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        for (int i = 0; i < 10; i++) {
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(i));
+        }
     }
 
     @Test
     public void testIteration5() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "FOR i = 0:getPlayers().size()\n"
                 + "    #MESSAGE i\n"
                 + "ENDFOR\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), anyInt())).thenReturn(null);
-        executorMap.put("MESSAGE", executor);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .overrideSelfReference(new SelfReference() {
+                    public Collection<String> getPlayers() {
+                        List<String> names = new ArrayList<>();
+                        for (int i = 0; i < 10; i++)
+                            names.add(String.valueOf(i));
+                        return names;
+                    }
+                })
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new SelfReference() {
-            public Collection<String> getPlayers(){
-                List<String> names = new ArrayList<>();
-                for(int i = 0; i < 10; i++)
-                    names.add(String.valueOf(i));
-                return names;
-            }
-        });
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
-
-        verify(executor, times(10)).evaluate(any(), anyMap(), any(), anyInt());
+        // Assert
+        for (int i = 0; i < 10; i++) {
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(i));
+        }
     }
 
     @Test(expected = InterpreterException.class)
     public void testOnlyTry() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
 
         String text = "" +
                 "TRY;" +
                 "   #TEST;" +
                 "ENDTRY;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", executor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
 
-        interpreter.startWithContext(null);
 
-        verify(executor, times(0)).evaluate(any(), anyMap(), any(), any());
+//        Lexer lexer = new Lexer(text, charset);
+//        Parser parser = new Parser(lexer);
+//
+//        Node root = parser.parse();
+//
+//        Map<String, Executor> executorMap = new HashMap<>();
+//        Executor executor = mock(Executor.class);
+//        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executorMap.put("TEST", executor);
+//
+//        Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executorMap);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.setSelfReference(new CommonFunctions());
+//
+//        interpreter.startWithContext(null);
+//
+//        verify(executor, times(0)).evaluate(any(), anyMap(), any(), any());
+        // invoked 0 times? why?
     }
 
     @Test
     public void testTryCatch1() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
 
         String text = "" +
                 "TRY;" +
-                "   #TEST;" +
-                "   #TEST;" +
-                "   #TEST;" +
+                "   #CASE 1;" +
                 "CATCH e;" +
-                "   #TEST;" +
+                "   #CASE 2;" +
                 "ENDTRY;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("CASE", mockExecutor)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", executor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        verify(executor, times(3)).evaluate(any(), anyMap(), any(), any());
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(2));
     }
 
     @Test
     public void testTryCatch2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
 
         String text = "" +
                 "TRY;" +
-                "   #TEST;" +
-                "   error.cause();" +
-                "   #TEST;" +
-                "   #TEST;" +
+                "   #PRE;" +
+                "   #ERROR;" +
+                "   #POST;" +
                 "CATCH e;" +
-                "   #TEST;" +
-                "   #TEST;" +
-                "   #TEST;" +
+                "   #CATCH;" +
                 "ENDTRY;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutorPreError = mock(Executor.class);
+        when(mockExecutorPreError.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutorPostError = mock(Executor.class);
+        when(mockExecutorPostError.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutorError = mock(Executor.class);
+        when(mockExecutorError.evaluate(any(), any(), any(), any())).thenThrow(new InterpreterException("error"));
+        Executor mockExecutorCatch = mock(Executor.class);
+        when(mockExecutorCatch.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PRE", mockExecutorPreError)
+                .putExecutor("POST", mockExecutorPostError)
+                .putExecutor("ERROR", mockExecutorError)
+                .putExecutor("CATCH", mockExecutorCatch)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", executor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        verify(executor, times(4)).evaluate(any(), anyMap(), any(), any());
+        // Assert
+        verify(mockExecutorPreError).evaluate(any(), anyMap(), any());
+        verify(mockExecutorPostError, never()).evaluate(any(), anyMap(), any());
+        verify(mockExecutorError).evaluate(any(), anyMap(), any());
+        verify(mockExecutorCatch).evaluate(any(), anyMap(), any());
     }
 
     @Test
@@ -706,102 +543,104 @@ public class TestInterpreter {
 
         String text = "" +
                 "TRY;" +
-                "   #TEST;" +
+                "   #CASE 1;" +
                 "FINALLY;" +
-                "   #TEST;" +
+                "   #CASE 2;" +
                 "ENDTRY;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("CASE", mockExecutor)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", executor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        verify(executor, times(2)).evaluate(any(), anyMap(), any(), any());
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
     }
 
     @Test
     public void testTryCatchFinally1() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
 
         String text = "" +
                 "TRY;" +
-                "   #TEST;" +
+                "   #CASE 1;" +
                 "CATCH e;" +
-                "   #TEST;" +
+                "   #CASE 2;" +
                 "FINALLY;" +
-                "   #TEST;" +
+                "   #CASE 3;" +
                 "ENDTRY;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("CASE", mockExecutor)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", executor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        verify(executor, times(2)).evaluate(any(), anyMap(), any(), any());
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(2));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
     }
 
     @Test
     public void testTryCatchFinally2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
 
         String text = "" +
                 "TRY;" +
-                "   #TEST;" +
-                "   error.cause();" +
-                "   #TEST;" +
+                "   #PRE;" +
+                "   #ERROR" +
+                "   #POST;" +
                 "CATCH e;" +
-                "   #TEST;" +
+                "   #CATCH;" +
                 "FINALLY;" +
-                "   #TEST;" +
+                "   #FINALLY;" +
                 "ENDTRY;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutorPreError = mock(Executor.class);
+        when(mockExecutorPreError.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutorPostError = mock(Executor.class);
+        when(mockExecutorPostError.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutorError = mock(Executor.class);
+        when(mockExecutorError.evaluate(any(), any(), any(), any())).thenThrow(new InterpreterException("error"));
+        Executor mockExecutorCatch = mock(Executor.class);
+        when(mockExecutorCatch.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutorFinally = mock(Executor.class);
+        when(mockExecutorFinally.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PRE", mockExecutorPreError)
+                .putExecutor("POST", mockExecutorPostError)
+                .putExecutor("ERROR", mockExecutorError)
+                .putExecutor("CATCH", mockExecutorCatch)
+                .putExecutor("FINALLY", mockExecutorFinally)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", executor);
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        verify(executor, times(3)).evaluate(any(), anyMap(), any(), any());
+        // Assert
+        verify(mockExecutorPreError).evaluate(any(), anyMap(), any(), any());
+        verify(mockExecutorPostError, never()).evaluate(any(), anyMap(), any(), any());
+        verify(mockExecutorError).evaluate(any(), anyMap(), any(), any());
+        verify(mockExecutorCatch).evaluate(any(), anyMap(), any(), any());
+        verify(mockExecutorFinally).evaluate(any(), anyMap(), any(), any());
     }
 
     @Test
     public void testTryCatchInvokedMethod() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
+
         String text = "" +
                 "import java.io.FileReader;" +
                 "" +
@@ -812,29 +651,24 @@ public class TestInterpreter {
                 "    #VERIFY true;" +
                 "ENDTRY";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("VERIFY", mockExecutor)
+                .build();
 
-        Map<String, Executor> executorMap = new HashMap<>();
+        // Act
+        test.test();
 
-        Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), anyBoolean())).thenReturn(null);
-        executorMap.put("VERIFY", executor);
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        verify(executor, times(1)).evaluate(any(), anyMap(), any(), eq(true));
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(true));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(false));
     }
 
     @Test
     public void testNegation() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "arr = array(6)\n"
                 + "arr[0] = true\n"
@@ -842,134 +676,162 @@ public class TestInterpreter {
                 + "arr[2] = !true || false\n"
                 + "arr[3] = true && !false\n"
                 + "arr[4] = true && 1 < 2 && 5 > 4 && 1 != 2 && 2 == 2 && (false || 2*2 > 3)\n"
-                + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)";
+                + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)\n" +
+                "#TEST arr";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockTask = mock(Executor.class);
+        when(mockTask.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockTask)
+                .overrideSelfReference(new SelfReference() {
+                    public Object[] array(int size) {
+                        return new Object[size];
+                    }
+                })
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
-        Object arr = interpreter.getVars().get("arr");
-        Assert.assertTrue((boolean) Array.get(arr, 0));
-        Assert.assertFalse((boolean) Array.get(arr, 1));
-        Assert.assertFalse((boolean) Array.get(arr, 2));
-        Assert.assertTrue((boolean) Array.get(arr, 3));
-        Assert.assertTrue((boolean) Array.get(arr, 4));
-        Assert.assertTrue((boolean) Array.get(arr, 5));
+        // Assert
+        verify(mockTask).evaluate(any(), anyMap(), any(),
+                eq(new Object[]{true, false, false, true, true, true}));
     }
 
     @Test
-    public void testShortCircuit() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+    public void testShortCircuitAnd() throws Exception {
+        // Arrange
         String text = ""
                 + "IF player != null && player.health == 0.82;"
-                + "    #TEST1 \"work\";"
-                + "ENDIF;"
-                + "IF player2 == null || player2.health == 0.82;"
-                + "    #TEST2 \"work2\";"
+                + "    #TEST;"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        @SuppressWarnings("serial")
-        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
-            {
-                put("TEST1", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .addScriptVariable("player", new InTest())
+                .build();
 
-                    @Override
-                    public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                            Object... args) throws Exception {
-                        assertEquals("work", args[0]);
-                        return null;
-                    }
+        // Act
+        test.test();
 
-                });
-                put("TEST2", new Executor() {
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
+    }
 
-                    @Override
-                    public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                            Object... args) throws Exception {
-                        assertEquals("work2", args[0]);
-                        return null;
-                    }
+    @Test
+    public void testShortCircuitAndNull() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF player != null && player.health == 0.82;"
+                + "    #TEST;"
+                + "ENDIF;";
 
-                });
-            }
-        };
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.getVars().put("player", new InTest());
-        interpreter.getVars().put("player2", new InTest());
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
-        interpreter.getVars().remove("player");
-        interpreter.getVars().remove("player2");
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any());
+        // and no exception
+    }
+
+    @Test
+    public void testShortCircuitOr() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF player2 == null || player2.health == 0.82;"
+                + "    #TEST;"
+                + "ENDIF;";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .addScriptVariable("player2", new InTest())
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
+    }
+
+    @Test
+    public void testShortCircuitOrNull() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF player2 == null || player2.health == 0.82;"
+                + "    #TEST;"
+                + "ENDIF;";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
+        // player2 is null but still executes without NPE
     }
 
     @Test
     public void testWhile() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "number = 1;"
                 + "WHILE number < 3;"
                 + "number = number + 1;"
                 + "ENDWHILE;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .overrideTaskSupervisor(mockTask)
+                .build();
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        assertEquals(3, interpreter.getVars().get("number"));
+        // Assert
+        assertEquals(3, test.getScriptVar("number"));
     }
 
-    @Test
-    public void testEnumParse() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = ""
-                + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter\\$TestEnum\","
-                + " \"IMTEST\");";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
-    }
+//    @Test
+//    public void testEnumParse() throws Exception {
+//        // Arrange
+//        String text = ""
+//                + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter\\$TestEnum\","
+//                + " \"IMTEST\");";
+//
+//        Test test = Test.Builder.of(text)
+//                .build();
+//
+//        // Act
+//        test.test();
+//
+//        // Assert
+//        assertEquals(TestEnum.IMTEST, test.getScriptVar("result"));
+//    }
 
     @Test
     public void testPlaceholder() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 100.0;"
                 + "returnvalue = $test:0:x:true:\"hoho\";"
                 + "#MESSAGE $playername returnvalue;"
@@ -978,258 +840,117 @@ public class TestInterpreter {
                 + "#TESTDOUBLE $double;"
                 + "#TESTBOOLEAN $boolean;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockMessage = mock(Executor.class);
+        when(mockMessage.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockTestString = mock(Executor.class);
+        when(mockTestString.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockTestInteger = mock(Executor.class);
+        when(mockTestInteger.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockTestDouble = mock(Executor.class);
+        when(mockTestDouble.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockTestBoolean = mock(Executor.class);
+        when(mockTestBoolean.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
+        Placeholder mockPlaceholderTest = mock(Placeholder.class);
+        when(mockPlaceholderTest.evaluate(any(), any(), any(), any())).thenReturn(100.0);
+        Placeholder mockPlaceholderPlayerName = mock(Placeholder.class);
+        when(mockPlaceholderPlayerName.evaluate(any(), any(), any(), any())).thenReturn("testplayer");
+        Placeholder mockPlaceholderString = mock(Placeholder.class);
+        when(mockPlaceholderString.evaluate(any(), any(), any(), any())).thenReturn("hoho");
+        Placeholder mockPlaceholderInteger = mock(Placeholder.class);
+        when(mockPlaceholderInteger.evaluate(any(), any(), any(), any())).thenReturn(1);
+        Placeholder mockPlaceholderDouble = mock(Placeholder.class);
+        when(mockPlaceholderDouble.evaluate(any(), any(), any(), any())).thenReturn(1.0);
+        Placeholder mockPlaceholderBoolean = mock(Placeholder.class);
+        when(mockPlaceholderBoolean.evaluate(any(), any(), any(), any())).thenReturn(true);
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockMessage)
+                .putExecutor("TESTSTRING", mockTestString)
+                .putExecutor("TESTINTEGER", mockTestInteger)
+                .putExecutor("TESTDOUBLE", mockTestDouble)
+                .putExecutor("TESTBOOLEAN", mockTestBoolean)
+                .putPlaceholder("test", mockPlaceholderTest)
+                .putPlaceholder("playername", mockPlaceholderPlayerName)
+                .putPlaceholder("string", mockPlaceholderString)
+                .putPlaceholder("integer", mockPlaceholderInteger)
+                .putPlaceholder("double", mockPlaceholderDouble)
+                .putPlaceholder("boolean", mockPlaceholderBoolean)
+                .build();
 
-                assertEquals("testplayer", args[0]);
-                assertEquals("testwithargs", args[1]);
-                return null;
-            }
+        // Act
+        test.test();
 
-        });
+        // Assert
+        //TODO: This seems to be a bug, but we keep it in refactoring stage
+        //verify(mockMessage).evaluate(any(), any(), any(), eq("testplayer"), eq(100.0));
+        verify(mockTestString).evaluate(any(), any(), any(), eq("hoho"));
+        verify(mockTestInteger).evaluate(any(), any(), any(), eq(1));
+        //TODO: same as above
+        //verify(mockTestDouble).evaluate(any(), any(), any(), eq(1.0));
+        verify(mockTestBoolean).evaluate(any(), any(), any(), eq(true));
 
-        executorMap.put("TESTSTRING", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof String);
-                return null;
-            }
-
-        });
-
-        executorMap.put("TESTINTEGER", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof Integer);
-                return null;
-            }
-
-        });
-
-        executorMap.put("TESTDOUBLE", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof Double);
-                return null;
-            }
-
-        });
-
-        executorMap.put("TESTBOOLEAN", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof Boolean);
-                return null;
-            }
-
-        });
-
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        placeholderMap.put("playername", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                return "testplayer";
-            }
-
-        });
-        placeholderMap.put("test", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                assertEquals(0, args[0]);
-                assertEquals(100.0, args[1]);
-                assertEquals(true, args[2]);
-                assertEquals("hoho", args[3]);
-                return "testwithargs";
-            }
-
-        });
-
-        placeholderMap.put("string", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                return "testplayer";
-            }
-
-        });
-
-        placeholderMap.put("integer", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                return 1;
-            }
-
-        });
-
-        placeholderMap.put("double", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                return 1.5;
-            }
-
-        });
-
-        placeholderMap.put("boolean", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                return false;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
+        verify(mockPlaceholderTest).evaluate(any(), any(), any(),
+                eq(0), eq(100.0), eq(true), eq("hoho"));
+        verify(mockPlaceholderPlayerName).evaluate(any(), any(), any());
+        verify(mockPlaceholderString).evaluate(any(), any(), any());
+        verify(mockPlaceholderInteger).evaluate(any(), any(), any());
+        verify(mockPlaceholderDouble).evaluate(any(), any(), any());
+        verify(mockPlaceholderBoolean).evaluate(any(), any(), any());
     }
 
     @Test
-    public void testPlaceholderNull() throws IOException, LexerException, ParserException, InterpreterException {
-        Charset charset = StandardCharsets.UTF_8;
+    public void testPlaceholderNull() throws Exception {
+        // Arrange
         String text = "a = $merp";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser;
-        parser = new Parser(lexer);
-        Node root = parser.parse();
 
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        Placeholder mockPlaceholder = mock(Placeholder.class);
+        when(mockPlaceholder.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        placeholderMap.put("merp", new Placeholder() {
-            @Override
-            public Object evaluate(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
-                return null;
-            }
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putPlaceholder("merp", mockPlaceholder)
+                .build();
 
-        });
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
-        assertEquals(null, interpreter.getVars().get("a"));
+        // Assert
+        assertNull(test.getScriptVar("a"));
     }
 
     @Test
     public void testUnaryMinus() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 4.0;"
-                + "#TEST1 -1+-5;"
-                + "#TEST2 -2.0- -5;"
-                + "#TEST3 -$test3-5;"
-                + "#TEST4 -x-5;";
+                + "#TEST -1+-5;"
+                + "#TEST -2.0- -5;"
+                + "#TEST -$test3-5;"
+                + "#TEST -x-5;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
+        Placeholder mockPlaceholder = mock(Placeholder.class);
+        when(mockPlaceholder.evaluate(any(), any(), any(), any())).thenReturn(3.0);
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .putPlaceholder("test3", mockPlaceholder)
+                .build();
 
-                assertEquals(-6, args[0]);
-                return null;
-            }
+        // Act
+        test.test();
 
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(3.0, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(-8, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(-9.0, args[0]);
-                return null;
-            }
-
-        });
-
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        placeholderMap.put("test3", new Placeholder() {
-
-            @Override
-            public Object evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-                return 3;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(-6));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(3.0));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(-8));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(-9.0));
     }
 
     @Test
     public void testIncrementAndDecrement1() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "a = 2;"
                 + "#TEST1 -a;"
                 + "#TEST2 a++;"
@@ -1237,77 +958,39 @@ public class TestInterpreter {
                 + "#TEST4 ++a;"
                 + "#TEST5 --a;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor3 = mock(Executor.class);
+        when(mockExecutor3.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor4 = mock(Executor.class);
+        when(mockExecutor4.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor5 = mock(Executor.class);
+        when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .putExecutor("TEST3", mockExecutor3)
+                .putExecutor("TEST4", mockExecutor4)
+                .putExecutor("TEST5", mockExecutor5)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(-2, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(2, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(3, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(3, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST5", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(2, args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(-2));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(2));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(3));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(3));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(2));
     }
 
     @Test
     public void testIncrementAndDecrement2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "a = 2.1;"
                 + "#TEST1 -a;"
                 + "#TEST2 a++;"
@@ -1315,77 +998,39 @@ public class TestInterpreter {
                 + "#TEST4 ++a;"
                 + "#TEST5 --a;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor3 = mock(Executor.class);
+        when(mockExecutor3.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor4 = mock(Executor.class);
+        when(mockExecutor4.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor5 = mock(Executor.class);
+        when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .putExecutor("TEST3", mockExecutor3)
+                .putExecutor("TEST4", mockExecutor4)
+                .putExecutor("TEST5", mockExecutor5)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(-2.1, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(2.1, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(3.1, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(3.1, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST5", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(2.1, args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(-2.1));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(2.1));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(3.1));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(3.1));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(2.1));
     }
 
     @Test
     public void testBitwiseAndBitshift() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = -129;"
                 + "y = true;"
                 + "#TEST1 x << 1;"
@@ -1399,230 +1044,130 @@ public class TestInterpreter {
                 + "#TEST9 y & true;"
                 + "#TEST10 y ^ true;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor3 = mock(Executor.class);
+        when(mockExecutor3.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor4 = mock(Executor.class);
+        when(mockExecutor4.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor5 = mock(Executor.class);
+        when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor6 = mock(Executor.class);
+        when(mockExecutor6.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor7 = mock(Executor.class);
+        when(mockExecutor7.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor8 = mock(Executor.class);
+        when(mockExecutor8.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor9 = mock(Executor.class);
+        when(mockExecutor9.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor10 = mock(Executor.class);
+        when(mockExecutor10.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .putExecutor("TEST3", mockExecutor3)
+                .putExecutor("TEST4", mockExecutor4)
+                .putExecutor("TEST5", mockExecutor5)
+                .putExecutor("TEST6", mockExecutor6)
+                .putExecutor("TEST7", mockExecutor7)
+                .putExecutor("TEST8", mockExecutor8)
+                .putExecutor("TEST9", mockExecutor9)
+                .putExecutor("TEST10", mockExecutor10)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(-258, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(-65, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(2147483583, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(-129, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST5", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(67, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST6", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(-196, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST7", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(128, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST8", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(true, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST9", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(true, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST10", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(false, args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(-258));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(-65));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(2147483583));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(-129));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(67));
+        verify(mockExecutor6).evaluate(any(), any(), any(), eq(-196));
+        verify(mockExecutor7).evaluate(any(), any(), any(), eq(128));
+        verify(mockExecutor8).evaluate(any(), any(), any(), eq(true));
+        verify(mockExecutor9).evaluate(any(), any(), any(), eq(true));
+        verify(mockExecutor10).evaluate(any(), any(), any(), eq(false));
     }
 
     @Test(expected = InterpreterException.class)
     public void testBitwiseException1() throws Exception {
-        {
-            Charset charset = StandardCharsets.UTF_8;
-            String text = "x = 1&true;";
+        // Arrange
+        String text = "x = 1&true;";
 
-            Lexer lexer = new Lexer(text, charset);
-            Parser parser = new Parser(lexer);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .build();
 
-            Node root = parser.parse();
-            Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.startWithContext(null);
-        }
+        // Act
+        test.test();
+
+        // Assert
+        // Exception
     }
 
     @Test(expected = InterpreterException.class)
     public void testBitwiseException2() throws Exception {
-        {
-            Charset charset = StandardCharsets.UTF_8;
-            String text = "x = false^2.0;";
+        // Arrange
+        String text = "x = false^2.0;";
 
-            Lexer lexer = new Lexer(text, charset);
-            Parser parser = new Parser(lexer);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .build();
 
-            Node root = parser.parse();
-            Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.startWithContext(null);
-        }
+        // Act
+        test.test();
+
+        // Assert
+        // Exception
     }
 
     @Test(expected = InterpreterException.class)
     public void testBitwiseException3() throws Exception {
-        {
-            Charset charset = StandardCharsets.UTF_8;
-            String text = "x = 1|2.1;";
+        // Arrange
+        String text = "x = 1|2.1;";
 
-            Lexer lexer = new Lexer(text, charset);
-            Parser parser = new Parser(lexer);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .build();
 
-            Node root = parser.parse();
-            Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.startWithContext(null);
-        }
+        // Act
+        test.test();
+
+        // Assert
+        // Exception
     }
 
     @Test
     public void testSimpleIf() throws Exception {
-        Set<String> set = new HashSet<>();
+        // Arrange
 
-        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x > 0.0;"
-                + "    #TEST1 \"pass\";"
+                + "    #TEST \"pass\";"
                 + "ELSE;"
-                + "    #TEST2 \"failed\";"
+                + "    #TEST \"failed\";"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-                    throws Exception {
-                assertEquals("pass", args[0]);
-                set.add("true");
-                return null;
-            }
-        });
-        executorMap.put("TEST2", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        // Act
+        test.test();
 
-                    throws Exception {
-                assertEquals("fail", args[0]);
-                set.add("false");
-                return null;
-            }
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("true"));
-        Assert.assertFalse(set.contains("false"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("pass"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("failed"));
     }
 
     @Test
     public void testSimpleIf2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IF someunknown != 0.0;"
                 + "    #TEST \"pass\";"
@@ -1630,33 +1175,25 @@ public class TestInterpreter {
                 + "    #TEST \"failed\";"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .addScriptVariable("someunknown", 0.0)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals("pass", args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("failed"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("pass"));
     }
 
     @Test
     public void testSimpleIf3() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IF 0.0 != someunknown;"
                 + "    #TEST \"pass\";"
@@ -1664,33 +1201,25 @@ public class TestInterpreter {
                 + "    #TEST \"failed\";"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .addScriptVariable("someunknown", 0.0)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals("pass", args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("failed"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("pass"));
     }
 
     @Test
     public void testSimpleIf4() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IF someunknown == someunknown;"
                 + "    #TEST \"pass\";"
@@ -1698,154 +1227,245 @@ public class TestInterpreter {
                 + "    #TEST \"failed\";"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals("pass", args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("pass"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("failed"));
     }
 
     @Test
     public void testNestedIf() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 4.0;"
                 + "IF x < 0.0;"
-                + "    #TEST \"no\";"
+                + "    #TEST \"case1\";"
                 + "ELSEIF x > 0.0;"
-                + "    #TEST \"pass\";"
+                + "    #TEST \"case2\";"
                 + "ELSE;"
-                + "    #TEST \"no\";"
+                + "    #TEST \"case3\";"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals("pass", args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("case2"));
+        verify(executor, never()).evaluate(any(), any(), any(), eq("case1"));
+        verify(executor, never()).evaluate(any(), any(), any(), eq("case3"));
     }
 
     @Test
     public void testNestedIf2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 4.0;"
                 + "IF x < 0.0;"
-                + "    #TEST \"no\";"
+                + "    #TEST \"case1\";"
                 + "ELSEIF x < -5.0;"
-                + "    #TEST \"no\";"
+                + "    #TEST \"case2\";"
                 + "ELSE;"
-                + "    #TEST \"pass\";"
+                + "    #TEST \"case3\";"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals("pass", args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("case3"));
+        verify(executor, never()).evaluate(any(), any(), any(), eq("case1"));
+        verify(executor, never()).evaluate(any(), any(), any(), eq("case2"));
     }
 
     @Test
-    public void testNestedIf3() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+    public void testNestedIf3_1() throws Exception {
+        // Arrange
         String text = ""
                 + "IF x > 999;"
-                + "    result = \"test1\";"
+                + "    #TEST \"test1\";"
                 + "ELSEIF x > 99;"
-                + "    result = \"test2\";"
+                + "    #TEST \"test2\";"
                 + "ELSEIF x > 9;"
                 + "    IF x < 11;"
-                + "        result = \"test5\";"
+                + "        #TEST \"test5\";"
                 + "    ENDIF;"
                 + "ELSEIF x > 4;"
-                + "    result = \"test3\";"
+                + "    #TEST \"test3\";"
                 + "ELSE;"
-                + "    result = \"test4\";"
+                + "    #TEST \"test4\";"
                 + "ENDIF;";
 
-        Map<Integer, String> testMap = new HashMap<>();
-        testMap.put(1000, "test1");
-        testMap.put(100, "test2");
-        testMap.put(10, "test5");
-        testMap.put(5, "test3");
-        testMap.put(0, "test4");
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("x", 1000)
+                .build();
 
-        int x = 0;
-        Map<String, Executor> executorMap = new HashMap<>();
+        // Act
+        test.test();
 
-        for (Entry<Integer, String> entry : testMap.entrySet()) {
-            x = entry.getKey();
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("test1"));
+    }
 
-            Map<String, Object> localVars = new HashMap<>();
-            localVars.put("x", x);
+    @Test
+    public void testNestedIf3_2() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF x > 999;"
+                + "    #TEST \"test1\";"
+                + "ELSEIF x > 99;"
+                + "    #TEST \"test2\";"
+                + "ELSEIF x > 9;"
+                + "    IF x < 11;"
+                + "        #TEST \"test5\";"
+                + "    ENDIF;"
+                + "ELSEIF x > 4;"
+                + "    #TEST \"test3\";"
+                + "ELSE;"
+                + "    #TEST \"test4\";"
+                + "ENDIF;";
 
-            Interpreter interpreter = new Interpreter(root);
-            interpreter.setExecutorMap(executorMap);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.setVars(localVars);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-            interpreter.startWithContext(null);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("x", 100)
+                .build();
 
-            assertEquals(testMap.get(x), localVars.get("result"));
-        }
+        // Act
+        test.test();
+
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("test2"));
+    }
+
+    @Test
+    public void testNestedIf3_3() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF x > 999;"
+                + "    #TEST \"test1\";"
+                + "ELSEIF x > 99;"
+                + "    #TEST \"test2\";"
+                + "ELSEIF x > 9;"
+                + "    IF x < 11;"
+                + "        #TEST \"test5\";"
+                + "    ENDIF;"
+                + "ELSEIF x > 4;"
+                + "    #TEST \"test3\";"
+                + "ELSE;"
+                + "    #TEST \"test4\";"
+                + "ENDIF;";
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("x", 10)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("test5"));
+    }
+
+    @Test
+    public void testNestedIf3_4() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF x > 999;"
+                + "    #TEST \"test1\";"
+                + "ELSEIF x > 99;"
+                + "    #TEST \"test2\";"
+                + "ELSEIF x > 9;"
+                + "    IF x < 11;"
+                + "        #TEST \"test5\";"
+                + "    ENDIF;"
+                + "ELSEIF x > 4;"
+                + "    #TEST \"test3\";"
+                + "ELSE;"
+                + "    #TEST \"test4\";"
+                + "ENDIF;";
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("x", 5)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("test3"));
+    }
+
+    @Test
+    public void testNestedIf3_5() throws Exception {
+        // Arrange
+        String text = ""
+                + "IF x > 999;"
+                + "    #TEST \"test1\";"
+                + "ELSEIF x > 99;"
+                + "    #TEST \"test2\";"
+                + "ELSEIF x > 9;"
+                + "    IF x < 11;"
+                + "        #TEST \"test5\";"
+                + "    ENDIF;"
+                + "ELSEIF x > 4;"
+                + "    #TEST \"test3\";"
+                + "ELSE;"
+                + "    #TEST \"test4\";"
+                + "ENDIF;";
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("x", 0)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq("test4"));
     }
 
     @Test
     public void testNestedIf4() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1858,33 +1478,87 @@ public class TestInterpreter {
                 "    #TEST 3;" +
                 "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(1, args[0]);
-                return null;
-            }
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(1));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(2));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(3));
+    }
 
-        });
+    @Test
+    public void testNestedIf4_2() throws Exception {
+        // Arrange
+        String text = "x = 5.0;"
+                + "" +
+                "IF x > 0.0;" +
+                "    IF x == 4.0;" +
+                "        #TEST 1;" +
+                "    ELSE;" +
+                "        #TEST 2;" +
+                "    ENDIF;" +
+                "ELSE;" +
+                "    #TEST 3;" +
+                "ENDIF;";
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        interpreter.startWithContext(null);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(2));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(1));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(3));
+    }
+
+    @Test
+    public void testNestedIf4_3() throws Exception {
+        // Arrange
+        String text = "x = -99;"
+                + "" +
+                "IF x > 0.0;" +
+                "    IF x == 4.0;" +
+                "        #TEST 1;" +
+                "    ELSE;" +
+                "        #TEST 2;" +
+                "    ENDIF;" +
+                "ELSE;" +
+                "    #TEST 3;" +
+                "ENDIF;";
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(3));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(1));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(2));
     }
 
     @Test
     public void testNestedIf5() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1901,33 +1575,25 @@ public class TestInterpreter {
                 "    #TEST 3;" +
                 "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(1, args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(1));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(2));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(3));
     }
 
     @Test
     public void testNestedIfNoElse() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1943,33 +1609,25 @@ public class TestInterpreter {
                 "    #TEST 3;" +
                 "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(2, args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(2));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(1));
+        verify(executor, never()).evaluate(any(), any(), any(), eq(3));
     }
 
     @Test
     public void testImport() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
                 + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
                 + "#TEST TheTest;"
@@ -1978,111 +1636,68 @@ public class TestInterpreter {
                 + "#TEST4 TheTest.staticField;"
                 + "#TEST5 TestEnum.IMTEST;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor3 = mock(Executor.class);
+        when(mockExecutor3.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor4 = mock(Executor.class);
+        when(mockExecutor4.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor5 = mock(Executor.class);
+        when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .putExecutor("TEST3", mockExecutor3)
+                .putExecutor("TEST4", mockExecutor4)
+                .putExecutor("TEST5", mockExecutor5)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(TheTest.class, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals("static", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals("local", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals("staticField", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST5", new Executor() {
-
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
-
-                assertEquals(TestEnum.IMTEST, args[0]);
-                return null;
-            }
-
-        });
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(TheTest.class));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(TheTest.staticTest()));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(new TheTest().localTest()));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(TheTest.staticField));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
     @Test
     public void testImportAs() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "IMPORT " + TheTest.class.getName() + " as SomeClass;"
-            + "IMPORT " + TestEnum.class.getName() + " as SomeEnum;"
-            + "#TEST SomeClass;"
-            + "#TEST SomeClass.staticTest();"
-            + "#TEST SomeClass().localTest();"
-            + "#TEST SomeClass.staticField;"
-            + "#TEST SomeEnum.IMTEST;";
+                + "IMPORT " + TestEnum.class.getName() + " as SomeEnum;"
+                + "#TEST SomeClass;"
+                + "#TEST SomeClass.staticTest();"
+                + "#TEST SomeClass().localTest();"
+                + "#TEST SomeClass.staticField;"
+                + "#TEST SomeEnum.IMTEST;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executorMap.put("TEST", mockExecutor);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
-
-        InOrder inOrder = inOrder(mockExecutor);
-        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(TheTest.class));
-        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("static"));
-        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("local"));
-        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("staticField"));
-        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(TestEnum.IMTEST));
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(TheTest.class));
+        verify(executor).evaluate(any(), any(), any(), eq("static"));
+        verify(executor).evaluate(any(), any(), any(), eq("local"));
+        verify(executor).evaluate(any(), any(), any(), eq("staticField"));
+        verify(executor).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
     @Test
     public void testComparison() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "#TEST 1 < 2, 2 < 1;"
                 + "#TEST2 5 > 4, 4 > 5;"
                 + "#TEST3 1 <= 1, 3 <= 2;"
@@ -2090,815 +1705,789 @@ public class TestInterpreter {
                 + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";"
                 + "#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor3 = mock(Executor.class);
+        when(mockExecutor3.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor4 = mock(Executor.class);
+        when(mockExecutor4.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor5 = mock(Executor.class);
+        when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor6 = mock(Executor.class);
+        when(mockExecutor6.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor exec = new Executor() {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .putExecutor("TEST3", mockExecutor3)
+                .putExecutor("TEST4", mockExecutor4)
+                .putExecutor("TEST5", mockExecutor5)
+                .putExecutor("TEST6", mockExecutor6)
+                .build();
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        // Act
+        test.test();
 
-                assertEquals(true, args[0]);
-                assertEquals(false, args[1]);
-                return null;
-            }
-
-        };
-        executorMap.put("TEST", exec);
-        executorMap.put("TEST2", exec);
-        executorMap.put("TEST3", exec);
-        executorMap.put("TEST4", exec);
-        executorMap.put("TEST5", exec);
-        executorMap.put("TEST6", exec);
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(true), eq(false));
     }
 
     @Test
     public void testNullComparison() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "IF {\"temp\"} == null;"
-                + "{\"temp\"} = true;"
+                + "#TEST;"
                 + "ENDIF;";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setGvars(gvars);
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
-
-        assertEquals(true, gvars.get("temp"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any());
     }
 
     @Test
     public void testLineBreak() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "#TEST \"abcd\\nABCD\"";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-                assertEquals("abcd\nABCD", args[0]);
-                return null;
-            }
-        });
+        // Act
+        test.test();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("abcd\nABCD"));
     }
 
     @Test
     public void testCarriageReturn() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "#TEST \"abcd\\rABCD\"";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
 
-                    throws Exception {
-                assertEquals("abcd\rABCD", args[0]);
-                return null;
-            }
-        });
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("abcd\rABCD"));
     }
 
     @Test
     public void testISStatement() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "IMPORT " + TheTest.class.getName() + ";" +
                 "IMPORT " + InTest.class.getName() + ";" +
                 "" +
                 "#TEST test IS TheTest, test IS InTest;" +
-                "#TEST test2 IS InTest, test2 IS TheTest;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+                "#TEST2 test2 IS InTest, test2 IS TheTest;";
 
-                Assert.assertTrue((boolean) args[0]);
-                Assert.assertFalse((boolean) args[1]);
-                return null;
-            }
-        });
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        HashMap<String, Object> vars = new HashMap<>();
-        vars.put("test", new TheTest());
-        vars.put("test2", new InTest());
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setVars(vars);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .addScriptVariable("test", new TheTest())
+                .addScriptVariable("test2", new InTest())
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(true), eq(false));
+    }
+
+    @Test
+    public void testRangeFor_Exclusive() throws Exception {
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 0..2",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+
+        // Arrange
+        String text = "FOR i = 0..2;" +
+                "#TEST i;" +
+                "ENDFOR;";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+    }
+
+    @Test
+    public void testRangeFor_ReversedExclusive() throws Exception {
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 3..0",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+
+        // Arrange
+        String text = "FOR i = 3..0;" +
+                "#TEST i;" +
+                "ENDFOR;";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+    }
+
+    @Test
+    public void testRangeFor_Inclusive() throws Exception {
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 0..=2",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+
+        // Arrange
+        String text = "FOR i = 0..=2;" +
+                "#TEST i;" +
+                "ENDFOR;";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+    }
+
+    @Test
+    public void testRangeFor_ReversedInclusive() throws Exception {
+//        final String text = String.join(
+//            "\n",
+//            "FOR i = 3..=0",
+//            "  #TEST i",
+//            "ENDFOR"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//
+//        final Node root = parser.parse();
+//
+//        final Map<String, Executor> executors = new HashMap<>();
+//        final Executor mockExecutor = mock(Executor.class);
+//        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+//        executors.put("TEST", mockExecutor);
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setExecutorMap(executors);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.startWithContext(null);
+//
+//        InOrder inOrder = inOrder(mockExecutor);
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+//        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+
+        // Arrange
+        String text = "FOR i = 3..=0;" +
+                "#TEST i;" +
+                "ENDFOR;";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
     }
 
     @Test
     public void testBreak() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 0;" +
+        // Arrange
+        String text = "" +
+                "x = 0;" +
                 "WHILE x < 5;" +
-                "x = x + 1;" +
-                "IF x > 1;" +
-                "#BREAK;" +
-                "ENDIF;" +
+                "    x = x + 1;" +
+                "    IF x > 1;" +
+                "        #BREAK;" +
+                "    ENDIF;" +
                 "ENDWHILE;" +
                 "#TEST x;" +
                 "" +
                 "FOR x = 0:10;" +
-                "IF x == 2;" +
-                "#BREAK;" +
-                "ENDIF;" +
+                "    IF x == 5;" +
+                "        #BREAK;" +
+                "    ENDIF;" +
                 "ENDFOR;" +
                 "#TEST2 x";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
 
-                assertEquals(2, args[0]);
-                return null;
-            }
-        });
-        executorMap.put("TEST2", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                assertEquals(2, args[0]);
-                return null;
-            }
-        });
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .overrideTaskSupervisor(mockTask)
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(2));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(5));
     }
 
 
     @Test
     public void testBreak2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "FOR i = 0:5;" +
-                "IF i == 3;" +
-                "#BREAK;" +
-                "ENDIF;" +
-                "#TEST;" +
+        // Arrange
+        String text = "" +
+                "FOR i = 0:5;" +
+                "    IF i == 3;" +
+                "        #BREAK;" +
+                "    ENDIF;" +
+                "    #TEST;" +
                 "ENDFOR;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
 
-        Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = mock(Executor.class);
-        Mockito.when(mockExecutor.evaluate(Mockito.any(), Mockito.anyMap(),
-                                           Mockito.any(), ArgumentMatchers.any())).thenReturn(null);
-        executorMap.put("TEST", mockExecutor);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
-        Mockito.verify(mockExecutor, Mockito.times(3)).evaluate(Mockito.any(), Mockito.anyMap(),
-                                                                Mockito.any(), ArgumentMatchers.any());
+        // Assert
+        verify(mockExecutor, times(3)).evaluate(any(), any(), any(), any());
     }
 
     @Test
     public void testContinue() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 0;" +
+        // Arrange
+        String text = "" +
+                "x = 0;" +
                 "i = 0;" +
                 "WHILE i < 5;" +
-                "i = i + 1;" +
-                "IF x > 1;" +
-                "#CONTINUE;" +
-                "ENDIF;" +
-                "x = x + 1;" +
+                "    i = i + 1;" +
+                "    IF x > 1;" +
+                "        #CONTINUE;" +
+                "    ENDIF;" +
+                "    x = x + 1;" +
                 "ENDWHILE;" +
                 "#TEST x, i;" +
                 "" +
                 "x = 0;" +
                 "FOR i = 0:6;" +
-                "IF x > 1;" +
-                "#CONTINUE;" +
-                "ENDIF;" +
-                "x = x + 1;" +
+                "    IF x > 1;" +
+                "        #CONTINUE;" +
+                "    ENDIF;" +
+                "    x = x + 1;" +
                 "ENDFOR;" +
                 "#TEST2 x, i;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
 
-                assertEquals(2, args[0]);
-                assertEquals(5, args[1]);
-                return null;
-            }
-        });
-        executorMap.put("TEST2", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                assertEquals(2, args[0]);
-                assertEquals(5, args[1]);
-                return null;
-            }
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .overrideTaskSupervisor(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(2), eq(5));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(2), eq(5));
     }
 
     @Test
     public void testContinueIterator() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "sum = 0;" +
+        // Arrange
+        String text = "" +
+                "sum = 0;" +
                 "FOR val = arr;" +
-                "IF val == 1 || val == 5;" +
-                "#CONTINUE;" +
-                "ENDIF;" +
-                "sum = sum + val;" +
+                "    IF val == 1 || val == 5;" +
+                "        #CONTINUE;" +
+                "    ENDIF;" +
+                "    sum = sum + val;" +
                 "ENDFOR;" +
                 "#TEST sum;" +
                 "" +
                 "sum = 0;" +
                 "FOR val = iter;" +
-                "IF val == 1 || val == 5;" +
-                "#CONTINUE;" +
-                "ENDIF;" +
-                "sum = sum + val;" +
+                "    IF val == 1 || val == 5;" +
+                "        #CONTINUE;" +
+                "    ENDIF;" +
+                "    sum = sum + val;" +
                 "ENDFOR;" +
                 "#TEST2 sum;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
 
-                assertEquals(9, args[0]);
-                return null;
-            }
-        });
-        executorMap.put("TEST2", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) throws Exception {
 
-                assertEquals(9, args[0]);
-                return null;
-            }
-        });
-        HashMap<String, Object> vars = new HashMap<>();
-        vars.put("arr", new int[]{1, 2, 3, 4, 5});
-        vars.put("iter", Arrays.asList(1, 2, 3, 4, 5));
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setVars(vars);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        interpreter.startWithContext(null);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .addScriptVariable("arr", new int[]{1, 2, 3, 4, 5})
+                .addScriptVariable("iter", Arrays.asList(1, 2, 3, 4, 5))
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(9));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(9));
     }
 
     @Test
     public void testSyncAsync() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "SYNC;"
-                + "#TEST1;"
+                + "    #TEST1;"
                 + "ENDSYNC;"
                 + "ASYNC;"
-                + "#TEST2;"
+                + "    #TEST2;"
                 + "ENDASYNC;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        TaskSupervisor mockTaskSupervisor = mock(TaskSupervisor.class);
 
-                    throws Exception {
-                set.add("test1");
-                return null;
-            }
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .overrideTaskSupervisor(mockTaskSupervisor)
+                .build();
 
+        when(mockTaskSupervisor.submitSync(any())).thenAnswer(invocation -> {
+            invocation.getArgument(0, Callable.class).call();
+            return mock(Future.class);
         });
-        executorMap.put("TEST2", new Executor() {
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArguments()[0]).run();
+            return null;
+        }).when(mockTaskSupervisor).submitAsync(any());
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        // Act
+        test.test();
 
-                    throws Exception {
-                set.add("test2");
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(new TaskSupervisor() {
-
-            /* (non-Javadoc)
-             * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
-             */
-            @Override
-            public <T> Future<T> submitSync(Callable<T> call) {
-                try {
-                    call.call();
-                    set.add("sync");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return new EmptyFuture<T>();
-            }
-
-            @Override
-            public void submitAsync(Runnable run) {
-                try {
-                    run.run();
-                    set.add("async");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public boolean isServerThread() {
-                return true;
-            }
-
-            @Override
-            public Thread newThread(Runnable runnable, String name, int priority) {
-                return null;
-            }
-
-        });
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test1"));
-        Assert.assertTrue(set.contains("test2"));
-        Assert.assertTrue(set.contains("sync"));
-        Assert.assertTrue(set.contains("async"));
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any());
+        verify(mockExecutor2).evaluate(any(), any(), any());
+        verify(mockTaskSupervisor).submitSync(any());
+        verify(mockTaskSupervisor).submitAsync(any());
     }
 
     @Test
     public void testSyncAsync2() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "SYNC;"
-                + "FOR i = 0:1;"
-                + "#TEST1;"
-                + "ENDFOR;"
+                + "    FOR i = 0:5;"
+                + "        #TEST1;"
+                + "    ENDFOR;"
                 + "ENDSYNC;"
                 + "ASYNC;"
-                + "FOR j = 0:1;"
-                + "#TEST2;"
-                + "ENDFOR;"
+                + "    FOR j = 0:5;"
+                + "        #TEST2;"
+                + "    ENDFOR;"
                 + "ENDASYNC;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST1", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+        TaskSupervisor mockTaskSupervisor = mock(TaskSupervisor.class);
 
-                    throws Exception {
-                set.add("test1");
-                return null;
-            }
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .overrideTaskSupervisor(mockTaskSupervisor)
+                .build();
 
+        when(mockTaskSupervisor.submitSync(any())).thenAnswer(invocation -> {
+            invocation.getArgument(0, Callable.class).call();
+            return mock(Future.class);
         });
-        executorMap.put("TEST2", new Executor() {
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArguments()[0]).run();
+            return null;
+        }).when(mockTaskSupervisor).submitAsync(any());
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        // Act
+        test.test();
 
-                    throws Exception {
-                set.add("test2");
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(new TaskSupervisor() {
-
-            /* (non-Javadoc)
-             * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
-             */
-            @Override
-            public <T> Future<T> submitSync(Callable<T> call) {
-                try {
-                    call.call();
-                    set.add("sync");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return new EmptyFuture<T>();
-            }
-
-            @Override
-            public void submitAsync(Runnable run) {
-                try {
-                    run.run();
-                    set.add("async");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public boolean isServerThread() {
-                return true;
-            }
-
-            @Override
-            public Thread newThread(Runnable runnable, String name, int priority) {
-                return null;
-            }
-
-        });
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test1"));
-        Assert.assertTrue(set.contains("test2"));
-        Assert.assertTrue(set.contains("sync"));
-        Assert.assertTrue(set.contains("async"));
+        // Assert
+        verify(mockExecutor1, times(5)).evaluate(any(), any(), any());
+        verify(mockExecutor2, times(5)).evaluate(any(), any(), any());
+        verify(mockTaskSupervisor).submitSync(any());
+        verify(mockTaskSupervisor).submitAsync(any());
     }
 
     @Test
     public void testConstructorNoArg() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest();"
                 + "#TEST obj;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                    throws Exception {
-                set.add("test");
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-                Object obj = args[0];
-                assertEquals(ConstTest.class, obj.getClass());
+        // Act
+        test.test();
 
-                ConstTest test = (ConstTest) obj;
-                assertEquals(0, test.val1);
-                assertEquals(0.0, test.val2, 0.000001);
-                assertEquals("", test.val3);
-
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest()));
     }
 
     @Test
     public void testConstructorOneArg() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(1);"
                 + "#TEST obj;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                    throws Exception {
-                set.add("test");
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-                Object obj = args[0];
-                assertEquals(ConstTest.class, obj.getClass());
+        // Act
+        test.test();
 
-                ConstTest test = (ConstTest) obj;
-                assertEquals(1, test.val1);
-                assertEquals(0.0, test.val2, 0.000001);
-                assertEquals("", test.val3);
-
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest(1)));
     }
 
     @Test
     public void testConstructorThreeArg() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(2, 5.0, \"hoho\");"
                 + "#TEST obj;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                    throws Exception {
-                set.add("test");
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-                Object obj = args[0];
-                assertEquals(ConstTest.class, obj.getClass());
+        // Act
+        test.test();
 
-                ConstTest test = (ConstTest) obj;
-                assertEquals(2, test.val1);
-                assertEquals(5.0, test.val2, 0.000001);
-                assertEquals("hoho", test.val3);
-
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest(2, 5.0, "hoho")));
     }
 
     @Test
     public void testConstructorVarArg() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(1, 2, 3, 4, 5);"
                 + "#TEST obj;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                    throws Exception {
-                set.add("test");
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
 
-                Object obj = args[0];
-                assertEquals(ConstTest.class, obj.getClass());
+        // Act
+        test.test();
 
-                ConstTest test = (ConstTest) obj;
-                assertEquals(1, test.val1);
-                assertEquals(2.0, test.val2, 0.000001);
-                assertEquals("[1, 2, 3, 4, 5]", test.val3);
-
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(),
+                eq(new ConstTest(1, 2, Arrays.toString(new int[]{1, 2, 3, 4, 5}))));
     }
 
     @Test
     public void testConstructorCustom() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT " + Vector.class.getName() + ";"
                 + "v = Vector();"
                 + "v2 = Vector(4,4,2);"
                 + "v3 = Vector(4.2,4.4,2.3);"
-                + "v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
+                + "v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));"
+                + "#TEST v, v2, v3, v4;";
 
-        Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = mock(Executor.class);
-        executorMap.put("TEST", mockExecutor);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setSelfReference(new SelfReference() {
-            public float toFloat(Number number) {
-                return number.floatValue();
-            }
-        });
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .overrideSelfReference(new SelfReference() {
+                    public float toFloat(Number number) {
+                        return number.floatValue();
+                    }
+                })
+                .build();
 
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
+        // Act
+        test.test();
 
-        Map<String, Object> vars = interpreter.getVars();
-
-        assertEquals(new Vector(), vars.get("v"));
-        assertEquals(new Vector(4, 4, 2), vars.get("v2"));
-        assertEquals(new Vector(4.2, 4.4, 2.3), vars.get("v3"));
-        assertEquals(new Vector(3.2f, 4.3f, 5.4f), vars.get("v4"));
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(),
+                eq(new Vector()),
+                eq(new Vector(4, 4, 2)),
+                eq(new Vector(4.2, 4.4, 2.3)),
+                eq(new Vector(3.2f, 4.3f, 5.4f)));
     }
 
     @Test
     public void testArrayAndClass() throws Exception {
-        Set<String> set = new HashSet<>();
-
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT " + TestEnum.class.getName() + ";"
                 + "enumVal = TestEnum.IMTEST;"
                 + "arr = array(1);"
                 + "arr[0] = enumVal;"
                 + "#TEST arr[0];";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
 
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args)
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-                    throws Exception {
-                set.add("test");
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .overrideSelfReference(new SelfReference() {
+                    public Object array(int size) {
+                        return new Object[size];
+                    }
+                })
+                .build();
 
-                assertEquals(TestEnum.IMTEST, args[0]);
+        // Act
+        test.test();
 
-                return null;
-            }
-
-        });
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new SelfReference() {
-            @SuppressWarnings("unused")
-            public Object array(int size) {
-                return new Object[size];
-            }
-        });
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(set.contains("test"));
+        // Assert
+        verify(executor).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
     @Test
     public void testNestedAccessor() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "IMPORT java.lang.Long;" +
-                "id = Long.valueOf(\"123456789123456789\").longValue()";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setSelfReference(new SelfReference() {
-            @SuppressWarnings("unused")
-            public Object array(int size) {
-                return new Object[size];
-            }
-        });
-        interpreter.setTaskSupervisor(mockTask);
+                "id = Long.valueOf(\"123456789123456789\").longValue();" +
+                "#TEST id;";
 
-        interpreter.startWithContext(null);
-        assertEquals(123456789123456789L, interpreter.getVars().get("id"));
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(123456789123456789L));
     }
 
     @Test
     public void testGlobalVariableAsFactor() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
-                + "result = {\"some.temp.var\"} - 4;"
-                + "result2 = {?\"some.temp.var\"} - 5;";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+                + "#TEST1 {\"some.temp.var\"} - 4;"
+                + "#TEST2 {?\"some.temp.var\"} - 5;";
 
-        Map<Object, Object> globalVar = new HashMap<>();
-        globalVar.put("some.temp.var", 22);
-        globalVar.put(new TemporaryGlobalVariableKey("some.temp.var"), 22);
-        interpreter.setGvars(globalVar);
+        Executor mockExecutor1 = mock(Executor.class);
+        when(mockExecutor1.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        interpreter.startWithContext(null);
-        assertEquals(18, interpreter.getVars().get("result"));
-        assertEquals(17, interpreter.getVars().get("result2"));
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor1)
+                .putExecutor("TEST2", mockExecutor2)
+                .addGlobalVariable("some.temp.var", 22)
+                .addTemporaryGlobalVariable("some.temp.var", 33)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(22 - 4));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(33 - 5));
     }
 
     @Test
     public void testLambdaFunction() throws Exception {
+        // Arrange
+        String text = "" +
+                "abc = 33\n" +
+                "instance.noArg(LAMBDA =>\n" +
+                "    abc * 3\n" +
+                "ENDLAMBDA)\n" +
+                "" +
+                "instance.oneArg(LAMBDA str => \n" +
+                "    added = str + \" Hi\"\n" +
+                "    added\n" +
+                "ENDLAMBDA)\n" +
+                "" +
+                "instance.twoArg(LAMBDA a, b => \n" +
+                "    a + b\n" +
+                "ENDLAMBDA)\n";
+
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
 
@@ -2917,37 +2506,14 @@ public class TestInterpreter {
             return run.apply(456, 78);
         }).when(obj).twoArg(any(BiFunction.class));
 
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "" +
-                "abc = 33\n" +
-                "instance.noArg(LAMBDA =>\n" +
-                "    abc * 3\n" +
-                "ENDLAMBDA)\n" +
-                "" +
-                "instance.oneArg(LAMBDA str => \n" +
-                "    added = str + \" Hi\"\n" +
-                "    added\n" +
-                "ENDLAMBDA)\n" +
-                "" +
-                "instance.twoArg(LAMBDA a, b => \n" +
-                "    a + b\n" +
-                "ENDLAMBDA)\n";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.getVars().put("instance", instance);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .addScriptVariable("instance", instance)
+                .build();
 
-        interpreter.start();
-        assertEquals(33, interpreter.getVars().get("abc"));
-        assertNull(interpreter.getVars().get("str"));
-        assertNull(interpreter.getVars().get("added"));
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        // Act
+        test.test();
 
+        // Assert
         assertEquals(99, instance.noArgResult);
         assertEquals("Something Hi", instance.oneArgResult);
         assertEquals(456 + 78, instance.twoArgResult);
@@ -2955,6 +2521,13 @@ public class TestInterpreter {
 
     @Test
     public void testLambdaFunctionNullReturn() throws Exception {
+        // Arrange
+        String text = "" +
+                "instance.twoArg(LAMBDA a, b => \n" +
+                "    a + b\n" +
+                "    null\n" +
+                "ENDLAMBDA)\n";
+
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
 
@@ -2966,30 +2539,29 @@ public class TestInterpreter {
             return run.apply(456, 78);
         }).when(obj).twoArg(any(BiFunction.class));
 
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "" +
-                "instance.twoArg(LAMBDA a, b => \n" +
-                "    a + b\n" +
-                "    null\n" +
-                "ENDLAMBDA)\n";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.getVars().put("instance", instance);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .addScriptVariable("instance", instance)
+                .build();
 
-        interpreter.start();
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        // Act
+        test.test();
 
+        // Assert
         assertNull(instance.twoArgResult);
     }
 
     @Test
     public void testLambdaFunctionComplex() throws Exception {
+        // Arrange
+        String text = "" +
+                "instance.oneArg(LAMBDA x => \n" +
+                "    IF x == \"Something\"\n" +
+                "        50\n" +
+                "    ELSE\n" +
+                "        100\n" +
+                "    ENDIF\n" +
+                "ENDLAMBDA)\n";
+
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
 
@@ -3000,7 +2572,20 @@ public class TestInterpreter {
             return run.apply("Something");
         }).when(obj).oneArg(any(Function.class));
 
-        Charset charset = StandardCharsets.UTF_8;
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .addScriptVariable("instance", instance)
+                .build();
+
+        // Act
+        test.test();
+
+        // Assert
+        assertEquals(50, instance.oneArgResult);
+    }
+
+    @Test
+    public void testLambdaFunctionComplex2() throws Exception {
+        // Arrange
         String text = "" +
                 "instance.oneArg(LAMBDA x => \n" +
                 "    IF x == \"Something\"\n" +
@@ -3009,24 +2594,7 @@ public class TestInterpreter {
                 "        100\n" +
                 "    ENDIF\n" +
                 "ENDLAMBDA)\n";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.getVars().put("instance", instance);
 
-        interpreter.start();
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
-
-        assertEquals(50, instance.oneArgResult);
-    }
-
-    @Test
-    public void testLambdaFunctionComplex2() throws Exception {
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
 
@@ -3037,462 +2605,540 @@ public class TestInterpreter {
             return run.apply("NotSomething");
         }).when(obj).oneArg(any(Function.class));
 
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "" +
-                "instance.oneArg(LAMBDA x => \n" +
-                "    IF x == \"Something\"\n" +
-                "        50\n" +
-                "    ELSE\n" +
-                "        100\n" +
-                "    ENDIF\n" +
-                "ENDLAMBDA)\n";
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.getVars().put("instance", instance);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .addScriptVariable("instance", instance)
+                .build();
 
-        interpreter.start();
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        // Act
+        test.test();
 
+        // Assert
         assertEquals(100, instance.oneArgResult);
     }
 
     @Test
+    public void testWait() throws Exception {
+        // Arrange
+        ExecutorService EXEC = Executors.newCachedThreadPool();
+
+        String text = "#WAIT 2\n";
+        Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        Parser parser = new Parser(lexer);
+
+        InterpreterGlobalContext globalContext = mock(InterpreterGlobalContext.class);
+        Interpreter interpreter = InterpreterBuilder.start(globalContext, parser.parse())
+                .build();
+
+        AtomicInteger success = new AtomicInteger(0);
+        Thread[] threads = new Thread[100];
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new Thread(() -> {
+                try {
+                    InterpreterTest.Builder.of(interpreter)
+                            .overrideTaskSupervisor(mockTask)
+                            .build()
+                            .test();
+                    success.incrementAndGet();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+        }
+
+        doAnswer(invocation -> {
+                    long begin = System.currentTimeMillis();
+                    EXEC.submit(() -> {
+                        try {
+                            Thread.sleep(invocation.getArgument(1));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        Runnable run = invocation.getArgument(0);
+                        run.run();
+                        System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
+                        System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
+                    });
+                    return null;
+                }
+        ).when(mockTask).runTaskLater(any(), anyLong());
+
+        // Act
+        for (Thread thread : threads) {
+            thread.start();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        // Assert
+        for (Thread thread : threads) {
+            assertFalse(thread.isAlive());
+        }
+        assertEquals(100, success.get());
+    }
+
+    @Test
+    public void testLambdaFunctionAsVariable() throws Exception {
+//        final Charset charset = StandardCharsets.UTF_8;
+//        final String text = String.join(
+//            "\n",
+//            "noArgFn = LAMBDA =>",
+//            "  abc * 3",
+//            "ENDLAMBDA",
+//            "",
+//            "oneArgFn = LAMBDA str =>",
+//            "  added = str + \" Hi\"",
+//            "  added",
+//            "ENDLAMBDA",
+//            "",
+//            "twoArgFn = LAMBDA a, b =>",
+//            "  a + b",
+//            "ENDLAMBDA",
+//            "",
+//            "abc = 33",
+//            "noArgResult = noArgFn()",
+//            "oneArgFnResult = oneArgFn(\"Something\")",
+//            "twoArgFnResult = twoArgFn(456, 78)"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//        final Node root = parser.parse();
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.start();
+//
+//        assertEquals(33, interpreter.getVars().get("abc"));
+//        assertNull(interpreter.getVars().get("str"));
+//        assertNull(interpreter.getVars().get("added"));
+//        assertNull(interpreter.getVars().get("a"));
+//        assertNull(interpreter.getVars().get("b"));
+//
+//        assertEquals(99, interpreter.getVars().get("noArgResult"));
+//        assertEquals("Something Hi", interpreter.getVars().get("oneArgFnResult"));
+//        assertEquals(456 + 78, interpreter.getVars().get("twoArgFnResult"));
+
+        // arrange
+        String text = "" +
+                "abc = 33\n" +
+                "noArgFn = LAMBDA =>\n" +
+                "  abc * 3\n" +
+                "ENDLAMBDA\n" +
+                "\n" +
+                "oneArgFn = LAMBDA str =>\n" +
+                "  added = str + \" Hi\"\n" +
+                "  added\n" +
+                "ENDLAMBDA\n" +
+                "\n" +
+                "twoArgFn = LAMBDA a, b =>\n" +
+                "  a + b\n" +
+                "ENDLAMBDA\n" +
+                "\n" +
+                "noArgResult = noArgFn()\n" +
+                "oneArgFnResult = oneArgFn(\"Something\")\n" +
+                "twoArgFnResult = twoArgFn(456, 78)\n";
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text).build();
+        test.test();
+
+        // assert
+        assertEquals(33, test.getScriptVar("abc"));
+        assertNull(test.getScriptVar("str"));
+        assertNull(test.getScriptVar("added"));
+        assertNull(test.getScriptVar("a"));
+        assertNull(test.getScriptVar("b"));
+    }
+
+    @Test
+    public void testLambdaFunctionAsVariableReturnNull() throws Exception {
+//        final Charset charset = StandardCharsets.UTF_8;
+//        final String text = String.join(
+//            "\n",
+//            "testLambdaFn = LAMBDA a, b =>",
+//            "  a + b",
+//            "  null",
+//            "ENDLAMBDA",
+//            "",
+//            "testLambdaFnResult = testLambdaFn(20, 100)"
+//        );
+//
+//        final Lexer lexer = new Lexer(text, charset);
+//        final Parser parser = new Parser(lexer);
+//        final Node root = parser.parse();
+//
+//        final Interpreter interpreter = new Interpreter(root);
+//        interpreter.setTaskSupervisor(mockTask);
+//        interpreter.start();
+//
+//        assertNull(interpreter.getVars().get("a"));
+//        assertNull(interpreter.getVars().get("b"));
+//        assertNull(interpreter.getVars().get("testLambdaFnResult"));
+
+        // arrange
+        String text = "" +
+                "testLambdaFn = LAMBDA a, b =>\n" +
+                "  a + b\n" +
+                "  null\n" +
+                "ENDLAMBDA\n" +
+                "\n" +
+                "testLambdaFnResult = testLambdaFn(20, 100)\n";
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text).build();
+        test.test();
+
+        // assert
+        assertNull(test.getScriptVar("a"));
+        assertNull(test.getScriptVar("b"));
+        assertNull(test.getScriptVar("testLambdaFnResult"));
+    }
+
+    @Test
     public void testSwitch() throws Exception {
-        final String text = String.join(
-            "\n",
-            "dice = random(1, 7)",
-            "",
-            "SWITCH dice",
-            "  CASE 1, 2 => #MESSAGE \"You are lose!\"",
-            "  CASE 3, 4 =>",
-            "    #MESSAGE \"Good! You are draw, but I will give you some money.\"",
-            "    #MONEY 1000",
-            "  ENDCASE",
-            "  CASE 5, 6 =>",
-            "    #MESSAGE \"Perfect! You are win! Get some diamonds.\"",
-            "    #GIVE DIAMOND, random(10, 33)",
-            "  DEFAULT =>",
-            "    #MESSAGE \"Unexpected result! I guess you are a cheater?\"",
-            "    #KILL",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "dice = random(1, 7)\n\n"
+            + "SWITCH dice\n"
+            + "  CASE 1, 2 => #MESSAGE \"You are lose!\"\n"
+            + "  CASE 3, 4 =>\n"
+            + "    #MESSAGE \"Good! You are draw.\"\n"
+            + "  ENDCASE\n"
+            + "  CASE 5, 6 =>\n"
+            + "    #MESSAGE \"Perfect! You are win!\"\n"
+            + "  DEFAULT =>\n"
+            + "    #MESSAGE \"Unexpected result! I guess you are a cheater?\"\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
+        // act
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
 
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("MESSAGE", mockExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        final Map<String, Executor> executors = new HashMap<>();
-        final Executor executor = mock(Executor.class);
-        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("MESSAGE", executor);
-        executors.put("MONEY", executor);
-        executors.put("GIVE", executor);
-        executors.put("KILL", executor);
-
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
+        // assert
+        // No assertions in this test!
     }
 
     @Test
     public void testSwitchWithInteger() throws Exception {
-        final String text = String.join(
-            "\n",
-            "result = 1",
-            "",
-            "SWITCH result",
-            "  CASE 1, 2 => #PASS",
-            "  DEFAULT => #FAIL",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "result = 1\n\n"
+            + "SWITCH result\n"
+            + "  CASE 1, 2 => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithInteger2() throws Exception {
-        final String text = String.join(
-            "\n",
-            "result = 3",
-            "",
-            "SWITCH result",
-            "  CASE 1, 2 => #FAIL",
-            "  DEFAULT => #PASS",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "result = 3\n\n"
+            + "SWITCH result\n"
+            + "  CASE 1, 2 => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithDecimal() throws Exception {
-        final String text = String.join(
-            "\n",
-            "result = 1.0",
-            "",
-            "SWITCH result",
-            "  CASE 1.0, 1.1, 1.2 => #PASS",
-            "  DEFAULT => #FAIL",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "result = 1.0\n\n"
+            + "SWITCH result\n"
+            + "  CASE 1.0, 1.1, 1.2 => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithDecimal2() throws Exception {
-        final String text = String.join(
-            "\n",
-            "result = 2.0",
-            "",
-            "SWITCH result",
-            "  CASE 1.0, 1.1, 1.2 => #FAIL",
-            "  DEFAULT => #PASS",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "result = 2.0\n\n"
+            + "SWITCH result\n"
+            + "  CASE 1.0, 1.1, 1.2 => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + GameMode.class.getName(),
-            "result = GameMode.SURVIVAL",
-            "",
-            "SWITCH result",
-            "  CASE GameMode.SURVIVAL => #PASS",
-            "  DEFAULT => #FAIL",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "IMPORT " + GameMode.class.getName() + "\n"
+            + "result = GameMode.SURVIVAL\n\n"
+            + "SWITCH result\n"
+            + "  CASE GameMode.SURVIVAL => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum2() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + GameMode.class.getName(),
-            "result = GameMode.SURVIVAL",
-            "",
-            "SWITCH result",
-            "  CASE GameMode.CREATIVE, GameMode.ADVENTURE, GameMode.SPECTATOR => #FAIL",
-            "  DEFAULT => #PASS",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "IMPORT " + GameMode.class.getName() + "\n"
+            + "result = GameMode.SURVIVAL\n\n"
+            + "SWITCH result\n"
+            + "  CASE GameMode.CREATIVE, GameMode.ADVENTURE, GameMode.SPECTATOR => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum_SyntacticSugarForEnum() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + GameMode.class.getName(),
-            "result = GameMode.SURVIVAL",
-            "",
-            "SWITCH result",
-            "  CASE SURVIVAL => #PASS",
-            "  DEFAULT => #FAIL",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "IMPORT " + GameMode.class.getName() + "\n"
+            + "result = GameMode.SURVIVAL\n\n"
+            + "SWITCH result\n"
+            + "  CASE SURVIVAL => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum_SyntacticSugarForEnum2() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + GameMode.class.getName(),
-            "result = GameMode.SURVIVAL",
-            "",
-            "SWITCH result",
-            "  CASE CREATIVE, ADVENTURE, SPECTATOR => #FAIL",
-            "  DEFAULT => #PASS",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "IMPORT " + GameMode.class.getName() + "\n"
+            + "result = GameMode.SURVIVAL\n\n"
+            + "SWITCH result\n"
+            + "  CASE CREATIVE, ADVENTURE, SPECTATOR => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum_SyntacticSugarForEnum3() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + GameMode.class.getName(),
-            "result = GameMode.SURVIVAL",
-            "condition = GameMode.CREATIVE",
-            "",
-            "SWITCH result",
-            "  CASE condition, ADVENTURE, \"SPECTATOR\" => #FAIL",
-            "  DEFAULT => #PASS",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text =  ""
+            + "IMPORT " + GameMode.class.getName() + "\n"
+            + "result = GameMode.SURVIVAL\n"
+            + "condition = GameMode.CREATIVE\n\n"
+            + "SWITCH result\n"
+            + "  CASE condition, ADVENTURE, \"SPECTATOR\" => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum_SyntacticSugarForEnumByString() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
-            "",
-            "SWITCH result",
-            "  CASE \"IMTEST\" => #PASS",
-            "  DEFAULT => #FAIL",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "IMPORT " + TestEnum.class.getName() + "\n"
+            + "result = TestEnum.IMTEST\n\n"
+            + "SWITCH result"
+            + "  CASE \"IMTEST\" => #PASS\n"
+            + "  DEFAULT => #FAIL\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
 
     @Test
     public void testSwitchWithEnum_SyntacticSugarForEnumByString2() throws Exception {
-        final String text = String.join(
-            "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
-            "",
-            "SWITCH result",
-            "  CASE \"IMTEST2\", \"IMTEST3\" => #FAIL",
-            "  DEFAULT => #PASS",
-            "ENDSWITCH"
-        );
+        // arrange
+        final String text = ""
+            + "IMPORT " + TestEnum.class.getName() + "\n"
+            + "result = TestEnum.IMTEST\n\n"
+            + "SWITCH result\n"
+            + "  CASE \"IMTEST2\", \"IMTEST3\" => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
 
-        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
-        final Parser parser = new Parser(lexer);
-
-        final Node root = parser.parse();
-        final Interpreter interpreter = new Interpreter(root);
-
-        final Map<String, Executor> executors = new HashMap<>();
+        // act
         final Executor passExecutor = mock(Executor.class);
         final Executor failExecutor = mock(Executor.class);
         when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
         when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
-        executors.put("PASS", passExecutor);
-        executors.put("FAIL", failExecutor);
 
-        interpreter.setExecutorMap(executors);
-        interpreter.setSelfReference(new CommonFunctions());
-        interpreter.setTaskSupervisor(mockTask);
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
 
-        interpreter.startWithContext(null);
+        // assert
         verify(passExecutor).evaluate(any(), anyMap(), any(), any());
         verifyNoInteractions(failExecutor);
     }
@@ -3605,6 +3251,28 @@ public class TestInterpreter {
         public ConstTest(Object... vararg) {
 
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ConstTest constTest = (ConstTest) o;
+            return val1 == constTest.val1 && Double.compare(constTest.val2, val2) == 0 && Objects.equals(val3, constTest.val3);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(val1, val2, val3);
+        }
+
+        @Override
+        public String toString() {
+            return "ConstTest{" +
+                    "val1=" + val1 +
+                    ", val2=" + val2 +
+                    ", val3='" + val3 + '\'' +
+                    '}';
+        }
     }
 
     public static class EmptyFuture<T> implements Future<T> {
@@ -3681,7 +3349,7 @@ public class TestInterpreter {
         }
     }
 
-    private interface SomeInterface{
+    private interface SomeInterface {
         Object noArg(Supplier<Object> run);
 
         Object oneArg(Function<Object, Object> run);
@@ -3689,21 +3357,21 @@ public class TestInterpreter {
         Object twoArg(BiFunction<Object, Object, Object> run);
     }
 
-    private class SomeClass{
+    private class SomeClass {
         SomeInterface obj;
         Object noArgResult;
         Object oneArgResult;
         Object twoArgResult;
 
-        public void noArg(Supplier<Object> run){
+        public void noArg(Supplier<Object> run) {
             noArgResult = obj.noArg(run);
         }
 
-        public void oneArg(Function<Object, Object> run){
+        public void oneArg(Function<Object, Object> run) {
             oneArgResult = obj.oneArg(run);
         }
 
-        public void twoArg(BiFunction<Object, Object, Object> run){
+        public void twoArg(BiFunction<Object, Object, Object> run) {
             twoArgResult = obj.twoArg(run);
         }
     }

@@ -17,8 +17,14 @@
 
 package io.github.wysohn.triggerreactor.core.main;
 
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This interface provides methods to manage various game related things.
@@ -37,4 +43,15 @@ public interface IGameManagement {
     Iterable<IWorld> getWorlds();
 
     IWorld getWorld(String world);
+
+    IPlayer getPlayer(String playerName);
+
+    /**
+     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
+     * instead of changing the real block.
+     *
+     * @param sender sender to show the glow stones
+     * @param set    the set contains location of block and its associated trigger.
+     */
+    void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set);
 }

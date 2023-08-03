@@ -1,5 +1,9 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Provides;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -10,6 +14,8 @@ import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Test environment for bukkit-latest.
@@ -31,7 +37,15 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{new CommonFunctions(null)}});
+        CommonFunctions commonFunctions = Guice.createInjector(
+                new AbstractModule() {
+                    @Provides
+                    public AreaTriggerManager areaTriggerManager() {
+                        return mock(AreaTriggerManager.class);
+                    }
+                }
+        ).getInstance(CommonFunctions.class);
+        return Arrays.asList(new Object[][]{{commonFunctions}});
     }
 
     @Override
@@ -51,7 +65,7 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         ItemStack IS2 = new ItemStack(Material.GRANITE, 64);
         FakeInventory inv = fInventory(this, IS, IS2);
 
-        Player mockPlayer = Mockito.mock(Player.class);
+        Player mockPlayer = mock(Player.class);
         PlayerInventory mockInventory = preparePlayerInventory(mockPlayer, inv);
         Mockito.when(mockPlayer.getInventory()).thenReturn(mockInventory);
 

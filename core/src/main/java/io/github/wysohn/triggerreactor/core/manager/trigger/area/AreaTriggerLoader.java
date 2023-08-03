@@ -20,7 +20,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -29,17 +28,28 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
-    Logger logger;
+@Singleton
+public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
+    @Inject
+    @Named("DataFolder")
+    private File dataFolder;
+    @Inject
+    private Logger logger;
+    @Inject
+    private IAreaTriggerFactory factory;
 
-    public AreaTriggerLoader(TriggerReactorCore plugin) {
-        logger = plugin.getLogger();
+    @Inject
+    private AreaTriggerLoader(){
+
     }
 
     @Override
@@ -102,7 +112,7 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         }
 
         Area area = new Area(smallest, largest);
-        AreaTrigger trigger = new AreaTrigger(info, area, scriptFolder);
+        AreaTrigger trigger = factory.create(info, area, scriptFolder);
 
         try {
             trigger.setEnterTrigger(enterScript);

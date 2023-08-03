@@ -34,6 +34,8 @@ import static org.junit.Assert.assertTrue;
 
 public class TestParser {
 
+    private static final Charset charset = StandardCharsets.UTF_8;
+
     @Test
     public void testParse() throws IOException, LexerException, ParserException {
         Charset charset = Charset.forName("UTF-8");
@@ -288,6 +290,7 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "10")), queue.poll());
         assertEquals(new Node(new Token(Type.ITERATOR, "<ITERATOR>")), queue.poll());
         assertEquals(new Node(new Token(Type.STRING, "test i=")), queue.poll());
@@ -296,6 +299,74 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
         assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "FOR")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testRangeFor_Inclusive() throws Exception {
+        String text = String.join(
+            "\n",
+            "FOR i = 0..=3",
+            "  #TEST i",
+            "ENDFOR"
+        );
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.RANGE, "<RANGE_INCLUSIVE>")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.ITERATOR, "<ITERATOR>")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "TEST")), queue.poll());
+        assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "FOR")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testRangeFor_Exclusive() throws Exception {
+        String text = String.join(
+            "\n",
+            "FOR i = 0..3",
+            "  #TEST i",
+            "ENDFOR"
+        );
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.ITERATOR, "<ITERATOR>")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "TEST")), queue.poll());
         assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
         assertEquals(new Node(new Token(Type.ID, "FOR")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());

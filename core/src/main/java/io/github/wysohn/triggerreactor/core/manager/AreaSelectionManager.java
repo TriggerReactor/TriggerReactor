@@ -1,37 +1,45 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.IBlock;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Singleton
 public final class AreaSelectionManager extends Manager {
     protected final Set<UUID> selecting = new HashSet<>();
     protected final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();
     protected final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
 
-    public AreaSelectionManager(TriggerReactorCore plugin) {
-        super(plugin);
+    @Inject
+    private AreaSelectionManager() {
+
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -40,7 +48,7 @@ public final class AreaSelectionManager extends Manager {
     }
 
     @Override
-    public void saveAll() {
+    public void shutdown() {
 
     }
 
@@ -180,7 +188,7 @@ public final class AreaSelectionManager extends Manager {
     }
 
     /**
-     * @param player
+     * @param uuid
      * @return true if on; false if off
      */
     public boolean toggleSelection(UUID uuid) {
@@ -201,7 +209,7 @@ public final class AreaSelectionManager extends Manager {
     }
 
     /**
-     * @param player
+     * @param uuid
      * @return null if invalid selection; Area if done
      */
     public Area getSelection(UUID uuid) {

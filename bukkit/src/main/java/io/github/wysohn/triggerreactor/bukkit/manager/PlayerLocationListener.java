@@ -32,10 +32,15 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.util.Vector;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class PlayerLocationListener implements Listener {
 
     private final PlayerLocationManager manager;
 
+    @Inject
     public PlayerLocationListener(PlayerLocationManager manager) {
         this.manager = manager;
     }

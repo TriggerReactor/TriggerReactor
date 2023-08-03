@@ -1,20 +1,36 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
-import io.github.wysohn.triggerreactor.tools.VarMap;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Storage for the mutable states of the interpreter.
  * <p>
  * <p>
  * This should be used per individual thread to avoid any race-condition.
- * Each InterpreterContext has all the necessary states, such as local variables,
+ * Each InterpreterLocalContext has all the necessary states, such as local variables,
  * the current stack, etc. that is relevant to the specific execution that a thread
  * is working on. In this way, a single Interpreter can be used by multiple threads,
  * and it is easier to transfer the current state to the another Interpreter (for example,
@@ -22,20 +38,32 @@ import java.util.concurrent.ConcurrentHashMap;
  * the copy of the context.
  */
 public class InterpreterLocalContext {
+    /**
+     * Simple lock to ensure only one thread to access the context at a time.
+     * Each Thread that is running the trigger script must have their own context, and
+     * they should not be shared.
+     * <p>
+     * Even though this attempt to avoid any concurrent access to the local context, it
+     * does not know if the same context is used by two or more threads in a non-concurrent
+     * manner.
+     */
+    private final DelegatedReentrantLock lock = new DelegatedReentrantLock();
     private final Stack<Token> stack = new Stack<>();
+    /**
+     * Used by the #WAIT executor to sleep the current thread.
+     */
+    final Object waitLock = new Object();
 
-    //TODO later, do not allow multiple threads to access any of the fields.
-    //TODO for now, just keep it as it is. (ConcurrentHashMap will keep it safe... for now)
-    private final Map<String, Class<?>> importMap = new ConcurrentHashMap<>();
-    private Map<String, Object> vars = new VarMap();
+    private final Map<String, Class<?>> importMap = new HashMap<>();
+    /**
+     * Extra context information to be used only internally.
+     */
+    private final Map<String, Object> extras = new HashMap<>();
 
-    //TODO this is very dangerous situation because we have only one local context per each thread.
-    //TODO but for now, this is not a problem since in Trigger#initInterpreter(), we create
-    //TODO new Interpreter every time for each execution, so we don't technically share any
-    //TODO local context. But later we will refactor the Interpreter
+    private final Map<String, Object> vars = new HashMap<>();
+    private ProcessInterrupter interrupter = null;
 
-    private Object triggerCause = null;
-    private Timings.Timing timing = null;
+    private final Timings.Timing timing;
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
@@ -44,88 +72,24 @@ public class InterpreterLocalContext {
 
     private int callArgsSize = 0;
 
-    Map<String, Class<?>> getImportMap() {
-        return importMap;
+    //TODO this is a temporary solution. Move this to variable map with a special key.
+    private Object triggerCause = null;
+
+    public InterpreterLocalContext(Timings.Timing timing) {
+        this(timing, null);
     }
 
-    public Map<String, Object> getVars() {
-        return vars;
-    }
-
-    void setVars(Map<String, Object> vars) {
-        this.vars = vars;
-    }
-
-    Token pushToken(Token token){
-        return this.stack.push(token);
-    }
-
-    Token popToken(){
-        return this.stack.pop();
-    }
-
-    boolean stackEmpty() {
-        return this.stack.empty();
-    }
-
-    public Object getTriggerCause() {
-        return triggerCause;
-    }
-
-    void setTriggerCause(Object triggerCause) {
-        this.triggerCause = triggerCause;
-    }
-
-    Timings.Timing getTiming() {
-        return timing;
-    }
-
-    void setTiming(Timings.Timing timing) {
+    public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter) {
         this.timing = timing;
-    }
-
-    boolean isStopFlag() {
-        return stopFlag;
-    }
-
-    void setStopFlag(boolean stopFlag) {
-        this.stopFlag = stopFlag;
-    }
-
-    boolean isWaitFlag() {
-        return waitFlag;
-    }
-
-    void setWaitFlag(boolean waitFlag) {
-        this.waitFlag = waitFlag;
-    }
-
-    boolean isBreakFlag() {
-        return breakFlag;
-    }
-
-    void setBreakFlag(boolean breakFlag) {
-        this.breakFlag = breakFlag;
-    }
-
-    boolean isContinueFlag() {
-        return continueFlag;
-    }
-
-    void setContinueFlag(boolean continueFlag) {
-        this.continueFlag = continueFlag;
-    }
-
-    int getCallArgsSize() {
-        return callArgsSize;
-    }
-
-    void setCallArgsSize(int callArgsSize) {
-        this.callArgsSize = callArgsSize;
+        this.interrupter = interrupter;
     }
 
     /**
-     * Copy current state, except for the current stack
+     * Copy current state, except for the current stack.
+     * <p>
+     * This is the only method that is thread-safe, as when we execute LAMBDA block,
+     * we may have to copy the current state to the new context (eg. LAMBDA block
+     * is executed in ASYNC block).
      *
      * @param timingsName name to be used as the timing. Since the context will be
      *                    inherited from 'this' context, the timing will be attached
@@ -133,16 +97,177 @@ public class InterpreterLocalContext {
      * @return copied context.
      */
     public InterpreterLocalContext copyState(String timingsName) {
-        InterpreterLocalContext context = new InterpreterLocalContext();
+        return tryOrThrow(() -> {
+            // attach lambda timings to the caller timings
+            InterpreterLocalContext context = new InterpreterLocalContext(
+                    Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO), interrupter);
 
-        context.importMap.putAll(importMap);
-        context.vars.putAll(vars);
+            context.importMap.putAll(importMap);
+            context.vars.putAll(vars);
+            //TODO what exactly it was used for?
+            context.extras.putAll(extras);
 
-        context.triggerCause = triggerCause;
-        context.timing = Optional.ofNullable(timing)
-                .map(t -> t.getTiming(timingsName))
-                .orElse(Timings.LIMBO); // attach lambda timings to the caller timings
+            return context;
+        });
+    }
 
-        return context;
+    private <R> R tryOrThrow(Supplier<R> fn) {
+        if (!lock.tryLock())
+            throw new ConcurrentModificationException("Owner: " + lock.getOwner());
+
+        try {
+            return fn.get();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    int getCallArgsSize() {
+        return tryOrThrow(() -> callArgsSize);
+    }
+
+    void setCallArgsSize(int callArgsSize) {
+        tryOrThrow(() -> this.callArgsSize = callArgsSize);
+    }
+
+    boolean hasImport(String name) {
+        return tryOrThrow(() -> importMap.containsKey(name));
+    }
+
+    void setImport(String name, Class<?> clazz) {
+        tryOrThrow(() -> importMap.put(name, clazz));
+    }
+
+    Class<?> getImport(String name) {
+        return tryOrThrow(() -> importMap.get(name));
+    }
+
+    Timings.Timing getTiming() {
+        return tryOrThrow(() -> timing);
+    }
+
+    /**
+     * Get the copy of the variable map.
+     *
+     * @return
+     */
+    @Deprecated
+    public Map<String, Object> getVars() {
+        return tryOrThrow(() -> new HashMap<>(vars));
+    }
+
+    //TODO this is a temporary solution. Use the dedicated getter/setters
+
+    public Object getVar(String key) {
+        return tryOrThrow(() -> vars.get(key));
+    }
+
+    public void setVar(String key, Object val) {
+        tryOrThrow(() -> vars.put(key, val));
+    }
+
+    public void removeVar(String key) {
+        tryOrThrow(() -> vars.remove(key));
+    }
+
+    public void clearVars() {
+        tryOrThrow(vars::clear);
+    }
+
+    private void tryOrThrow(Runnable fn) {
+        tryOrThrow(() -> {
+            fn.run();
+            return null;
+        });
+    }
+
+    public InterpreterLocalContext putAllVars(Map<String, Object> scriptVars) {
+        return tryOrThrow(() -> {
+            vars.putAll(scriptVars.entrySet().stream()
+                    .filter(e -> e.getValue() != null)
+                    .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll));
+            return InterpreterLocalContext.this;
+        });
+    }
+
+    public Object getExtra(String key) {
+        return tryOrThrow(() -> extras.get(key));
+    }
+
+    public void setExtra(String key, Object val) {
+        tryOrThrow(() -> extras.put(key, val));
+    }
+
+    boolean isBreakFlag() {
+        return tryOrThrow(() -> breakFlag);
+    }
+
+    void setBreakFlag(boolean breakFlag) {
+        tryOrThrow(() -> this.breakFlag = breakFlag);
+    }
+
+    boolean isContinueFlag() {
+        return tryOrThrow(() -> continueFlag);
+    }
+
+    void setContinueFlag(boolean continueFlag) {
+        tryOrThrow(() -> this.continueFlag = continueFlag);
+    }
+
+    boolean isStopFlag() {
+        return tryOrThrow(() -> stopFlag);
+    }
+
+    void setStopFlag(boolean stopFlag) {
+        tryOrThrow(() -> this.stopFlag = stopFlag);
+    }
+
+    boolean isWaitFlag() {
+        return tryOrThrow(() -> waitFlag);
+    }
+
+    void setWaitFlag(boolean waitFlag) {
+        tryOrThrow(() -> this.waitFlag = waitFlag);
+    }
+
+    Token popToken() {
+        return tryOrThrow(this.stack::pop);
+    }
+
+    Token pushToken(Token token) {
+        return tryOrThrow(() -> this.stack.push(token));
+    }
+
+    boolean stackEmpty() {
+        return tryOrThrow(this.stack::empty);
+    }
+
+    public ProcessInterrupter getInterrupter() {
+        return tryOrThrow(() -> interrupter);
+    }
+
+    public void setInterrupter(ProcessInterrupter interrupter) {
+        tryOrThrow(() -> this.interrupter = interrupter);
+    }
+
+    public Map<String, Object> getVarCopy() {
+        return tryOrThrow(() -> new HashMap<>(vars));
+    }
+
+    @Deprecated
+    public Object getTriggerCause() {
+        return tryOrThrow(() -> triggerCause);
+    }
+
+    @Deprecated
+    public void setTriggerCause(Object triggerCause) {
+        tryOrThrow(() -> this.triggerCause = triggerCause);
+    }
+
+    private class DelegatedReentrantLock extends ReentrantLock {
+        @Override
+        protected Thread getOwner() {
+            return super.getOwner();
+        }
     }
 }

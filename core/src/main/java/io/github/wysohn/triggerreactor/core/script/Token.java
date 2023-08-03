@@ -168,6 +168,13 @@ public class Token {
          * Logical
          **/
         OPERATOR_L,
+        /**
+         * Represents `..` or `..=` operators. For example, `0..3` expression is equivalent to
+         * from 0 to 2 (exclusive; 0, 1), and `0..=2` expression is equivalent to from 0 to 3 (inclusive; 0, 1, 2).
+         *
+         * @implSpec The value must be kind of {@code <RANGE_INCLUSIVE>} or {@code <RANGE_EXCLUSIVE>}.
+         */
+        RANGE,
 
         GID, GID_TEMP, ID, PLACEHOLDER, EXECUTOR, NULLVALUE,
 
