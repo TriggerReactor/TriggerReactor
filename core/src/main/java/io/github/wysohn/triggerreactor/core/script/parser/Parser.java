@@ -525,6 +525,18 @@ public class Parser {
             parameterBody.getChildren().add(caseComponent);
         }
 
+        if (token != null && token.type == Type.RANGE) {
+            parameterBody.getChildren().add(new Node(token));
+            nextToken();  // Advance RANGE token
+
+            caseComponent = parseLogic();
+            if (caseComponent == null) {
+                throw new ParserException("Could not find any series of CASE clause! " + caseNode.getToken());
+            }
+
+            parameterBody.getChildren().add(caseComponent);
+        }
+
         caseNode.getChildren().add(parameterBody);
         switchNode.getChildren().add(caseNode);
 
