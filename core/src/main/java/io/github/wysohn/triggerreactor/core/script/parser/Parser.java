@@ -477,8 +477,8 @@ public class Parser {
             } else if ("DEFAULT".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString()) || "_".equals(mayCaseOrDefaultNode.getToken().value)) {
                 // NOTE(Sayakie): Underscore(`_`) represents the end of arms of the switch. This is same as
                 // the `DEFAULT` keyword as do.
-                mayCaseOrDefaultNode = parseDefault(switchNode);
-                continue;
+                parseDefault(switchNode);
+                break;
             } else if ("ENDCASE".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString())) {
                 mayCaseOrDefaultNode = parseStatement();
                 continue;
@@ -598,6 +598,10 @@ public class Parser {
         Node codes = null;
         while (token != null
             && (codes = parseStatement()) != null
+            && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
+            && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+            && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+            && !"_".equalsIgnoreCase(codes.getToken().value.toString())
             && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
             defaultBody.getChildren().add(codes);
         }
@@ -609,8 +613,13 @@ public class Parser {
         defaultNode.getChildren().add(defaultBody);
         switchNode.getChildren().add(defaultNode);
 
-        if (codes != null && "ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
-            return null;
+        if (codes != null) {
+            if ("ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+                return null;
+            } else {
+                // CASE, ENDCASE, DEFAULT, _
+                throw new ParserException("Expected ENDSWITCH statement but found " + codes.getToken());
+            }
         }
 
         throw new ParserException("Could not find ENDSWITCH statement! " + defaultNode.getToken());
