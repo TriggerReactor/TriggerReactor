@@ -129,6 +129,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         InventoryTrigger trigger = factory.create(info, script, new IItemStack[size]);
 
+        trigger.init();
         put(name, trigger);
 
         return true;
