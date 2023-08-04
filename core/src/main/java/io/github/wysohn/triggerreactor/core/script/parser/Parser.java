@@ -467,17 +467,6 @@ public class Parser {
 
         switchNode.getChildren().add(varName);
 
-        //!
-        //! NOTE(Sayakie): `CASE`, `ENDCASE` tokens are optional.
-        //! Uncomment the following lines to ensure that `CASE` token is first encountered.
-        //! ----------------------------------------------------------------
-        // final Node firstCaseNode = parseStatement();
-        // if (firstCaseNode == null) {
-        //     throw new ParserException("Expected CASE but end of stream is reached.");
-        // } if (!(Type.ID.equals(firstCaseNode.getToken().type) && "CASE".equalsIgnoreCase(firstCaseNode.getToken().value.toString()))) {
-        //     throw new ParserException("Expected CASE but found " + token);
-        // }
-
         // `null` value is equivalent to meet "ENDSWITCH" statement
         this.pauseUnderscore = true;
         Node mayCaseOrDefaultNode = parseStatement();

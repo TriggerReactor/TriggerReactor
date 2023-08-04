@@ -2824,7 +2824,7 @@ public class TestInterpreter {
         test.test();
 
         // assert
-        // No assertions in this test!
+        // No assertions
     }
 
     @Test
