@@ -46,7 +46,7 @@ public class Parser {
     private final List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
-    private boolean fallThroughCloseBrace = false;
+    private boolean pauseUnderscore = false;
 
     public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
@@ -165,6 +165,11 @@ public class Parser {
                 nextToken();
                 return node;
             } else if ("DEFAULT".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if (this.pauseUnderscore && "_".equals(token.value)) {
+                this.pauseUnderscore = false;
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -474,6 +479,7 @@ public class Parser {
         // }
 
         // `null` value is equivalent to meet "ENDSWITCH" statement
+        this.pauseUnderscore = true;
         Node mayCaseOrDefaultNode = parseStatement();
         while (mayCaseOrDefaultNode != null) {
             if ("CASE".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString())) {
@@ -496,6 +502,11 @@ public class Parser {
 
         if (switchNode.getChildren().size() < 2) {
             throw new ParserException("SWITCH statement should have at least one branch! " + switchNode.getToken());
+        }
+
+        // Clean up so that block unexpected behaviour can occur.
+        if (this.pauseUnderscore) {
+            this.pauseUnderscore = false;
         }
 
         return switchNode;
@@ -544,6 +555,7 @@ public class Parser {
             && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
             && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
             && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+            && !"_".equals(codes.getToken().value)
             && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
             caseBody.getChildren().add(codes);
         }
@@ -557,7 +569,8 @@ public class Parser {
         if (codes != null) {
             if ("CASE".equalsIgnoreCase(codes.getToken().value.toString())
                    || "ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
-                   || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())) {
+                   || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                   || "_".equals(codes.getToken().value)) {
                 return codes;
             } else if ("ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
                 return null;
@@ -1226,10 +1239,6 @@ public class Parser {
         }
 
         if (token.getType() == Type.ENDL) {
-            return null;
-        }
-
-        if (this.fallThroughCloseBrace && Type.OPERATOR.equals(token.getType()) && "}".equals(token.getValue())) {
             return null;
         }
 
