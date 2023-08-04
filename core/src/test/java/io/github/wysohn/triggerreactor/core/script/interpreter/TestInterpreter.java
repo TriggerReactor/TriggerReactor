@@ -2824,7 +2824,62 @@ public class TestInterpreter {
         test.test();
 
         // assert
-        // No assertions
+        verify(mockExecutor, times(1)).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testSwitchComplex() throws Exception {
+        // arrange
+        final String text = ""
+            + "rand = random(0, 21)\n\n"
+            + "SWITCH rand"
+            + "  CASE 0..10 => #TEST\n"
+            + "  CASE 10..=15 =>\n"
+            + "    #TEST\n"
+            + "  ENDCASE\n"
+            + "  CASE 16, 17, 18 =>\n"
+            + "    #TEST\n"
+            + "  DEFAULT => #TEST\n"
+            + "ENDSWITCH";
+
+        // act
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("TEST", mockExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(mockExecutor, times(1)).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testSwitchComplex2() throws Exception {
+        // arrange
+        final String text = ""
+            + "SWITCH random(0, 21)"
+            + "  CASE 0..10 => #TEST\n"
+            + "  CASE 10..=15 =>\n"
+            + "    #TEST\n"
+            + "  ENDCASE\n"
+            + "  CASE 16, 17, 18, 19, 20 => #TEST\n"
+            + "ENDSWITCH";
+
+        // act
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("TEST", mockExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(mockExecutor, times(1)).evaluate(any(), anyMap(), any(), any());
     }
 
     @Test
