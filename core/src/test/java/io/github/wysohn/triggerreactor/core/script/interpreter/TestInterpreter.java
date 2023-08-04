@@ -2828,6 +2828,32 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testSwitchWithUnderscore() throws Exception {
+        // arrange
+        final String text = ""
+            + "SWITCH true\n"
+            + "  _ => #PASS\n"
+            + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
     public void testSwitchWithBoolean() throws Exception {
         // arrange
         final String text = ""
