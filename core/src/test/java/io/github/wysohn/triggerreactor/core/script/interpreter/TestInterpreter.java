@@ -2860,7 +2860,7 @@ public class TestInterpreter {
         final String text = ""
             + "SWITCH \"THAT\"\n"
             + "  CASE \"that\" => #FAIL\n"
-            + "  CASE \"tHaT\" => #FAIL\n"
+            + "  CASE \"tHaT\", \"ThAt\", \"ThaT\" => #FAIL\n"
             + "  CASE \"THAT\" => #PASS\n"
             + "  DEFAULT => #FAIL\n"
             + "ENDSWITCH";
@@ -2940,6 +2940,33 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testSwitchWithInteger3() throws Exception {
+        // arrange
+        final String text = ""
+            + "SWITCH 3\n"
+            + "  CASE 1, 2 => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
     public void testSwitchWithDecimal() throws Exception {
         // arrange
         final String text = ""
@@ -2973,6 +3000,33 @@ public class TestInterpreter {
         final String text = ""
             + "result = 2.0\n\n"
             + "SWITCH result\n"
+            + "  CASE 1.0, 1.1, 1.2 => #FAIL\n"
+            + "  DEFAULT => #PASS\n"
+            + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+            .putExecutor("PASS", passExecutor)
+            .putExecutor("FAIL", failExecutor)
+            .overrideSelfReference(new CommonFunctions())
+            .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal3() throws Exception {
+        // arrange
+        final String text = ""
+            + "SWITCH 2.0\n"
             + "  CASE 1.0, 1.1, 1.2 => #FAIL\n"
             + "  DEFAULT => #PASS\n"
             + "ENDSWITCH";
