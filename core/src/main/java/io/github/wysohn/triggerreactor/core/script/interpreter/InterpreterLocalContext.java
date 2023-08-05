@@ -86,10 +86,6 @@ public class InterpreterLocalContext {
 
     /**
      * Copy current state, except for the current stack.
-     * <p>
-     * This is the only method that is thread-safe, as when we execute LAMBDA block,
-     * we may have to copy the current state to the new context (eg. LAMBDA block
-     * is executed in ASYNC block).
      *
      * @param timingsName name to be used as the timing. Since the context will be
      *                    inherited from 'this' context, the timing will be attached
