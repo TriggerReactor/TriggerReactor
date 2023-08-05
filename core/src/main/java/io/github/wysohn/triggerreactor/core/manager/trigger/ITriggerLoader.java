@@ -5,22 +5,31 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public interface ITriggerLoader<T extends Trigger> {
-    default TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
-        return Optional.ofNullable(folder.listFiles())
-                .map(files -> Arrays.stream(files)
-                        .filter(File::isFile)
+    default void search(File folder, ConfigSourceFactory fn, List<TriggerInfo> list) {
+        Optional.ofNullable(folder.listFiles())
+                .ifPresent(files -> Arrays.stream(files)
                         .filter(file -> file.getName().endsWith(".trg"))
-                        .map(file -> {
-                            String name = TriggerInfo.extractName(file);
-                            IConfigSource config = fn.create(folder, name);
-                            return toTriggerInfo(file, config);
-                        })
-                        .toArray(TriggerInfo[]::new))
-                .orElse(new TriggerInfo[0]);
+                        .forEach(file -> {
+                            if (file.isFile()) {
+                                String name = TriggerInfo.extractName(file);
+                                IConfigSource config = fn.create(folder, name);
+                                list.add(toTriggerInfo(file, config));
+                            } else {
+                                search(file, fn, list);
+                            }
+                        }));
+    }
+
+    default TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
+        List<TriggerInfo> list = new ArrayList<>();
+        search(folder, fn, list);
+        return list.toArray(new TriggerInfo[0]);
     }
 
     default TriggerInfo toTriggerInfo(File sourceCodeFile, IConfigSource configSource) {
