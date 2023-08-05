@@ -521,7 +521,7 @@ public class TRGCommandHandler {
                                 @Override
                                 public void onSave(String script) {
                                     try {
-                                        if (inventoryTriggerManager.createTrigger(sizeCopy, name, script, false)) {
+                                        if (inventoryTriggerManager.createTrigger(sizeCopy, name, script)) {
                                             sender.sendMessage("&aInventory Trigger created!");
                                         } else {
                                             sender.sendMessage(
@@ -536,7 +536,7 @@ public class TRGCommandHandler {
                             String script = ArgumentUtil.mergeArguments(args, 4, args.length - 1);
 
                             try {
-                                if (inventoryTriggerManager.createTrigger(size, name, script, false)) {
+                                if (inventoryTriggerManager.createTrigger(size, name, script)) {
                                     sender.sendMessage("&aInventory Trigger created!");
                                 } else {
                                     sender.sendMessage("&7Another Inventory Trigger with that name already exists");

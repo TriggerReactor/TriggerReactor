@@ -119,7 +119,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      * @throws LexerException  See {@link Trigger#init()}
      * @throws IOException     See {@link Trigger#init()}
      */
-    public boolean createTrigger(int size, String name, String script, boolean pickup)
+    public boolean createTrigger(int size, String name, String script)
             throws TriggerInitFailedException {
         if (has(name))
             return false;
