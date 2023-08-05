@@ -361,10 +361,10 @@ public class GsonConfigSource implements IConfigSource {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                saveNow();
                 if (!pluginManagement.isEnabled())
                     pluginManagement.disablePlugin();
+            } finally {
+                saveNow();
             }
         }
     }
