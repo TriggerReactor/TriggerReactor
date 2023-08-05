@@ -694,17 +694,6 @@ public class Interpreter {
         }
     }
 
-    /**
-     * Warning) Most of the executors are not depending on the state of the Interpreter,
-     * so most of them can be in the GlobalInterpreterContext and be shared with other
-     * Interpreter executions. But #WAIT is a little bit different.
-     * <p>
-     * Since it holds the monitor of the Interpreter in WAITING state, #WAIT executor has
-     * to be unique instance per each Interpreter. Therefore, #WAIT must be existing
-     * individually per Interpreter and should not be shared with other Interpreter
-     * instances.
-     */
-
     private void assignValue(Token id, Token value, InterpreterLocalContext localContext) throws InterpreterException {
         if (id.type == Type.ACCESS) {
             Accessor accessor = (Accessor) id.value;
@@ -939,6 +928,16 @@ public class Interpreter {
                 if (localContext.getInterrupter() != null && localContext.getInterrupter().onCommand(localContext, command, args)) {
                     return null;
                 } else {
+                    /*
+                     * Warning) Most of the executors do not depend on the state of the Interpreter,
+                     * so most of them can be in the GlobalInterpreterContext and be shared with other
+                     * Interpreter executions. But #WAIT is a little bit different.
+                     *
+                     * Since it holds the monitor of the Interpreter in WAITING state, #WAIT executor has
+                     * to be unique instance per each Interpreter. Therefore, #WAIT must be existing
+                     * individually per Interpreter and should not be shared with other Interpreter
+                     * instances.
+                     */
                     if ("WAIT".equalsIgnoreCase(command)) {
                         Executor executorWait = (timing, vars, triggerCause, args1) -> {
                             if (globalContext.task.isServerThread()) {
