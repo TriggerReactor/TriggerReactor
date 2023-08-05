@@ -209,6 +209,7 @@ public abstract class TriggerInfo implements IMigratable, IPluginLifecycle {
         return "TriggerInfo{" +
                 "triggerName=" + triggerName +
                 ", config='" + config + '\'' +
+                ", path='" + sourceCodeFile + '\'' +
                 '}';
     }
 
