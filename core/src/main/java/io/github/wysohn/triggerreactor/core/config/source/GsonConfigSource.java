@@ -313,14 +313,19 @@ public class GsonConfigSource implements IConfigSource {
             this.buffer = buffer;
         }
 
-        private synchronized void flush() {
-            count++;
-            notify();
+        private void flush() {
+            synchronized (this) {
+                count++;
+                notify();
+            }
+
         }
 
-        private synchronized void shutdown() {
+        private void shutdown() {
             running = false;
-            notify();
+            synchronized (this) {
+                notify();
+            }
         }
 
         private boolean bufferFilled() {

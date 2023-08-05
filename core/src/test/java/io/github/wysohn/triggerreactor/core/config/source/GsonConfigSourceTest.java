@@ -1,7 +1,10 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
 import io.github.wysohn.gsoncopy.JsonElement;
 import io.github.wysohn.gsoncopy.JsonParser;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,18 +24,30 @@ import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GsonConfigSourceTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     File configFile;
+    IPluginManagement pluginManagement;
     GsonConfigSource gsonConfigSource;
 
     @Before
     public void setUp() throws Exception {
         configFile = folder.newFile();
+        pluginManagement = mock(IPluginManagement.class);
         gsonConfigSource = new GsonConfigSource(configFile);
+        Guice.createInjector(
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(IPluginManagement.class).toInstance(pluginManagement);
+                    }
+                }
+        ).injectMembers(gsonConfigSource);
     }
 
     @Test
@@ -176,6 +191,57 @@ public class GsonConfigSourceTest {
                 readContent(configFile.getName()));
     }
 
+    @Test
+    public void shutdown_concurrent_put() throws Exception {
+        // arrange
+        when(pluginManagement.isEnabled()).thenReturn(true);
+
+        long current = System.currentTimeMillis();
+        Thread thread = new Thread(() -> {
+            int i = 0;
+            while (System.currentTimeMillis() - current < 120 * 1000) {
+                gsonConfigSource.put("test" + i, "val" + i++);
+            }
+        });
+
+        // act
+        thread.start();
+        Thread.sleep(1000);
+
+        gsonConfigSource.shutdown();
+
+        // assert
+        assertTrue(thread.isAlive());
+    }
+
+    @Test
+    public void delete() {
+    }
+
+    @Test
+    public void disable() {
+        // arrange
+        int max = 100000;
+
+        Map<String, Object> values1 = new HashMap<>();
+
+        for (int i = 0; i < max; i++) {
+            values1.put("key" + i, "val" + i);
+        }
+
+        // act
+        values1.forEach(gsonConfigSource::put);
+
+        gsonConfigSource.disable();
+
+        // assert
+        for (int i = 0; i < max; i++) {
+            int finalI = i;
+            assertTrue(gsonConfigSource.has("key" + finalI));
+            assertTrue(gsonConfigSource.get("key" + finalI).map(o -> o.equals("val" + finalI)).orElse(false));
+        }
+    }
+
     private void assertJsonEquals(String expected, String actual) {
         JsonParser parser = new JsonParser();
         JsonElement expectedJson = parser.parse(expected);
@@ -186,9 +252,5 @@ public class GsonConfigSourceTest {
     private String readContent(String... paths) throws IOException {
         Path path = Paths.get(folder.getRoot().getAbsolutePath(), paths);
         return new String(Files.readAllBytes(path));
-    }
-
-    @Test
-    public void delete() {
     }
 }
