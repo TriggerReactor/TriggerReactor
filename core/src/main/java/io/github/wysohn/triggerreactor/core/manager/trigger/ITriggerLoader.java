@@ -14,13 +14,12 @@ public interface ITriggerLoader<T extends Trigger> {
     default void search(File folder, ConfigSourceFactory fn, List<TriggerInfo> list) {
         Optional.ofNullable(folder.listFiles())
                 .ifPresent(files -> Arrays.stream(files)
-                        .filter(file -> file.getName().endsWith(".trg"))
                         .forEach(file -> {
-                            if (file.isFile()) {
+                            if (file.isFile() && file.getName().endsWith(".trg")) {
                                 String name = TriggerInfo.extractName(file);
                                 IConfigSource config = fn.create(folder, name);
                                 list.add(toTriggerInfo(file, config));
-                            } else {
+                            } else if (file.isDirectory()) {
                                 search(file, fn, list);
                             }
                         }));
