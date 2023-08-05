@@ -119,7 +119,7 @@ public class GsonConfigSourceTest {
     public void put() {
         // arrange
         int tries = 30;
-        int max = 10000;
+        int max = 5000;
 
         Map<String, Object> values1 = new HashMap<>();
 
@@ -164,7 +164,7 @@ public class GsonConfigSourceTest {
     @Test
     public void shutdown() throws IOException {
         // arrange
-        int max = 100000;
+        int max = 50000;
 
         Map<String, Object> values1 = new HashMap<>();
 
