@@ -23,6 +23,10 @@ public enum TriggerConfigKey {
     KEY_TRIGGER_REPEATING_INTERVAL("interval", "Interval"),
 
     KEY_TRIGGER_CUSTOM_EVENT("event", "Event"),
+
+    KEY_TRIGGER_TEST_INTEGER("first"),
+    KEY_TRIGGER_TEST_STRING("second"),
+    KEY_TRIGGER_TEST_BOOLEAN("third"),
     ;
 
     private final String key;

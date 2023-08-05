@@ -1,9 +1,7 @@
 package io.github.wysohn.triggerreactor.core.main;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
+import com.google.inject.*;
+import com.google.inject.name.Names;
 import io.github.wysohn.gsoncopy.JsonElement;
 import io.github.wysohn.gsoncopy.JsonParser;
 import io.github.wysohn.triggerreactor.core.bridge.*;
@@ -13,6 +11,7 @@ import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
@@ -199,6 +198,145 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertTrue(dummyManager.initialized);
+    }
+
+    private void createDummyInfo(File triggerInfoFile) throws IOException {
+        triggerInfoFile.getParentFile().mkdirs();
+        if (!triggerInfoFile.exists())
+            triggerInfoFile.createNewFile();
+
+        Files.write(triggerInfoFile.toPath(), ("{" +
+                "\"first\": 123," +
+                "\"second\": \"abc\"," +
+                "\"third\": true" +
+                "}").getBytes());
+    }
+
+    private void verifyDummyInfo(TriggerInfo info) {
+        assertEquals(123, (int) info.get(TriggerConfigKey.KEY_TRIGGER_TEST_INTEGER, Integer.class)
+                .orElseThrow(RuntimeException::new));
+        assertEquals("abc", info.get(TriggerConfigKey.KEY_TRIGGER_TEST_STRING, String.class)
+                .orElseThrow(RuntimeException::new));
+        assertEquals(true, info.get(TriggerConfigKey.KEY_TRIGGER_TEST_BOOLEAN, Boolean.class)
+                .orElseThrow(RuntimeException::new));
+    }
+
+    private void createDummyFile(File triggerFile, File triggerInfoFile) throws IOException {
+        triggerFile.getParentFile().mkdirs();
+        if (!triggerFile.exists())
+            triggerFile.createNewFile();
+
+        Files.write(triggerFile.toPath(), "#MESSAGE \"Hello World!\"".getBytes());
+        createDummyInfo(triggerInfoFile);
+    }
+
+    private void verifyTrigger(Trigger trigger) {
+        assertEquals("#MESSAGE \"Hello World!\"", trigger.getScript());
+        verifyDummyInfo(trigger.getInfo());
+    }
+
+    @Test
+    public void initialize_triggerLoaded() throws Exception {
+        // arrange
+        Injector injector = createInjector();
+
+        File rootFolder = folder.getRoot(); // TriggerReactor
+
+        File clickTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("ClickTriggerManagerFolder"))));
+        File clickTriggerFile = new File(clickTriggerFolder, "world@3,5,2.trg");
+        File clickTriggerInfoFile = new File(clickTriggerFolder, "world@3,5,2.json");
+        createDummyFile(clickTriggerFile, clickTriggerInfoFile);
+
+        File walkTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("WalkTriggerManagerFolder"))));
+        File walkTriggerFile = new File(walkTriggerFolder, "world@3,5,2.trg");
+        File walkTriggerInfoFile = new File(walkTriggerFolder, "world@3,5,2.json");
+        createDummyFile(walkTriggerFile, walkTriggerInfoFile);
+
+        File commandTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("CommandTriggerManagerFolder"))));
+        File commandTriggerFile = new File(commandTriggerFolder, "command.trg");
+        File commandTriggerInfoFile = new File(commandTriggerFolder, "command.json");
+        createDummyFile(commandTriggerFile, commandTriggerInfoFile);
+
+        File areaTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("AreaTriggerManagerFolder"))));
+        File areaTriggerFile = new File(areaTriggerFolder, "area"); // area trigger is folder
+        File areaTriggerInfoFile = new File(areaTriggerFolder, "area.json");
+        File areaTriggerEnterFile = new File(areaTriggerFile, "enter.trg");
+        File areaTriggerEnterInfoFile = new File(areaTriggerFile, "enter.json");
+        File areaTriggerExitFile = new File(areaTriggerFile, "exit.trg");
+        File areaTriggerExitInfoFile = new File(areaTriggerFile, "exit.json");
+        createDummyInfo(areaTriggerInfoFile);
+        createDummyFile(areaTriggerEnterFile, areaTriggerEnterInfoFile);
+        createDummyFile(areaTriggerExitFile, areaTriggerExitInfoFile);
+
+        File namedTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("NamedTriggerManagerFolder"))));
+        File namedTriggerFile = new File(namedTriggerFolder, "named.trg");
+        File namedTriggerInfoFile = new File(namedTriggerFolder, "named.json");
+        createDummyFile(namedTriggerFile, namedTriggerInfoFile);
+
+        File customTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("CustomTriggerManagerFolder"))));
+        File customTriggerFile = new File(customTriggerFolder, "custom.trg");
+        File customTriggerInfoFile = new File(customTriggerFolder, "custom.json");
+        createDummyFile(customTriggerFile, customTriggerInfoFile);
+        Files.write(customTriggerInfoFile.toPath(), ("{" +
+                "\"first\": 123," +
+                "\"second\": \"abc\"," +
+                "\"third\": true," +
+                "\"event\": \"org.test.event.Event\"" +
+                "}").getBytes());
+
+        File inventoryTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("InventoryTriggerManagerFolder"))));
+        File inventoryTriggerFile = new File(inventoryTriggerFolder, "inventory.trg");
+        File inventoryTriggerInfoFile = new File(inventoryTriggerFolder, "inventory.json");
+        createDummyFile(inventoryTriggerFile, inventoryTriggerInfoFile);
+        Files.write(inventoryTriggerInfoFile.toPath(), ("{" +
+                "\"first\": 123," +
+                "\"second\": \"abc\"," +
+                "\"third\": true," +
+                "\"size\": 18" +
+                "}").getBytes());
+
+        File repeatingTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("RepeatingTriggerManagerFolder"))));
+        File repeatingTriggerFile = new File(repeatingTriggerFolder, "repeating.trg");
+        File repeatingTriggerInfoFile = new File(repeatingTriggerFolder, "repeating.json");
+        createDummyFile(repeatingTriggerFile, repeatingTriggerInfoFile);
+
+        TriggerReactorCore triggerReactorCore = injector.getInstance(TriggerReactorCore.class);
+
+        ClickTriggerManager clickTriggerManager = injector.getInstance(ClickTriggerManager.class);
+        WalkTriggerManager walkTriggerManager = injector.getInstance(WalkTriggerManager.class);
+        CommandTriggerManager commandTriggerManager = injector.getInstance(CommandTriggerManager.class);
+        AreaTriggerManager areaTriggerManager = injector.getInstance(AreaTriggerManager.class);
+        NamedTriggerManager namedTriggerManager = injector.getInstance(NamedTriggerManager.class);
+        CustomTriggerManager customTriggerManager = injector.getInstance(CustomTriggerManager.class);
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+        RepeatingTriggerManager repeatingTriggerManager = injector.getInstance(RepeatingTriggerManager.class);
+
+        when(commandHandler.register(any(), any())).thenReturn(mock(ICommand.class));
+        when(javascriptFileLoader.listFiles(any(), any())).thenReturn(new File[0]);
+        when(eventRegistry.eventExist(any())).thenReturn(true);
+        when(eventRegistry.getEvent(any())).thenReturn((Class) Object.class);
+
+        // act
+        triggerReactorCore.initialize();
+
+        // assert
+        assertNotNull(clickTriggerManager.get("world@3,5,2"));
+        verifyTrigger(clickTriggerManager.get("world@3,5,2"));
+        assertNotNull(walkTriggerManager.get("world@3,5,2"));
+        verifyTrigger(walkTriggerManager.get("world@3,5,2"));
+        assertNotNull(commandTriggerManager.get("command"));
+        verifyTrigger(commandTriggerManager.get("command"));
+        assertNotNull(areaTriggerManager.get("area"));
+        verifyTrigger(areaTriggerManager.get("area").getEnterTrigger());
+        verifyTrigger(areaTriggerManager.get("area").getExitTrigger());
+        assertNotNull(namedTriggerManager.get("named"));
+        verifyTrigger(namedTriggerManager.get("named"));
+        assertNotNull(customTriggerManager.get("custom"));
+        verifyTrigger(customTriggerManager.get("custom"));
+        assertNotNull(inventoryTriggerManager.get("inventory"));
+        verifyTrigger(inventoryTriggerManager.get("inventory"));
+        assertNotNull(repeatingTriggerManager.get("repeating"));
+        verifyTrigger(repeatingTriggerManager.get("repeating"));
     }
 
     @Test

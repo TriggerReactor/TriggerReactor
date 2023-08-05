@@ -49,6 +49,8 @@ public class ConfigSourceFactoryTest {
         // act
         IConfigSource configSource = configSourceFactory.create(folder.getRoot(), "test");
 
+        configSource.reload();
+
         // assert
         assertEquals(123, (int) configSource.get("first", Integer.class).orElseThrow(RuntimeException::new));
         assertEquals("abc", configSource.get("second", String.class).orElseThrow(RuntimeException::new));

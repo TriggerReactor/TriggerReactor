@@ -22,11 +22,7 @@ public class ConfigSourceFactory {
     @Inject
     private ConfigSourceFactory() {
         factories.put("none", (type, folder, fileName) -> new EmptyConfigSource());
-        factories.put("gson", (type, folder, fileName) -> {
-            IConfigSource source = new GsonConfigSource(new File(folder, fileName + ".json"));
-            source.reload();
-            return source;
-        });
+        factories.put("gson", (type, folder, fileName) -> new GsonConfigSource(new File(folder, fileName + ".json")));
     }
 
     /**
