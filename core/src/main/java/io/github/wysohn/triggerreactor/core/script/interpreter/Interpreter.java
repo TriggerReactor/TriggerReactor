@@ -409,7 +409,6 @@ public class Interpreter {
         } else if (node.getToken().getType() == Type.SWITCH) {
             if (node.getChildren().size() < 2) {
                 throw new InterpreterException("Too few children in SWITCH expression! Expected at least 2 children but actual is " + node.getChildren().size());
-                // throw new InterpreterException("The SWITCH expression should have at least 2 children but actual is " + node.getChildren().size());
             }
 
             final Node variableNameNode = node.getChildren().get(0);
@@ -451,7 +450,6 @@ public class Interpreter {
                 if (parameters.getChildren().size() == 3 && parameters.getChildren().get(1).getToken().type == Type.RANGE) {
                     // The expression's value should be numeric type.
                     if (!variableNameToken.isInteger() && !variableNameToken.isDecimal()) {
-                    // if (!(variableType == Type.INTEGER || variableType == Type.DECIMAL)) {
                         throw new InterpreterException("Variable value must be numeric type! Actual is " + variableNameToken);
                     }
 
@@ -545,7 +543,7 @@ public class Interpreter {
 
                         final Token rawParameterToken = localContext.popToken();
                         final Token parameterToken;
-                        // Smart casting for enum types, or do default conversions.
+                        // Smart casting for enum types, otherwise do default conversions.
                         if (variableNameToken.isEnum() && rawParameterToken.isString()) {
                             Token maybeParameterToken;
                             try {
@@ -582,7 +580,6 @@ public class Interpreter {
             }
 
             if (!matches) {
-                // TODO(Sayakie): Raises an exception or ignore silently?
                 throw new InterpreterException("No matched arm");
             }
         } else if (node.getToken().getType() == Type.SYNC) {
