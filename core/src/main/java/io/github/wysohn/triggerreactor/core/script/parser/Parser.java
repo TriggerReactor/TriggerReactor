@@ -525,7 +525,10 @@ public class Parser {
             parameterBody.getChildren().add(caseComponent);
         }
 
-        if (token != null && token.type == Type.RANGE) {
+        // NOTE(Sayakie): We have to avoid double check comma(,) and RANGE token so that end-user can handle
+        // multiple match patterns like `CASE 1, 3, 5..=7, 10 =>`. At this moment just checking parameters size
+        // to ensure that parser did _NOT_ eat any further tokens.
+        if (token != null && token.type == Type.RANGE && parameterBody.getChildren().size() == 1) {
             parameterBody.getChildren().add(new Node(token));
             nextToken();  // Advance RANGE token
 
