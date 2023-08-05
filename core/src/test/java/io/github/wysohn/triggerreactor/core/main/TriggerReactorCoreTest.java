@@ -15,6 +15,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
@@ -260,10 +261,10 @@ public class TriggerReactorCoreTest {
         File areaTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("AreaTriggerManagerFolder"))));
         File areaTriggerFile = new File(areaTriggerFolder, "area"); // area trigger is folder
         File areaTriggerInfoFile = new File(areaTriggerFolder, "area.json");
-        File areaTriggerEnterFile = new File(areaTriggerFile, "enter.trg");
-        File areaTriggerEnterInfoFile = new File(areaTriggerFile, "enter.json");
-        File areaTriggerExitFile = new File(areaTriggerFile, "exit.trg");
-        File areaTriggerExitInfoFile = new File(areaTriggerFile, "exit.json");
+        File areaTriggerEnterFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_ENTER + ".trg");
+        File areaTriggerEnterInfoFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_ENTER + ".json");
+        File areaTriggerExitFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_EXIT + ".trg");
+        File areaTriggerExitInfoFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_EXIT + ".json");
         createDummyInfo(areaTriggerInfoFile);
         createDummyFile(areaTriggerEnterFile, areaTriggerEnterInfoFile);
         createDummyFile(areaTriggerExitFile, areaTriggerExitInfoFile);

@@ -39,6 +39,9 @@ import java.util.logging.Logger;
 
 @Singleton
 public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
+    public static final String NAME_ENTER = "Enter";
+    public static final String NAME_EXIT = "Exit";
+
     @Inject
     @Named("DataFolder")
     private File dataFolder;
@@ -90,7 +93,7 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         String enterScript = null;
         File enterFile = null;
         try {
-            enterFile = AbstractTriggerManager.getTriggerFile(scriptFolder, "Enter", false);
+            enterFile = AbstractTriggerManager.getTriggerFile(scriptFolder, NAME_ENTER, false);
             if (!enterFile.exists())
                 enterFile.createNewFile();
             enterScript = FileUtil.readFromFile(enterFile);
@@ -102,7 +105,7 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         String exitScript = null;
         File exitFile = null;
         try {
-            exitFile = AbstractTriggerManager.getTriggerFile(scriptFolder, "Exit", false);
+            exitFile = AbstractTriggerManager.getTriggerFile(scriptFolder, NAME_EXIT, false);
             if (!exitFile.exists())
                 exitFile.createNewFile();
             exitScript = FileUtil.readFromFile(exitFile);
