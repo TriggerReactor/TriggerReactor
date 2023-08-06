@@ -1,6 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2017 wysohn
- *     Copyright (C) 2022 Ioloolo
+ *     Copyright (c) 2023 TriggerReactor Team
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -16,27 +15,41 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Object = Java.type("java.lang.Object");
-
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var ChatColor = Java.type("org.bukkit.ChatColor");
-
+var Dependency = Java.type(
+  "io.github.wysohn.triggerreactor.core.main.Dependency"
+);
+var Platform = Java.type("io.github.wysohn.triggerreactor.core.main.Platform");
+var PlatformManager = Java.type(
+  "io.github.wysohn.triggerreactor.core.manager.PlatformManager"
+);
 var BukkitUtil = Java.type(
   "io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil"
 );
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ChatColor = Java.type("org.bukkit.ChatColor");
+var Object = Java.type("java.lang.Object");
 
 var validation = {
   overloads: [[{ type: Object.class, name: "message" }]],
 };
 
-function BROADCAST(args) {
+function BROADCAST2(args) {
   var PlaceholderAPI;
   var message = args[0].toString();
 
-  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-    PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
-
   message = ChatColor.translateAlternateColorCodes("&", message);
+
+  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+    PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
+  }
+
+  var platform = injector.getInstance(PlatformManager.class).current();
+  if (platform.supports(Dependency.MiniMessage)) {
+    var mm = Java.type(
+      "net.kyori.adventure.text.minimessage.MiniMessage"
+    ).miniMessage();
+    message = mm.deserialize(message);
+  }
 
   var players = BukkitUtil.getOnlinePlayers();
   var iter = players.iterator();
