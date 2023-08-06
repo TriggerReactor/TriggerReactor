@@ -33,7 +33,7 @@ var validation = {
   overloads: [[{ type: Object.class, name: "message" }]],
 };
 
-function BROADCAST(args) {
+function BROADCAST2(args) {
   var PlaceholderAPI;
   var message = args[0].toString();
 

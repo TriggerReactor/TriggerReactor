@@ -15,6 +15,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var TriggerReactorCore = Java.type(
+  "io.github.wysohn.triggerreactor.core.main.TriggerReactorCore"
+);
 var Dependency = Java.type(
   "io.github.wysohn.triggerreactor.core.main.Dependency"
 );
@@ -30,9 +33,19 @@ var validation = {
   overloads: [[{ type: Object.class, name: "message" }]],
 };
 
-function LOG(args) {
+function MESSAGE2(args) {
+  if (!player) {
+    throw new Error("Player is null.");
+  }
+
   var message = args[0].toString();
+
   message = ChatColor.translateAlternateColorCodes("&", message);
+
+  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+    var PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
+    message = PlaceholderAPI.setPlaceholders(player, message);
+  }
 
   var platform = injector.getInstance(PlatformManager.class).current();
   if (platform.supports(Dependency.MiniMessage)) {
@@ -42,7 +55,7 @@ function LOG(args) {
     message = mm.deserialize(message);
   }
 
-  Bukkit.getConsoleSender().sendMessage(message);
+  player.sendMessage(message);
 
   return null;
 }
