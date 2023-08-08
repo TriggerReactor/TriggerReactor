@@ -72,9 +72,6 @@ public class InterpreterLocalContext {
 
     private int callArgsSize = 0;
 
-    //TODO this is a temporary solution. Move this to variable map with a special key.
-    private Object triggerCause = null;
-
     public InterpreterLocalContext(Timings.Timing timing) {
         this(timing, null);
     }
@@ -252,12 +249,7 @@ public class InterpreterLocalContext {
 
     @Deprecated
     public Object getTriggerCause() {
-        return tryOrThrow(() -> triggerCause);
-    }
-
-    @Deprecated
-    public void setTriggerCause(Object triggerCause) {
-        tryOrThrow(() -> this.triggerCause = triggerCause);
+        return tryOrThrow(() -> vars.get("event"));
     }
 
     private class DelegatedReentrantLock extends ReentrantLock {
