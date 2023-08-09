@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -29,7 +30,14 @@ import static org.mockito.Mockito.*;
  */
 
 public class TestExecutors extends AbstractTestExecutors {
-    protected void before() throws Exception {}
+    protected void before() throws Exception {
+    }
+
+    @Ignore("Simple test to make sure that tests ran in latest environment")
+    @Test
+    public void testLatest() {
+
+    }
 
     @Test
     public void testActionBar1() throws Exception {

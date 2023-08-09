@@ -8,6 +8,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
@@ -26,6 +27,12 @@ import static org.mockito.Mockito.*;
 public class TestExecutors extends AbstractTestExecutors {
     protected void before() throws Exception {
         register(sem, engine, BukkitUtil.class);
+    }
+
+    @Ignore("Simple test to make sure that tests ran in legacy environment")
+    @Test
+    public void testLegacy() {
+
     }
 
     @Test
