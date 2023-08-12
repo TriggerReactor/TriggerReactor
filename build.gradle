@@ -90,7 +90,6 @@ subprojects {
     // TASKS
 
     test {
-        reports.html.enabled = false
         testLogging {
             events "failed"
             exceptionFormat "full"
@@ -130,11 +129,17 @@ subprojects {
 }
 
 allprojects {
-    task testLegacy{
+    task testLegacy {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     testLegacy.finalizedBy test
+
+    test {
+        afterTest { desc, result ->
+            logger.quiet "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+        }
+    }
 }
 
 def exportedProjects= [
