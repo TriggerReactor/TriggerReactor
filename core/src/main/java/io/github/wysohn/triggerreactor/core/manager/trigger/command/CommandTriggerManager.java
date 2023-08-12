@@ -76,9 +76,9 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     @Override
     public void reload() {
         getAllTriggers().stream()
-                .map(Trigger::getInfo)
-                .map(TriggerInfo::getTriggerName)
-                .forEach(commandHandler::unregister);
+            .map(Trigger::getInfo)
+            .map(TriggerInfo::getTriggerName)
+            .forEach(commandHandler::unregister);
 
         super.reload();
 
@@ -115,13 +115,13 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
      */
     private boolean registerToAPI(CommandTrigger trigger) {
         ICommand command = commandHandler.register(trigger.getInfo().getTriggerName(),
-                trigger.getAliases());
+            trigger.getAliases());
         if (command == null)
             return false;
 
         trigger.setCommand(command);
         command.setTabCompleterMap(trigger.getTabCompleterMap());
-        command.setExecutor((sender, label, args) -> {
+        command.setExecutor((sender, label, args, original) -> {
             //TODO: remove this if we allow to use the command trigger in the console.
             if (!(sender instanceof IPlayer)) {
                 sender.sendMessage("CommandTrigger works only for Players.");
@@ -129,10 +129,11 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
             }
 
             execute(eventManagement.createPlayerCommandEvent(sender, label, args),
-                    sender,
-                    label,
-                    args,
-                    trigger);
+                sender,
+                label,
+                args,
+                trigger,
+                original);
         });
 
         return true;
@@ -172,8 +173,8 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
         CommandTrigger commandTrigger = factory.create(new TriggerInfo(null,
-                IConfigSource.empty(),
-                "temp") {
+            IConfigSource.empty(),
+            "temp") {
             @Override
             public boolean isValid() {
                 return false;
@@ -185,21 +186,26 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     public void reregisterCommand(String triggerName) {
         Optional.ofNullable(get(triggerName))
-                .ifPresent(trigger -> {
-                    commandHandler.unregister(triggerName);
-                    registerToAPI(trigger);
+            .ifPresent(trigger -> {
+                commandHandler.unregister(triggerName);
+                registerToAPI(trigger);
 
-                    commandHandler.sync();
-                });
+                commandHandler.sync();
+            });
     }
 
-    private void execute(Object context, ICommandSender sender, String cmd, String[] args, CommandTrigger trigger) {
+    private void execute(Object context,
+                         ICommandSender sender,
+                         String cmd,
+                         String[] args,
+                         CommandTrigger trigger,
+                         ICommand original) {
         for (String permission : trigger.getPermissions()) {
             if (!sender.hasPermission(permission)) {
                 sender.sendMessage("&c[TR] You don't have permission!");
                 if (pluginManagement.isDebugging()) {
                     logger.info("Player " + sender.getName() + " executed command " + cmd
-                            + " but didn't have permission " + permission + "");
+                        + " but didn't have permission " + permission + "");
                 }
                 return;
             }
@@ -211,8 +217,34 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
         varMap.put("command", cmd);
         varMap.put("args", args);
         varMap.put("argslength", args.length);
+        varMap.put("original", new OverrideHandle(sender, cmd, args, original));
 
         trigger.activate(context, varMap);
     }
 
+    public static class OverrideHandle {
+        private final ICommandSender sender;
+        private final String label;
+        private final String[] args;
+        private final ICommand original;
+
+        public OverrideHandle(ICommandSender sender, String label, String[] args, ICommand original) {
+            this.sender = sender;
+            this.label = label;
+            this.args = args;
+            this.original = original;
+        }
+
+        public void forward() {
+            Optional.ofNullable(original)
+                .map(ICommand::getExecutor)
+                .ifPresent(executor -> executor.execute(sender, label, args, original));
+        }
+
+        public void run(String... args) {
+            Optional.ofNullable(original)
+                .map(ICommand::getExecutor)
+                .ifPresent(executor -> executor.execute(sender, label, args, null));
+        }
+    }
 }
