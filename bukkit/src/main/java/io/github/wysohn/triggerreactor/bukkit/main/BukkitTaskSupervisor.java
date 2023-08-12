@@ -32,12 +32,20 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
     /**
      * Cached Pool for thread execution.
+     * <p>
+     * TODO: make this configurable
      */
-    private static final ExecutorService CACHED_THREAD_POOL = Executors.newCachedThreadPool(r -> {
-        Thread thread = new Thread(r);
-        thread.setPriority(Thread.MIN_PRIORITY);
-        return thread;
-    });
+    private static final ExecutorService CACHED_THREAD_POOL = new ThreadPoolExecutor(
+        8, // # of always alive threads
+        1024, // if all 8 threads are busy and queue is full, then create up to 1024 threads
+        60L, // if the extra threads are idle for 60 seconds, remove it
+        TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(2048),
+        r -> {
+            Thread thread = new Thread(r);
+            thread.setPriority(Thread.NORM_PRIORITY - 1);
+            return thread;
+        });
 
     @Override
     public boolean isServerThread() {
