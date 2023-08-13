@@ -25,6 +25,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -65,28 +68,31 @@ public class InventoryTriggerManagerTest {
         when(handle.getItemClass()).thenReturn((Class) ItemStack.class);
 
         manager = Guice.createInjector(
-                TestTriggerDependencyModule.Builder.begin().build(),
-                new TestFileModule(folder),
-                new FactoryModuleBuilder()
-                        .implement(InventoryTrigger.class, InventoryTrigger.class)
-                        .build(IInventoryTriggerFactory.class),
-                new AbstractModule() {
-                    @Provides
-                    @Named("InventoryTriggerManagerFolder")
-                    public String provideFolder() {
-                        return "InventoryTrigger";
-                    }
-
-                    @Provides
-                    public ITriggerLoader<InventoryTrigger> provideLoader() {
-                        return loader;
-                    }
-
-                    @Provides
-                    public IInventoryHandle provideHandle() {
-                        return handle;
-                    }
+            TestTriggerDependencyModule.Builder.begin().build(),
+            new TestFileModule(folder),
+            new FactoryModuleBuilder()
+                .implement(InventoryTrigger.class, InventoryTrigger.class)
+                .build(IInventoryTriggerFactory.class),
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class),
+            new AbstractModule() {
+                @Provides
+                @Named("InventoryTriggerManagerFolder")
+                public String provideFolder() {
+                    return "InventoryTrigger";
                 }
+
+                @Provides
+                public ITriggerLoader<InventoryTrigger> provideLoader() {
+                    return loader;
+                }
+
+                @Provides
+                public IInventoryHandle provideHandle() {
+                    return handle;
+                }
+            }
         ).getInstance(InventoryTriggerManager.class);
     }
 
@@ -161,12 +167,12 @@ public class InventoryTriggerManagerTest {
 
         IInventory inv = manager.openGUI(player, "test");
         manager.onClick(eventInstance,
-                inv,
-                item,
-                0,
-                "left",
-                0,
-                callback);
+            inv,
+            item,
+            0,
+            "left",
+            0,
+            callback);
 
         verify(mockTrigger).activate(any(), any());
     }

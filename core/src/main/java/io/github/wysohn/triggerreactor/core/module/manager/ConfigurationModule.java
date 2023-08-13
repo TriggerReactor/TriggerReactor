@@ -21,27 +21,11 @@ public class ConfigurationModule extends AbstractModule {
     }
 
     @Provides
-    @Named("GlobalVariable")
-    public IConfigSource provideConfigSource(IConfigSourceFactory factory,
-                                             @Named("DataFolder") File dataFolder,
-                                             IExceptionHandle exceptionHandle) {
-        SaveWorker saveWorker = new SaveWorker(30, (ex) -> exceptionHandle.handleException(null, ex));
-        saveWorker.start();
-
-        return factory.create(saveWorker,
-            dataFolder,
-            "var");
-    }
-
-    @Provides
     @Named("PluginConfig")
     public IConfigSource providePluginConfigSource(IConfigSourceFactory factory,
                                                    @Named("DataFolder") File dataFolder,
                                                    IExceptionHandle exceptionHandle) {
-        SaveWorker saveWorker = new SaveWorker(5, (ex) -> exceptionHandle.handleException(null, ex));
-        saveWorker.start();
-
-        return factory.create(saveWorker,
+        return factory.create(new SaveWorker(5, (ex) -> exceptionHandle.handleException(null, ex)),
             dataFolder,
             "config");
     }

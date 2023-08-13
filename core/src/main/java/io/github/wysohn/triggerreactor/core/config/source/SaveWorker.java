@@ -29,6 +29,10 @@ public class SaveWorker extends Thread {
         start();
     }
 
+    public SaveWorker(int buffer) {
+        this(buffer, Throwable::printStackTrace);
+    }
+
     void flush(GsonConfigSource source) {
         synchronized (this) {
             saveQueue.add(source);

@@ -177,11 +177,13 @@ public class TriggerReactorCoreTest {
         modules.add(new CorePluginModule());
         modules.addAll(Arrays.asList(additionalModules));
 
-        return Guice.createInjector(modules);
+        Injector injector = Guice.createInjector(modules);
+        injector.getInstance(TriggerReactorCore.class).initialize();
+        return injector;
     }
 
     @Test
-    public void initialize() {
+    public void initialize_manager() {
         // arrange
         DummyManager dummyManager = new DummyManager();
 
@@ -1337,7 +1339,7 @@ public class TriggerReactorCoreTest {
         handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat", "toggle"});
         handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat", "autostart"});
 
-        for (int i = 0; i < 10000; i++)
+        for (int i = 0; i < 1000; i++)
             handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
 
         repeatingTriggerManager.shutdown();

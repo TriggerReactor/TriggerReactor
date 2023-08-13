@@ -153,7 +153,7 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void saveAll() {
-        saveWorker.saveNow();
+        cacheToFile();
     }
 
     /**

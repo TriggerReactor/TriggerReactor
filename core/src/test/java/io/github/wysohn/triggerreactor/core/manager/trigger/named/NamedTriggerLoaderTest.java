@@ -19,7 +19,10 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -51,9 +54,12 @@ public class NamedTriggerLoaderTest {
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
         Injector injector = Guice.createInjector(
-                new NamedTriggerModule(),
-                new TestFileModule(folder),
-                TestTriggerDependencyModule.Builder.begin().build()
+            new NamedTriggerModule(),
+            new TestFileModule(folder),
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class),
+            TestTriggerDependencyModule.Builder.begin().build()
         );
 
         loader = injector.getInstance(NamedTriggerLoader.class);
@@ -63,7 +69,7 @@ public class NamedTriggerLoaderTest {
     @Test
     public void listTriggers() throws IOException {
         TriggerInfo info = mock(TriggerInfo.class);
-        SaveWorker saveWorker = mock(SaveWorker.class);
+        SaveWorker saveWorker = new SaveWorker(5);
 
         when(info.getTriggerName()).thenReturn("test");
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
@@ -80,7 +86,7 @@ public class NamedTriggerLoaderTest {
         File subsubFolder = folder.newFolder("sub", "subsub");
         File file2 = new File(subFolder, "test2.trg");
         File file3 = new File(subsubFolder, "test3.trg");
-        SaveWorker saveWorker = mock(SaveWorker.class);
+        SaveWorker saveWorker = new SaveWorker(5);
 
         file2.createNewFile();
         file3.createNewFile();

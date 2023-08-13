@@ -86,7 +86,7 @@ public class AreaTriggerLoaderTest {
 
         assertEquals(1, triggerInfos.length);
         assertEquals("trigger", triggerInfos[0].getTriggerName());
-        verify(factory).create(any(), folder.getRoot(), "trigger");
+        verify(factory).create(saveWorker, folder.getRoot(), "trigger");
     }
 
     private void writeContent(File file, String s) throws IOException {

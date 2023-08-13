@@ -22,6 +22,9 @@ import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -55,26 +58,29 @@ public class CustomTriggerManagerTest {
         loader = mock(CustomTriggerLoader.class);
         registry = mock(IEventRegistry.class);
         manager = Guice.createInjector(
-                new TestFileModule(folder),
-                new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
-                TestTriggerDependencyModule.Builder.begin().build(),
-                new AbstractModule() {
-                    @Provides
-                    @Named("CustomTriggerManagerFolder")
-                    public String provideFolder() {
-                        return "CustomTrigger";
-                    }
-
-                    @Provides
-                    public ITriggerLoader<CustomTrigger> provideLoader() {
-                        return loader;
-                    }
-
-                    @Provides
-                    public IEventRegistry provideRegistry() {
-                        return registry;
-                    }
+            new TestFileModule(folder),
+            new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
+            TestTriggerDependencyModule.Builder.begin().build(),
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class),
+            new AbstractModule() {
+                @Provides
+                @Named("CustomTriggerManagerFolder")
+                public String provideFolder() {
+                    return "CustomTrigger";
                 }
+
+                @Provides
+                public ITriggerLoader<CustomTrigger> provideLoader() {
+                    return loader;
+                }
+
+                @Provides
+                public IEventRegistry provideRegistry() {
+                    return registry;
+                }
+            }
         ).getInstance(CustomTriggerManager.class);
     }
 
@@ -120,7 +126,7 @@ public class CustomTriggerManagerTest {
         assertNull(manager.get("test"));
     }
 
-    public static class DummyEvent{
+    public static class DummyEvent {
 
     }
 }

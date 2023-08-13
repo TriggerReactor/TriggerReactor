@@ -23,6 +23,9 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -57,21 +60,24 @@ public class AreaTriggerManagerTest {
         loader = mock(ITriggerLoader.class);
 
         manager = Guice.createInjector(
-                new TestFileModule(folder),
-                TestTriggerDependencyModule.Builder.begin().build(),
-                new FactoryModuleBuilder().build(IAreaTriggerFactory.class),
-                new FactoryModuleBuilder().build(IEnterTriggerFactory.class),
-                new FactoryModuleBuilder().build(IExitTriggerFactory.class),
-                new AbstractModule() {
-                    @Provides
-                    public ITriggerLoader<AreaTrigger> provideLoader() {
-                        return loader;
-                    }
+            new TestFileModule(folder),
+            TestTriggerDependencyModule.Builder.begin().build(),
+            new FactoryModuleBuilder().build(IAreaTriggerFactory.class),
+            new FactoryModuleBuilder().build(IEnterTriggerFactory.class),
+            new FactoryModuleBuilder().build(IExitTriggerFactory.class),
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class),
+            new AbstractModule() {
+                @Provides
+                public ITriggerLoader<AreaTrigger> provideLoader() {
+                    return loader;
+                }
 
-                    @Provides
-                    @Named("AreaTriggerManagerFolder")
-                    public String provideFolder() throws IOException {
-                        return "AreaTrigger";
+                @Provides
+                @Named("AreaTriggerManagerFolder")
+                public String provideFolder() throws IOException {
+                    return "AreaTrigger";
                     }
                 }
         ).getInstance(AreaTriggerManager.class);

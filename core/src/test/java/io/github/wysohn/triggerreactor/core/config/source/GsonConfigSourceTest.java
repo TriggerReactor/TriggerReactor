@@ -36,9 +36,13 @@ public class GsonConfigSourceTest {
 
     @Before
     public void setUp() throws Exception {
-        configFile = folder.newFile();
+        File triggerFolder = folder.newFolder("triggers");
+        configFile = new File(triggerFolder, "test.json");
+
         pluginManagement = mock(IPluginManagement.class);
-        gsonConfigSource = new GsonConfigSource(mock(SaveWorker.class), folder.getRoot(), configFile.getName());
+        gsonConfigSource = new GsonConfigSource(new SaveWorker(5, Exception::printStackTrace),
+            triggerFolder,
+            "test");
         Guice.createInjector(
             new AbstractModule() {
                 @Override
@@ -187,7 +191,7 @@ public class GsonConfigSourceTest {
         assertJsonEquals("{" + IntStream.range(0, max)
                 .mapToObj(i -> "\"key" + i + "\":\"val" + i + "\"")
                 .collect(Collectors.joining(",")) + "}",
-            readContent(configFile.getName()));
+            readContent("triggers", "test.json"));
     }
 
     @Test

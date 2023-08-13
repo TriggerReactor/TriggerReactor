@@ -22,7 +22,7 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{null}});
+        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
     }
 
     protected final FN fn;

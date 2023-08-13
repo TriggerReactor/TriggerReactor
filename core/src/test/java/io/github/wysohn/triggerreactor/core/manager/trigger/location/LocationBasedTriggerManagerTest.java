@@ -28,6 +28,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -65,26 +68,29 @@ public class LocationBasedTriggerManagerTest {
         mockEditManager = mock(ScriptEditManager.class);
 
         manager = Guice.createInjector(
-                new TestFileModule(folder),
-                TestTriggerDependencyModule.Builder.begin().build(),
-                new FactoryModuleBuilder().build(IClickTriggerFactory.class),
-                new AbstractModule() {
-                    @Provides
-                    public ITriggerLoader<ClickTrigger> provideLoader() {
-                        return loader;
-                    }
-
-                    @Provides
-                    @Named("ClickTriggerManagerFolder")
-                    public String provideFolder() throws IOException {
-                        return "ClickTrigger";
-                    }
-
-                    @Provides
-                    public ScriptEditManager provideScriptEditManager() {
-                        return mockEditManager;
-                    }
+            new TestFileModule(folder),
+            TestTriggerDependencyModule.Builder.begin().build(),
+            new FactoryModuleBuilder().build(IClickTriggerFactory.class),
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class),
+            new AbstractModule() {
+                @Provides
+                public ITriggerLoader<ClickTrigger> provideLoader() {
+                    return loader;
                 }
+
+                @Provides
+                @Named("ClickTriggerManagerFolder")
+                public String provideFolder() throws IOException {
+                    return "ClickTrigger";
+                }
+
+                @Provides
+                public ScriptEditManager provideScriptEditManager() {
+                    return mockEditManager;
+                }
+            }
         ).getInstance(ClickTriggerManager.class);
     }
 
@@ -104,9 +110,9 @@ public class LocationBasedTriggerManagerTest {
 
         // assert
         assertEquals(mockTrigger, manager.getTriggerForLocation(new SimpleLocation("world",
-                1,
-                2,
-                3)));
+            1,
+            2,
+            3)));
 
     }
 
@@ -393,7 +399,7 @@ public class LocationBasedTriggerManagerTest {
 
     @Test
     public void handleScriptEdit() throws InvalidTrgConfigurationException,
-            AbstractTriggerManager.TriggerInitFailedException {
+        AbstractTriggerManager.TriggerInitFailedException {
         // arrange
         IPlayer player = mock(IPlayer.class);
         UUID uuid = UUID.randomUUID();
@@ -495,10 +501,10 @@ public class LocationBasedTriggerManagerTest {
 
         manager.startLocationSet(player, "the script");
         manager.handleClick(eventInstance,
-                clickedBlock,
-                player,
-                itemInHand,
-                Activity.LEFT_CLICK_BLOCK);
+            clickedBlock,
+            player,
+            itemInHand,
+            Activity.LEFT_CLICK_BLOCK);
 
         // assert
         verify(mockTrigger).activate(eq(eventInstance), anyMap());
@@ -531,10 +537,10 @@ public class LocationBasedTriggerManagerTest {
 
         manager.startLocationSet(player, "the script");
         manager.handleWalk(eventInstance,
-                player,
-                new SimpleLocation("world", 1, 3, 2),
-                new SimpleLocation("world", 1, 3, 3),
-                new TempBlock(new TempLoc("world", 1, 2, 3)));
+            player,
+            new SimpleLocation("world", 1, 3, 2),
+            new SimpleLocation("world", 1, 3, 3),
+            new TempBlock(new TempLoc("world", 1, 2, 3)));
 
         // assert
         verify(mockTrigger).activate(eq(eventInstance), anyMap());

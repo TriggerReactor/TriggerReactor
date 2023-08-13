@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -42,9 +43,10 @@ public class ConfigSourceFactoryTest {
             "\"second\": \"abc\"," +
             "\"third\": true" +
             "}").getBytes());
+        SaveWorker saveWorker = new SaveWorker(5, mock(Consumer.class));
 
         // act
-        IConfigSource configSource = configSourceFactory.create(mock(SaveWorker.class), folder.getRoot(), "test");
+        IConfigSource configSource = configSourceFactory.create(saveWorker, folder.getRoot(), "test");
 
         configSource.reload();
 
