@@ -1,7 +1,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -19,6 +21,9 @@ import static org.junit.Assert.*;
 @RunWith(Parameterized.class)
 public class TestCommonFunctions<FN extends CommonFunctions> {
     private static final String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
@@ -96,6 +101,8 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
 
     @Test
     public void testConstructor() throws Exception {
+        File file = folder.newFile("test.txt");
+
         //thx for the test cases
         ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
         assertEquals(0, e.marker);
@@ -103,9 +110,9 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
         e = (ExampleClass) fn.newInstance(example, new Double(1.1));
         assertEquals(2, e.marker);
 
-        File file = (File) fn.newInstance("java.io.File", "test.txt");
-        FileWriter writer = (FileWriter) fn.newInstance("java.io.FileWriter", file);
-        FileReader reader = (FileReader) fn.newInstance("java.io.FileReader", file);
+        File file1 = (File) fn.newInstance("java.io.File", file.getAbsolutePath());
+        FileWriter writer = (FileWriter) fn.newInstance("java.io.FileWriter", file1);
+        FileReader reader = (FileReader) fn.newInstance("java.io.FileReader", file1);
     }
 
     @Test
