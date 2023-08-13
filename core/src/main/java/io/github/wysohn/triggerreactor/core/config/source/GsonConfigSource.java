@@ -278,7 +278,7 @@ public class GsonConfigSource implements IConfigSource {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            saveWorker.saveNow();
+            cacheToFile();
         }
     }
 

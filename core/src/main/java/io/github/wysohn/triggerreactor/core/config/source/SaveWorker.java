@@ -25,6 +25,8 @@ public class SaveWorker extends Thread {
 
         this.buffer = buffer;
         this.failureHandle = failureHandle;
+
+        start();
     }
 
     void flush(GsonConfigSource source) {
@@ -36,6 +38,9 @@ public class SaveWorker extends Thread {
     }
 
     void shutdown() {
+        if (!running)
+            return;
+
         running = false;
         synchronized (this) {
             notify();
