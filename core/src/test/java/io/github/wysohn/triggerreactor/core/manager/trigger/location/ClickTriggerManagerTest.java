@@ -21,6 +21,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -51,21 +54,24 @@ public class ClickTriggerManagerTest {
         loader = mock(ClickTriggerLoader.class);
 
         manager = Guice.createInjector(
-                new TestFileModule(folder),
-                TestTriggerDependencyModule.Builder.begin().build(),
-                new FactoryModuleBuilder().build(IClickTriggerFactory.class),
-                new AbstractModule() {
-                    @Provides
-                    public ITriggerLoader<ClickTrigger> provideLoader() {
-                        return loader;
-                    }
-
-                    @Provides
-                    @Named("ClickTriggerManagerFolder")
-                    public String provideFolder() throws IOException {
-                        return "ClickTrigger";
-                    }
+            new TestFileModule(folder),
+            TestTriggerDependencyModule.Builder.begin().build(),
+            new FactoryModuleBuilder().build(IClickTriggerFactory.class),
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class),
+            new AbstractModule() {
+                @Provides
+                public ITriggerLoader<ClickTrigger> provideLoader() {
+                    return loader;
                 }
+
+                @Provides
+                @Named("ClickTriggerManagerFolder")
+                public String provideFolder() throws IOException {
+                    return "ClickTrigger";
+                }
+            }
         ).getInstance(ClickTriggerManager.class);
     }
 

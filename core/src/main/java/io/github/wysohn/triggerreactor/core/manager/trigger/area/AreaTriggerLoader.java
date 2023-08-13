@@ -18,8 +18,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -56,17 +57,17 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
     }
 
     @Override
-    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
+    public TriggerInfo[] listTriggers(SaveWorker saveWorker, File folder, IConfigSourceFactory fn) {
         return Optional.ofNullable(folder.listFiles())
-                .map(files -> Arrays.stream(files)
-                        .filter(File::isDirectory)
-                        .map(triggerFolder -> {
-                            String name = triggerFolder.getName();
-                            IConfigSource config = fn.create(folder, name);
-                            return toTriggerInfo(triggerFolder, config);
-                        })
-                        .toArray(TriggerInfo[]::new))
-                .orElse(new TriggerInfo[0]);
+            .map(files -> Arrays.stream(files)
+                .filter(File::isDirectory)
+                .map(triggerFolder -> {
+                    String name = triggerFolder.getName();
+                    IConfigSource config = fn.create(saveWorker, folder, name);
+                    return toTriggerInfo(triggerFolder, config);
+                })
+                .toArray(TriggerInfo[]::new))
+            .orElse(new TriggerInfo[0]);
     }
 
     @Override

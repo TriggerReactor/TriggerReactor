@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
-import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.junit.Before;
@@ -2656,8 +2655,8 @@ public class TestInterpreter {
 
                         Runnable run = invocation.getArgument(0);
                         run.run();
-                        System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
-                        System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
+//                        System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
+//                        System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
                     });
                     return null;
                 }

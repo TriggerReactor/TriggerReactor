@@ -80,7 +80,7 @@ public final class CustomTriggerManager extends AbstractTriggerManager<CustomTri
 
         Class<?> event = registry.getEvent(eventName);
         File file = getTriggerFile(folder, name, true);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = getConfigSource(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         CustomTrigger trigger = factory.create(info, script, event, eventName);
         trigger.init();

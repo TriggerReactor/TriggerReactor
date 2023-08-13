@@ -23,79 +23,89 @@ import io.github.wysohn.gsoncopy.internal.LinkedTreeMap;
 import io.github.wysohn.gsoncopy.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
 public class TestGsonConfigSource {
-    private final String jsonString = "{\n" +
-            "   \"string\":\"teststring\",\n" +
-            "   \"number\":8,\n" +
-            "   \"number2\":9.9,\n" +
-            "   \"boolean\":true,\n" +
-            "   \"list\":[\n" +
-            "      \"a\",\n" +
-            "      \"b\",\n" +
-            "      \"c\"\n" +
-            "   ],\n" +
-            "   \"object\":{\n" +
-            "      \"value\":\"abc\"\n" +
-            "   },\n" +
-            "   \"uuid\":{\n" +
-            "      \"" + Serializer.SER_KEY + "\":\"java.util.UUID\",\n" +
-            "      \"" + Serializer.SER_VALUE + "\":\"968cee8d-ec72-4a2f-a3bc-09a521a06f89\"\n" +
-            "   },\n" +
-            "   \"hashset\":{\n" +
-            "      \"" + Serializer.SER_KEY + "\":\"java.util.HashSet\",\n" +
-            "      \"" + Serializer.SER_VALUE + "\":[\n" +
-            "         \"e\",\n" +
-            "         \"f\",\n" +
-            "         \"g\"\n" +
-            "      ]\n" +
-            "   },\n" +
-            "   \"myobj1\":{\n" +
-            "      \"" + Serializer.SER_KEY + "\":\"" + CustomObject.class.getName() + "\",\n" +
-            "      \"" + Serializer.SER_VALUE + "\":{\n" +
-            "         \"s\":\"some string\",\n" +
-            "         \"i\":22,\n" +
-            "         \"d\":88.8,\n" +
-            "         \"b\":false\n" +
-            "      }\n" +
-            "   }\n" +
-            "}";
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
 
-    private File mockFile;
+    private final String jsonString = "{\n" +
+        "   \"string\":\"teststring\",\n" +
+        "   \"number\":8,\n" +
+        "   \"number2\":9.9,\n" +
+        "   \"boolean\":true,\n" +
+        "   \"list\":[\n" +
+        "      \"a\",\n" +
+        "      \"b\",\n" +
+        "      \"c\"\n" +
+        "   ],\n" +
+        "   \"object\":{\n" +
+        "      \"value\":\"abc\"\n" +
+        "   },\n" +
+        "   \"uuid\":{\n" +
+        "      \"" + Serializer.SER_KEY + "\":\"java.util.UUID\",\n" +
+        "      \"" + Serializer.SER_VALUE + "\":\"968cee8d-ec72-4a2f-a3bc-09a521a06f89\"\n" +
+        "   },\n" +
+        "   \"hashset\":{\n" +
+        "      \"" + Serializer.SER_KEY + "\":\"java.util.HashSet\",\n" +
+        "      \"" + Serializer.SER_VALUE + "\":[\n" +
+        "         \"e\",\n" +
+        "         \"f\",\n" +
+        "         \"g\"\n" +
+        "      ]\n" +
+        "   },\n" +
+        "   \"myobj1\":{\n" +
+        "      \"" + Serializer.SER_KEY + "\":\"" + CustomObject.class.getName() + "\",\n" +
+        "      \"" + Serializer.SER_VALUE + "\":{\n" +
+        "         \"s\":\"some string\",\n" +
+        "         \"i\":22,\n" +
+        "         \"d\":88.8,\n" +
+        "         \"b\":false\n" +
+        "      }\n" +
+        "   }\n" +
+        "}";
+
+    private File mockFolder;
     private StringWriter stringWriter;
-    private GsonConfigSource manager;
+    private GsonConfigSource source;
 
     @Before
-    public void init() {
-        mockFile = Mockito.mock(File.class);
+    public void init() throws IOException {
+        mockFolder = testFolder.getRoot();
         stringWriter = new StringWriter();
+        SaveWorker saveWorker = new SaveWorker(5);
 
-        manager = new GsonConfigSource(mockFile,
-                (f) -> new StringReader(jsonString),
-                (f) -> stringWriter);
+        Files.write(new File(mockFolder, "test.json").toPath(), jsonString.getBytes());
 
-        Mockito.when(mockFile.exists()).thenReturn(true);
-        Mockito.when(mockFile.length()).thenReturn(Long.MAX_VALUE);
+        source = new GsonConfigSource(
+            saveWorker,
+            mockFolder,
+            "test",
+            (f) -> new StringReader(jsonString),
+            (f) -> stringWriter);
     }
 
     @Test
-    public void testReload() throws Exception{
-        manager.reload();
+    public void testReload() throws Exception {
+        source.reload();
 
-        Field field = manager.getClass().getDeclaredField("cache");
+        Field field = source.getClass().getDeclaredField("cache");
         field.setAccessible(true);
-        Map<String, Object> cache = (Map<String, Object>) field.get(manager);
+        Map<String, Object> cache = (Map<String, Object>) field.get(source);
 
         assertEquals("teststring", cache.get("string"));
         assertEquals(8, cache.get("number"));
@@ -126,9 +136,9 @@ public class TestGsonConfigSource {
 
     @Test
     public void testSaveAll() throws Exception {
-        Field field = manager.getClass().getDeclaredField("cache");
+        Field field = source.getClass().getDeclaredField("cache");
         field.setAccessible(true);
-        Map<String, Object> cache = (Map<String, Object>) field.get(manager);
+        Map<String, Object> cache = (Map<String, Object>) field.get(source);
 
         cache.put("string2", "teststring2");
         cache.put("number2", 123);
@@ -161,7 +171,7 @@ public class TestGsonConfigSource {
         myobj2.b = false;
         cache.put("myobj2", myobj2);
 
-        manager.saveAll();
+        source.saveAll();
 
         String out = stringWriter.toString();
 
@@ -217,9 +227,9 @@ public class TestGsonConfigSource {
             if (o == null || getClass() != o.getClass()) return false;
             CustomObject that = (CustomObject) o;
             return i == that.i &&
-                    Double.compare(that.d, d) == 0 &&
-                    b == that.b &&
-                    Objects.equals(s, that.s);
+                Double.compare(that.d, d) == 0 &&
+                b == that.b &&
+                Objects.equals(s, that.s);
         }
 
         @Override

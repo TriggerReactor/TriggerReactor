@@ -298,7 +298,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         File file = getTriggerFile(folder, asTriggerName(loc), true);
         try {
             String name = TriggerInfo.extractName(file);
-            IConfigSource config = configSourceFactory.create(folder, name);
+            IConfigSource config = getConfigSource(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
             trigger = this.newInstance(info, script);
         } catch (Exception e1) {
