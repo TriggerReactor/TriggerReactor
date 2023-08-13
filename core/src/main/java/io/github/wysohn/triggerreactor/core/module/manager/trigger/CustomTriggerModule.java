@@ -37,9 +37,11 @@ public class CustomTriggerModule extends AbstractModule {
                 .implement(CustomTrigger.class, CustomTrigger.class)
                 .build(ICustomTriggerFactory.class));
 
-        binder().bind(new TypeLiteral<ITriggerLoader<CustomTrigger>>(){})
+        binder().bind(new TypeLiteral<ITriggerLoader<CustomTrigger>>() {
+                })
                 .to(CustomTriggerLoader.class);
-        binder().bind(new TypeLiteral<AbstractTriggerManager<CustomTrigger>>(){})
+        binder().bind(new TypeLiteral<AbstractTriggerManager<CustomTrigger>>() {
+                })
                 .to(CustomTriggerManager.class);
     }
 

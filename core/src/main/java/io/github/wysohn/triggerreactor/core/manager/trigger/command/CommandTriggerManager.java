@@ -76,9 +76,9 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     @Override
     public void reload() {
         getAllTriggers().stream()
-            .map(Trigger::getInfo)
-            .map(TriggerInfo::getTriggerName)
-            .forEach(commandHandler::unregister);
+                .map(Trigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .forEach(commandHandler::unregister);
 
         super.reload();
 
@@ -115,7 +115,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
      */
     private boolean registerToAPI(CommandTrigger trigger) {
         ICommand command = commandHandler.register(trigger.getInfo().getTriggerName(),
-            trigger.getAliases());
+                trigger.getAliases());
         if (command == null)
             return false;
 
@@ -129,11 +129,11 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
             }
 
             execute(eventManagement.createPlayerCommandEvent(sender, label, args),
-                sender,
-                label,
-                args,
-                trigger,
-                original);
+                    sender,
+                    label,
+                    args,
+                    trigger,
+                    original);
         });
 
         return true;
@@ -173,8 +173,8 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
         CommandTrigger commandTrigger = factory.create(new TriggerInfo(null,
-            IConfigSource.empty(),
-            "temp") {
+                IConfigSource.empty(),
+                "temp") {
             @Override
             public boolean isValid() {
                 return false;
@@ -186,12 +186,12 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     public void reregisterCommand(String triggerName) {
         Optional.ofNullable(get(triggerName))
-            .ifPresent(trigger -> {
-                commandHandler.unregister(triggerName);
-                registerToAPI(trigger);
+                .ifPresent(trigger -> {
+                    commandHandler.unregister(triggerName);
+                    registerToAPI(trigger);
 
-                commandHandler.sync();
-            });
+                    commandHandler.sync();
+                });
     }
 
     private void execute(Object context,
@@ -205,7 +205,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
                 sender.sendMessage("&c[TR] You don't have permission!");
                 if (pluginManagement.isDebugging()) {
                     logger.info("Player " + sender.getName() + " executed command " + cmd
-                        + " but didn't have permission " + permission + "");
+                            + " but didn't have permission " + permission + "");
                 }
                 return;
             }
@@ -237,14 +237,14 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
         public void forward() {
             Optional.ofNullable(original)
-                .map(ICommand::getExecutor)
-                .ifPresent(executor -> executor.execute(sender, label, args, original));
+                    .map(ICommand::getExecutor)
+                    .ifPresent(executor -> executor.execute(sender, label, args, original));
         }
 
         public void run(String... args) {
             Optional.ofNullable(original)
-                .map(ICommand::getExecutor)
-                .ifPresent(executor -> executor.execute(sender, label, args, null));
+                    .map(ICommand::getExecutor)
+                    .ifPresent(executor -> executor.execute(sender, label, args, null));
         }
     }
 }

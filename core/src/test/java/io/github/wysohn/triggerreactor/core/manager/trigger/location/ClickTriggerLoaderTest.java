@@ -52,15 +52,15 @@ public class ClickTriggerLoaderTest {
 
 
         loader = Guice.createInjector(
-            new ClickTriggerModule(),
-            new TestFileModule(folder),
-            TestTriggerDependencyModule.Builder.begin().build(),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            new AbstractModule() {
+                new ClickTriggerModule(),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new AbstractModule() {
 
-            }
+                }
         ).getInstance(ClickTriggerLoader.class);
     }
 

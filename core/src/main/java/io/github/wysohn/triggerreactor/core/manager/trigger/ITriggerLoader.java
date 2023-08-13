@@ -14,15 +14,15 @@ import java.util.Optional;
 public interface ITriggerLoader<T extends Trigger> {
     default void search(SaveWorker saveWorker, File folder, IConfigSourceFactory fn, List<TriggerInfo> list) {
         Optional.ofNullable(folder.listFiles())
-            .ifPresent(files -> Arrays.stream(files)
-                .forEach(file -> {
-                    if (file.isFile() && file.getName().endsWith(".trg")) {
-                        String name = TriggerInfo.extractName(file);
-                        IConfigSource config = fn.create(saveWorker, folder, name);
-                        list.add(toTriggerInfo(file, config));
-                    } else if (file.isDirectory()) {
-                        search(saveWorker, file, fn, list);
-                    }
+                .ifPresent(files -> Arrays.stream(files)
+                        .forEach(file -> {
+                            if (file.isFile() && file.getName().endsWith(".trg")) {
+                                String name = TriggerInfo.extractName(file);
+                                IConfigSource config = fn.create(saveWorker, folder, name);
+                                list.add(toTriggerInfo(file, config));
+                            } else if (file.isDirectory()) {
+                                search(saveWorker, file, fn, list);
+                            }
                         }));
     }
 

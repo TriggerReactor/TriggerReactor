@@ -359,7 +359,7 @@ public class Interpreter {
                 final int end = limitToken.toInteger();
                 final boolean reversed = start > end;
 
-                for (int i = start;;) {
+                for (int i = start; ; ) {
                     if (reversed && i <= end - bound) break;
                     else if (!reversed && i >= end + bound) break;
 
@@ -422,7 +422,8 @@ public class Interpreter {
             final Type variableType = variableNameToken.getType();
 
             boolean matches = false;
-            iterCaseOrDefaultNodes: for (int i = 1; i < node.getChildren().size(); i++) {
+            iterCaseOrDefaultNodes:
+            for (int i = 1; i < node.getChildren().size(); i++) {
                 final Node caseNode = node.getChildren().get(i);
                 if (!Type.CASE.equals(caseNode.getToken().getType())) {
                     throw new InterpreterException("Expected case but found " + caseNode);
@@ -549,8 +550,8 @@ public class Interpreter {
                             try {
                                 final Class<Enum> enumClass = (Class<Enum>) variableNameToken.value.getClass();
                                 maybeParameterToken = parseValue(
-                                    Enum.valueOf(enumClass, rawParameterToken.value.toString()),
-                                    rawParameterToken
+                                        Enum.valueOf(enumClass, rawParameterToken.value.toString()),
+                                        rawParameterToken
                                 );
                             } catch (final IllegalArgumentException ignored) {
                                 maybeParameterToken = tryUnwrapVariable(rawParameterToken, localContext);

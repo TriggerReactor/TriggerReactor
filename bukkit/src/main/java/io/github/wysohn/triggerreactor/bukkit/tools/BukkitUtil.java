@@ -57,7 +57,8 @@ public class BukkitUtil {
                 } else {
                     return (Collection<? extends Player>) out;
                 }
-            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
+                     InvocationTargetException e) {
                 getOnlinePlayersMethodFound = false;
                 e.printStackTrace();
             }

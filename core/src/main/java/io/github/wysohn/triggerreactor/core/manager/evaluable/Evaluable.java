@@ -89,7 +89,7 @@ abstract class Evaluable<R> implements IEvaluable {
 
         scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
         scriptContext.setBindings(engine.getBindings(ScriptContext.GLOBAL_SCOPE),
-                                  ScriptContext.GLOBAL_SCOPE);
+                ScriptContext.GLOBAL_SCOPE);
 
         bindings.put("event", event);
         for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -162,9 +162,9 @@ abstract class Evaluable<R> implements IEvaluable {
                     throw new Exception(indentifier + functionName + " encountered error.", e1);
                 } catch (TimeoutException e1) {
                     throw new Exception(indentifier + functionName
-                                                + " was stopped. It took longer than 5 seconds to process. Is the "
-                                                + "server lagging?",
-                                        e1);
+                            + " was stopped. It took longer than 5 seconds to process. Is the "
+                            + "server lagging?",
+                            e1);
                 }
                 return result;
             }

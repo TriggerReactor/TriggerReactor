@@ -73,10 +73,10 @@ public class TestExecutors extends AbstractTestExecutors {
 
         test.withArgs(player, message).test();
         verify(spigotPlayer)
-            .sendMessage(
-                ChatMessageType.ACTION_BAR,
-                new TextComponent(colorized)
-            );
+                .sendMessage(
+                        ChatMessageType.ACTION_BAR,
+                        new TextComponent(colorized)
+                );
 
         Assert.assertEquals(1, test.getOverload(player, message));
     }
@@ -88,7 +88,7 @@ public class TestExecutors extends AbstractTestExecutors {
         String sound = "BLOCK_WOOD_BREAK";
 
         JsTest test = new ExecutorTest(engine, "SOUND")
-            .addVariable("player", player);
+                .addVariable("player", player);
 
         test.withArgs(location, sound).test();
 
@@ -106,7 +106,7 @@ public class TestExecutors extends AbstractTestExecutors {
         float pitch = -0.5F;
 
         JsTest test = new ExecutorTest(engine, "SOUND")
-            .addVariable("player", player);
+                .addVariable("player", player);
 
         test.withArgs(location, sound, volume, pitch).test();
 
@@ -123,7 +123,7 @@ public class TestExecutors extends AbstractTestExecutors {
         float volume = 0.5F;
 
         JsTest test = new ExecutorTest(engine, "SOUND")
-            .addVariable("player", player);
+                .addVariable("player", player);
 
         test.withArgs(location, sound, volume).test();
 
@@ -149,7 +149,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(location.getWorld()).thenReturn(world);
 
         JsTest test = new ExecutorTest(engine, "SOUND")
-            .addVariable("player", player);
+                .addVariable("player", player);
 
         test.withArgs(x, y, z, sound, volume, pitch).test();
 
@@ -228,7 +228,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(location.getWorld()).thenReturn(world);
 
         JsTest test = new ExecutorTest(engine, "SOUNDALL")
-            .withArgs(location, sound, volume, pitch);
+                .withArgs(location, sound, volume, pitch);
 
         // act
         test.test();
@@ -245,7 +245,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(player.getInventory()).thenReturn(inventory);
 
         JsTest test = new ExecutorTest(engine, "SETOFFHAND")
-            .addVariable("player", player);
+                .addVariable("player", player);
 
         test.withArgs(item).test();
 

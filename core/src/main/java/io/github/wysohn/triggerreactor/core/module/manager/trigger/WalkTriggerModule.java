@@ -37,9 +37,11 @@ public class WalkTriggerModule extends AbstractModule {
                 .implement(WalkTrigger.class, WalkTrigger.class)
                 .build(IWalkTriggerFactory.class));
 
-        binder().bind(new TypeLiteral<ITriggerLoader<WalkTrigger>>(){})
+        binder().bind(new TypeLiteral<ITriggerLoader<WalkTrigger>>() {
+                })
                 .to(WalkTriggerLoader.class);
-        binder().bind(new TypeLiteral<AbstractTriggerManager<WalkTrigger>>(){})
+        binder().bind(new TypeLiteral<AbstractTriggerManager<WalkTrigger>>() {
+                })
                 .to(WalkTriggerManager.class);
     }
 

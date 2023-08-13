@@ -49,8 +49,8 @@ public class PluginConfigManager extends Manager implements IMigratable {
     @Override
     public void initialize() {
         configSource = factory.create(new SaveWorker(5, (ex) -> exceptionHandle.handleException(null, ex)),
-            dataFolder,
-            "config");
+                dataFolder,
+                "config");
     }
 
     @Override

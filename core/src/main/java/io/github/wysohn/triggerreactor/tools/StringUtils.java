@@ -17,9 +17,8 @@
 
 package io.github.wysohn.triggerreactor.tools;
 
-import java.util.regex.Pattern;
-
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class StringUtils {
     public static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
@@ -84,7 +83,7 @@ public class StringUtils {
 
         if (Integer.MAX_VALUE / count < len) {
             throw new OutOfMemoryError("Repeating " + len + " bytes String " + count +
-                                           " times will produce a String exceeding maximum size.");
+                " times will produce a String exceeding maximum size.");
         }
         final int limit = len * count;
         final char[] multiple = new char[limit];

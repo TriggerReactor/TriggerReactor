@@ -1,18 +1,17 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class ITabCompleterImpl implements ITabCompleter{
+public class ITabCompleterImpl implements ITabCompleter {
     List<String> hint;
     List<String> candidate;
     PredefinedTabCompleters preDefinedValue;
     Map<Integer, Pattern> conditions;
 
-    protected ITabCompleterImpl(ITabCompleter.Builder builder){
+    protected ITabCompleterImpl(ITabCompleter.Builder builder) {
         hint = builder.hint;
         candidate = builder.candidate;
         preDefinedValue = builder.preDefinedValue;
@@ -21,14 +20,15 @@ public class ITabCompleterImpl implements ITabCompleter{
 
     @Override
     public List<String> getCandidates(String part) {
-        if(preDefinedValue != null || candidate == null){
+        if (preDefinedValue != null || candidate == null) {
             return null;
-        }else {
+        } else {
             return candidate.stream()
                     .filter(val -> val.toLowerCase().startsWith(part.toLowerCase()))
                     .collect(Collectors.toList());
         }
     }
+
     @Override
     public List<String> getHint() {
         return hint;
@@ -56,7 +56,7 @@ public class ITabCompleterImpl implements ITabCompleter{
 
     @Override
     public boolean hasCondition(Integer index) {
-        if(!hasConditionMap())
+        if (!hasConditionMap())
             return false;
         else
             return conditions.get(index) != null;
@@ -64,7 +64,7 @@ public class ITabCompleterImpl implements ITabCompleter{
 
     @Override
     public Pattern getCondition(Integer index) {
-        if(!hasConditionMap())
+        if (!hasConditionMap())
             return null;
         else
             return conditions.get(index);

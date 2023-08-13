@@ -52,22 +52,22 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
     private IAreaTriggerFactory factory;
 
     @Inject
-    private AreaTriggerLoader(){
+    private AreaTriggerLoader() {
 
     }
 
     @Override
     public TriggerInfo[] listTriggers(SaveWorker saveWorker, File folder, IConfigSourceFactory fn) {
         return Optional.ofNullable(folder.listFiles())
-            .map(files -> Arrays.stream(files)
-                .filter(File::isDirectory)
-                .map(triggerFolder -> {
-                    String name = triggerFolder.getName();
-                    IConfigSource config = fn.create(saveWorker, folder, name);
-                    return toTriggerInfo(triggerFolder, config);
-                })
-                .toArray(TriggerInfo[]::new))
-            .orElse(new TriggerInfo[0]);
+                .map(files -> Arrays.stream(files)
+                        .filter(File::isDirectory)
+                        .map(triggerFolder -> {
+                            String name = triggerFolder.getName();
+                            IConfigSource config = fn.create(saveWorker, folder, name);
+                            return toTriggerInfo(triggerFolder, config);
+                        })
+                        .toArray(TriggerInfo[]::new))
+                .orElse(new TriggerInfo[0]);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         if (trigger.getEnterTrigger() != null) {
             try {
                 FileUtil.writeToFile(AbstractTriggerManager.getTriggerFile(triggerFolder, TRIGGER_NAME_ENTER, true),
-                                     trigger.getEnterTrigger().getScript());
+                        trigger.getEnterTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
                 logger.warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
@@ -154,7 +154,7 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         if (trigger.getExitTrigger() != null) {
             try {
                 FileUtil.writeToFile(AbstractTriggerManager.getTriggerFile(triggerFolder, TRIGGER_NAME_EXIT, true),
-                                     trigger.getExitTrigger().getScript());
+                        trigger.getExitTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
                 logger.warning("Could not save Area Trigger [Exit] " + trigger.getInfo());
@@ -165,4 +165,4 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
     public static final String TRIGGER_NAME_EXIT = "Exit";
 
     public static final String TRIGGER_NAME_ENTER = "Enter";
-    }
+}

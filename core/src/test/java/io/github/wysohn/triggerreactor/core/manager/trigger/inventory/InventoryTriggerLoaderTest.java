@@ -81,13 +81,13 @@ public class InventoryTriggerLoaderTest {
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
         when(info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)).thenReturn(Optional.of(9));
         when(info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE,
-                      String.class)).thenReturn(Optional.of("test title"));
+                String.class)).thenReturn(Optional.of("test title"));
         when(info.has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)).thenReturn(true);
         when(info.isSection(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)).thenReturn(true);
         for (int i = 0; i < 9; i++) {
             when(info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS,
-                          i,
-                          ItemStack.class)).thenReturn(Optional.of(mock(ItemStack.class)));
+                    i,
+                    ItemStack.class)).thenReturn(Optional.of(mock(ItemStack.class)));
         }
 
         InventoryTrigger trigger = loader.load(info);

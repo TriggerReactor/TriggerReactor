@@ -116,7 +116,7 @@ public class Parser {
                 Token tryToken = token;
                 nextToken();
                 return parseTry(tryToken);
-            }  else if ("CATCH".equals(token.value)) {
+            } else if ("CATCH".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -132,7 +132,7 @@ public class Parser {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            }  else if ("IF".equals(token.value)) {
+            } else if ("IF".equals(token.value)) {
                 Token ifToken = token;
                 nextToken();
                 return parseIf(ifToken);
@@ -152,7 +152,7 @@ public class Parser {
                 final Token switchToken = token;
                 nextToken();
                 return parseSwitch(switchToken);
-            }else if ("ENDSWITCH".equals(token.value)) {
+            } else if ("ENDSWITCH".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -218,8 +218,8 @@ public class Parser {
 
                 if (token.type == Type.RANGE || (token.type == Type.OPERATOR && ":".equals(token.value))) {
                     final Node range = token.type == Type.RANGE
-                        ? new Node(token)
-                        : new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>"));  // Compatibility for `:` operator
+                            ? new Node(token)
+                            : new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>"));  // Compatibility for `:` operator
                     iteration.getChildren().add(range);
 
                     nextToken();
@@ -555,12 +555,12 @@ public class Parser {
 
         Node codes = null;
         while (token != null
-            && (codes = parseStatement()) != null
-            && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"_".equals(codes.getToken().value)
-            && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+                && (codes = parseStatement()) != null
+                && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"_".equals(codes.getToken().value)
+                && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
             caseBody.getChildren().add(codes);
         }
 
@@ -572,9 +572,9 @@ public class Parser {
 
         if (codes != null) {
             if ("CASE".equalsIgnoreCase(codes.getToken().value.toString())
-                   || "ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
-                   || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
-                   || "_".equals(codes.getToken().value)) {
+                    || "ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                    || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                    || "_".equals(codes.getToken().value)) {
                 return codes;
             } else if ("ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
                 return null;
@@ -600,12 +600,12 @@ public class Parser {
 
         Node codes = null;
         while (token != null
-            && (codes = parseStatement()) != null
-            && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"_".equalsIgnoreCase(codes.getToken().value.toString())
-            && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+                && (codes = parseStatement()) != null
+                && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"_".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
             defaultBody.getChildren().add(codes);
         }
 
@@ -628,13 +628,13 @@ public class Parser {
         throw new ParserException("Could not find ENDSWITCH statement! " + defaultNode.getToken());
     }
 
-    private Node parseAssignment() throws IOException, LexerException, ParserException{
+    private Node parseAssignment() throws IOException, LexerException, ParserException {
         Node id = parseLogic();
-        if(id == null)
-            throw new ParserException("Expected Id but found nothing. Token: "+token);
+        if (id == null)
+            throw new ParserException("Expected Id but found nothing. Token: " + token);
 
         Node parent = parseAssignmentAndLogic(id);
-        if(parent != null){
+        if (parent != null) {
             return parent;
         } else {
             return id;
@@ -1062,44 +1062,44 @@ public class Parser {
         if (token == null)
             return null;
 
-        if("LAMBDA".equals(token.value)){
+        if ("LAMBDA".equals(token.value)) {
             Node lambda = new Node(new Token(Type.LAMBDA, "<LAMBDA>", token));
             nextToken();
 
             Node parameters = new Node(new Token(Type.PARAMETERS, "<PARAMETERS>", token));
             lambda.getChildren().add(parameters);
 
-            if(token != null && token.getType() == Type.ID) {
+            if (token != null && token.getType() == Type.ID) {
                 parameters.getChildren().add(new Node(token));
                 nextToken();
             }
 
-            if(parameters.getChildren().size() > 0){
-                while(token != null && ",".equals(token.value)){
+            if (parameters.getChildren().size() > 0) {
+                while (token != null && ",".equals(token.value)) {
                     nextToken();
-                    if(token == null || token.getType() != Type.ID)
-                        throw new ParserException("Expected a parameter after a comma but found "+token);
+                    if (token == null || token.getType() != Type.ID)
+                        throw new ParserException("Expected a parameter after a comma but found " + token);
 
                     parameters.getChildren().add(new Node(token));
                     nextToken();
                 }
             }
 
-            if(token == null || !"=>".equals(token.value))
-                throw new ParserException("Expected an arrow operator, =>, but found "+token);
+            if (token == null || !"=>".equals(token.value))
+                throw new ParserException("Expected an arrow operator, =>, but found " + token);
             Node body = new Node(new Token(Type.LAMBDABODY, "<LAMBDABODY>", token));
             lambda.getChildren().add(body);
             nextToken();
 
             Node statement = null;
             while ((statement = parseStatement()) != null) {
-                if("ENDLAMBDA".equals(statement.getToken().getValue()))
+                if ("ENDLAMBDA".equals(statement.getToken().getValue()))
                     break;
                 body.getChildren().add(statement);
             }
 
-            if(body.getChildren().size() < 1)
-                throw new ParserException("LAMBDA body should have at least one statement: "+body);
+            if (body.getChildren().size() < 1)
+                throw new ParserException("LAMBDA body should have at least one statement: " + body);
 
             return lambda;
         }
@@ -1261,7 +1261,7 @@ public class Parser {
     private Node parsePostUnary() throws IOException, LexerException, ParserException {
         Node left = parseId();
 
-        if(left != null && token != null && token.type == Type.OPERATOR_UNARY) {
+        if (left != null && token != null && token.type == Type.OPERATOR_UNARY) {
             Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
             node.getChildren().add(left);
             nextToken();
@@ -1403,18 +1403,18 @@ public class Parser {
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException {
         final Charset charset = StandardCharsets.UTF_8;
-        final String[] texts = new String[] {
-            "a = 3",
-            "SWITCH a",
-            "  CASE 1,2 =>",
-            "    #MESSAGE \"1 or 2\"",
-            "  CASE 3 => #MESSAGE \"It's 3\"",
-            "  CASE 4, 5, 6 =>",
-            "    #MESSAGE \"Hello, \" + a",
-            "  ENDCASE",
-            "  CASE 7 => #STOP",
-            "  DEFAULT => #MESSAGE \"default\"",
-            "ENDSWITCH"
+        final String[] texts = new String[]{
+                "a = 3",
+                "SWITCH a",
+                "  CASE 1,2 =>",
+                "    #MESSAGE \"1 or 2\"",
+                "  CASE 3 => #MESSAGE \"It's 3\"",
+                "  CASE 4, 5, 6 =>",
+                "    #MESSAGE \"Hello, \" + a",
+                "  ENDCASE",
+                "  CASE 7 => #STOP",
+                "  DEFAULT => #MESSAGE \"default\"",
+                "ENDSWITCH"
         };
         final StringJoiner joiner = new StringJoiner("\n");
 

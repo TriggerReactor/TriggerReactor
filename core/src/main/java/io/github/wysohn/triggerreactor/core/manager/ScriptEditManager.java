@@ -118,7 +118,7 @@ public class ScriptEditManager extends Manager {
                 } else {
                     exitDoublecheck.add(editorUser);
                     editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! "
-                                                   + "&dType &6exit &done more time to confirm.");
+                        + "&dType &6exit &done more time to confirm.");
                 }
                 return true;
             } else if (message.equals("il")) {

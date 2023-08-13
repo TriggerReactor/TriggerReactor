@@ -37,9 +37,11 @@ public class ClickTriggerModule extends AbstractModule {
                 .implement(ClickTrigger.class, ClickTrigger.class)
                 .build(IClickTriggerFactory.class));
 
-        binder().bind(new TypeLiteral<ITriggerLoader<ClickTrigger>>(){})
+        binder().bind(new TypeLiteral<ITriggerLoader<ClickTrigger>>() {
+                })
                 .to(ClickTriggerLoader.class);
-        binder().bind(new TypeLiteral<AbstractTriggerManager<ClickTrigger>>(){})
+        binder().bind(new TypeLiteral<AbstractTriggerManager<ClickTrigger>>() {
+                })
                 .to(ClickTriggerManager.class);
     }
 

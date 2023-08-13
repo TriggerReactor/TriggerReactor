@@ -50,9 +50,9 @@ public class LambdaFunction implements InvocationHandler {
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
         final int argsLength = args == null ? 0 : args.length;
 
-        if(parameters.length != argsLength)
-            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+argsLength+
-                    " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
+        if (parameters.length != argsLength)
+            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided " + argsLength +
+                    " arguments, yet the LAMBDA only has " + parameters.length + " ids. " + body);
 
         // Initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {

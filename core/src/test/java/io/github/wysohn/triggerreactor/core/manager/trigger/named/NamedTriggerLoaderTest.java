@@ -54,12 +54,12 @@ public class NamedTriggerLoaderTest {
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
         Injector injector = Guice.createInjector(
-            new NamedTriggerModule(),
-            new TestFileModule(folder),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            TestTriggerDependencyModule.Builder.begin().build()
+                new NamedTriggerModule(),
+                new TestFileModule(folder),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                TestTriggerDependencyModule.Builder.begin().build()
         );
 
         loader = injector.getInstance(NamedTriggerLoader.class);

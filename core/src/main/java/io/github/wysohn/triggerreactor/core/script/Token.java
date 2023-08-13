@@ -80,7 +80,7 @@ public class Token {
         return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
     }
 
-    public boolean isBoxedPrimitive(){
+    public boolean isBoxedPrimitive() {
         return value != null && BOXED_PRIMITIVES.contains(value.getClass());
     }
 
@@ -202,16 +202,24 @@ public class Token {
      * Base of numeric literal encoding according to its prefix.
      */
     public enum Base {
-        /** Literal starts with <strong><code>0b</code></strong>. */
+        /**
+         * Literal starts with <strong><code>0b</code></strong>.
+         */
         Binary(2),
 
-        /** Literal starts with <strong><code>0o</code></strong>. */
+        /**
+         * Literal starts with <strong><code>0o</code></strong>.
+         */
         Octal(8),
 
-        /** Literal doesn't contains a prefix. */
+        /**
+         * Literal doesn't contains a prefix.
+         */
         Decimal(10),
 
-        /** Literal starts with <strong><code>0x</code></strong> */
+        /**
+         * Literal starts with <strong><code>0x</code></strong>
+         */
         Hexadecimal(16);
 
         public final int radix;
@@ -222,6 +230,7 @@ public class Token {
     }
 
     private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
+
     static {
         BOXED_PRIMITIVES.add(Boolean.class);
         BOXED_PRIMITIVES.add(Character.class);

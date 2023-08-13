@@ -31,8 +31,8 @@ public class AreaTriggerModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new FactoryModuleBuilder()
-                        .implement(AreaTrigger.class, AreaTrigger.class)
-                        .build(IAreaTriggerFactory.class));
+                .implement(AreaTrigger.class, AreaTrigger.class)
+                .build(IAreaTriggerFactory.class));
 
         binder().bind(new TypeLiteral<ITriggerLoader<AreaTrigger>>() {
                 })
@@ -42,11 +42,11 @@ public class AreaTriggerModule extends AbstractModule {
                 .to(AreaTriggerManager.class);
 
         install(new FactoryModuleBuilder()
-                        .implement(EnterTrigger.class, EnterTrigger.class)
-                        .build(IEnterTriggerFactory.class));
+                .implement(EnterTrigger.class, EnterTrigger.class)
+                .build(IEnterTriggerFactory.class));
         install(new FactoryModuleBuilder()
-                        .implement(ExitTrigger.class, ExitTrigger.class)
-                        .build(IExitTriggerFactory.class));
+                .implement(ExitTrigger.class, ExitTrigger.class)
+                .build(IExitTriggerFactory.class));
     }
 
     @Provides

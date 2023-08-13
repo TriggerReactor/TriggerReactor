@@ -46,12 +46,12 @@ import static org.mockito.Mockito.*;
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @BeforeClass
-    public static void begin(){
+    public static void begin() {
         ExecutorTest.coverage.clear();
     }
 
     @AfterClass
-    public static void tearDown(){
+    public static void tearDown() {
         ExecutorTest.coverage.forEach((key, b) -> System.out.println(key));
         ExecutorTest.coverage.clear();
     }
@@ -861,9 +861,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testMoney2() throws Exception {
         class FakeVault {
-            public void give(Player player, int money) {}
+            public void give(Player player, int money) {
+            }
 
-            public void take(Player player, int money) {}
+            public void take(Player player, int money) {
+            }
         }
 
         Player player = mock(Player.class);
@@ -883,7 +885,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testMysql() throws Exception {
         class FakeMysqlHelper {
-            public void set(String key, Object value) {}
+            public void set(String key, Object value) {
+            }
         }
 
         class FakePlugin {
@@ -913,9 +916,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPermission1() throws Exception {
         class FakeVault {
-            public void permit(Player player, String permission) {}
+            public void permit(Player player, String permission) {
+            }
 
-            public void revoke(Player player, String permission) {}
+            public void revoke(Player player, String permission) {
+            }
         }
 
         Player player = mock(Player.class);
@@ -936,9 +941,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPermission2() throws Exception {
         class FakeVault {
-            public void permit(Player player, String permission) {}
+            public void permit(Player player, String permission) {
+            }
 
-            public void revoke(Player player, String permission) {}
+            public void revoke(Player player, String permission) {
+            }
         }
 
         Player player = mock(Player.class);
@@ -991,7 +998,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testServer1() throws Exception {
         class FakeBungeeHelper {
-            public void sendToServer(Player player, String server) {}
+            public void sendToServer(Player player, String server) {
+            }
         }
 
         class FakePlugin {
@@ -1022,7 +1030,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testServer2() throws Exception {
         class FakeBungeeHelper {
-            public void sendToServer(Player player, String server) {}
+            public void sendToServer(Player player, String server) {
+            }
         }
 
         class FakePlugin {
@@ -1600,8 +1609,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
 
         JsTest test = new ExecutorTest(engine, "SOUND")
-            .addVariable("player", player)
-            .withArgs(location, sound, volume, pitch);
+                .addVariable("player", player)
+                .withArgs(location, sound, volume, pitch);
 
         // act
         test.test();
@@ -1651,7 +1660,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testTime1() throws Exception {
         Player player = mock(Player.class);
-        int time = 1000*12;
+        int time = 1000 * 12;
 
         Location location = mock(Location.class);
         World world = mock(World.class);
@@ -1672,7 +1681,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testTime2() throws Exception {
         World world = mock(World.class);
-        int time = 1000*12;
+        int time = 1000 * 12;
 
         JsTest test = new ExecutorTest(engine, "TIME");
 

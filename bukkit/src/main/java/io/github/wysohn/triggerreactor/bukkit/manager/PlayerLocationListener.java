@@ -98,13 +98,13 @@ public class PlayerLocationListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRiding(VehicleMoveEvent e) {
-        if(e.getFrom() == e.getTo())
+        if (e.getFrom() == e.getTo())
             return;
 
-        if(e.getVehicle().getPassengers().size() < 1)
+        if (e.getVehicle().getPassengers().size() < 1)
             return;
 
-        if(e.getVehicle().getPassengers().get(0).getType() != EntityType.PLAYER)
+        if (e.getVehicle().getPassengers().get(0).getType() != EntityType.PLAYER)
             return;
 
         Vehicle vehicle = e.getVehicle();

@@ -40,7 +40,7 @@ public class CommonFunctions extends AbstractCommonFunctions
         implements SelfReference {
 
     @Inject
-    private CommonFunctions(){
+    private CommonFunctions() {
 
     }
 
@@ -260,12 +260,12 @@ public class CommonFunctions extends AbstractCommonFunctions
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
      * @return The SerializableLocation value
      */
-    public SerializableLocation serializeLocation(World world, double x, double y, double z){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z) {
         return new SerializableLocation(new Location(world, x, y, z));
     }
 
@@ -276,14 +276,14 @@ public class CommonFunctions extends AbstractCommonFunctions
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
-     * @param yaw The absolute rotation on the x-plane, in degrees
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
+     * @param yaw   The absolute rotation on the x-plane, in degrees
      * @param pitch The absolute rotation on the y-plane, in degrees
      * @return The SerializableLocation value
      */
-    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch) {
         return new SerializableLocation(new Location(world, x, y, z, toFloat(yaw), toFloat(pitch)));
     }
 
@@ -296,7 +296,7 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param loc The Location value
      * @return The SerializableLocation value
      */
-    public SerializableLocation serializeLocation(Location loc){
+    public SerializableLocation serializeLocation(Location loc) {
         return new SerializableLocation(loc);
     }
 

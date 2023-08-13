@@ -40,8 +40,8 @@ public class BukkitCommand implements ICommand {
     public void setTabCompleterMap(Map<Integer, Set<ITabCompleter>> tabCompleterMap) {
         command.setTabCompleter((sender, command12, alias, args) -> {
             if (tabCompleterMap == null
-                || tabCompleterMap.get(args.length - 1) == null
-                || tabCompleterMap.get(args.length - 1).size() == 0) {
+                    || tabCompleterMap.get(args.length - 1) == null
+                    || tabCompleterMap.get(args.length - 1).size() == 0) {
                 return new ArrayList<>();
             }
             Set<ITabCompleter> finalCompleters = new HashSet<>();
@@ -78,8 +78,8 @@ public class BukkitCommand implements ICommand {
 
                     } else { // provide candidates
                         finalProvideList.addAll(values.stream()
-                            .filter(val -> val.toLowerCase().startsWith(partial.toLowerCase()))
-                            .collect(Collectors.toList()));
+                                .filter(val -> val.toLowerCase().startsWith(partial.toLowerCase()))
+                                .collect(Collectors.toList()));
                     }
                 } else {
                     String partial = args[args.length - 1];
@@ -127,8 +127,8 @@ public class BukkitCommand implements ICommand {
             }
 
             executor.execute(isender, label, args, Optional.ofNullable(original)
-                .map(Overridden::new)
-                .orElse(null));
+                    .map(Overridden::new)
+                    .orElse(null));
             return true;
         });
     }

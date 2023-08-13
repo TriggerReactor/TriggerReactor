@@ -54,24 +54,24 @@ public class ClickTriggerManagerTest {
         loader = mock(ClickTriggerLoader.class);
 
         manager = Guice.createInjector(
-            new TestFileModule(folder),
-            TestTriggerDependencyModule.Builder.begin().build(),
-            new FactoryModuleBuilder().build(IClickTriggerFactory.class),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            new AbstractModule() {
-                @Provides
-                public ITriggerLoader<ClickTrigger> provideLoader() {
-                    return loader;
-                }
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(IClickTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<ClickTrigger> provideLoader() {
+                        return loader;
+                    }
 
-                @Provides
-                @Named("ClickTriggerManagerFolder")
-                public String provideFolder() throws IOException {
-                    return "ClickTrigger";
+                    @Provides
+                    @Named("ClickTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "ClickTrigger";
+                    }
                 }
-            }
         ).getInstance(ClickTriggerManager.class);
     }
 

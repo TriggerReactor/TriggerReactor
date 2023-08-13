@@ -16,8 +16,8 @@ public class ConfigurationModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new FactoryModuleBuilder()
-            .implement(IConfigSource.class, GsonConfigSource.class)
-            .build(IConfigSourceFactory.class));
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class));
     }
 
     @Provides
@@ -26,7 +26,7 @@ public class ConfigurationModule extends AbstractModule {
                                                    @Named("DataFolder") File dataFolder,
                                                    IExceptionHandle exceptionHandle) {
         return factory.create(new SaveWorker(5, (ex) -> exceptionHandle.handleException(null, ex)),
-            dataFolder,
-            "config");
+                dataFolder,
+                "config");
     }
 }

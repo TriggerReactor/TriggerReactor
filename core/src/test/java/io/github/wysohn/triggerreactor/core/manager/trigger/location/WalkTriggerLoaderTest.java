@@ -45,12 +45,12 @@ public class WalkTriggerLoaderTest {
     @Before
     public void setUp() throws Exception {
         loader = Guice.createInjector(
-            new WalkTriggerModule(),
-            new TestFileModule(folder),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            TestTriggerDependencyModule.Builder.begin().build()
+                new WalkTriggerModule(),
+                new TestFileModule(folder),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                TestTriggerDependencyModule.Builder.begin().build()
         ).getInstance(WalkTriggerLoader.class);
     }
 

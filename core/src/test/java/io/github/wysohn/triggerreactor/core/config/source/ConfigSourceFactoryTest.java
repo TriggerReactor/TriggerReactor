@@ -28,9 +28,9 @@ public class ConfigSourceFactoryTest {
         pluginManagement = mock(IPluginManagement.class);
 
         configSourceFactory = Guice.createInjector(
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class)
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class)
         ).getInstance(IConfigSourceFactory.class);
     }
 
@@ -39,10 +39,10 @@ public class ConfigSourceFactoryTest {
         // arrange
         File configFile = folder.newFile("test.json");
         Files.write(configFile.toPath(), ("{" +
-            "\"first\": 123," +
-            "\"second\": \"abc\"," +
-            "\"third\": true" +
-            "}").getBytes());
+                "\"first\": 123," +
+                "\"second\": \"abc\"," +
+                "\"third\": true" +
+                "}").getBytes());
         SaveWorker saveWorker = new SaveWorker(5, mock(Consumer.class));
 
         // act

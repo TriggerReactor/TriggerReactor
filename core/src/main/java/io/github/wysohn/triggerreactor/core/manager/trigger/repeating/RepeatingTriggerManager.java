@@ -171,8 +171,8 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
             trigger.activate(new Object(), vars, true);
 
             Thread thread = task.newThread(trigger,
-                                           "RepeatingTrigger-" + triggerName,
-                                           Thread.MIN_PRIORITY + 1);
+                    "RepeatingTrigger-" + triggerName,
+                    Thread.MIN_PRIORITY + 1);
             thread.start();
 
             runningThreads.put(triggerName, thread);

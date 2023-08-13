@@ -60,12 +60,12 @@ public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
     public TriggerInfo[] listTriggers(SaveWorker saveWorker, File folder, IConfigSourceFactory fn) {
         File[] files = getAllFiles(new ArrayList<>(), folder);
         return Arrays.stream(files)
-            .filter(file -> file.getName().endsWith(".trg"))
-            .map(file -> {
-                String name = TriggerInfo.extractName(file);
-                IConfigSource config = fn.create(saveWorker, folder, name);
-                return new NamedTriggerInfo(folder, file, config);
-            }).toArray(NamedTriggerInfo[]::new);
+                .filter(file -> file.getName().endsWith(".trg"))
+                .map(file -> {
+                    String name = TriggerInfo.extractName(file);
+                    IConfigSource config = fn.create(saveWorker, folder, name);
+                    return new NamedTriggerInfo(folder, file, config);
+                }).toArray(NamedTriggerInfo[]::new);
     }
 
     @Override

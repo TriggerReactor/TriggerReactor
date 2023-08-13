@@ -36,7 +36,7 @@ import java.util.UUID;
  * disable a plugin, executing a command, etc. is more of the 'plugin specific'
  * behavior, so those methods should be here.
  */
-public interface IPluginManagement{
+public interface IPluginManagement {
     /**
      * get Plugin's description.
      *

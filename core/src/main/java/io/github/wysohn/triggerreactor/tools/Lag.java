@@ -27,7 +27,7 @@ public class Lag implements Runnable {
     public long[] TICKS = new long[600];
 
     @Inject
-    private Lag(){
+    private Lag() {
 
     }
 

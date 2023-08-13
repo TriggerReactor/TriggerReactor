@@ -80,7 +80,7 @@ subprojects {
         testImplementation 'org.javassist:javassist:3.20.0-GA'
     }
 
-    java{
+    java {
         sourceCompatibility = JavaVersion.VERSION_16
         targetCompatibility = JavaVersion.VERSION_16
     }
@@ -95,7 +95,7 @@ subprojects {
             exceptionFormat "full"
         }
 
-        if(!project.hasProperty("Legacy")){
+        if (!project.hasProperty("Legacy")) {
             jvmArgs = [
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
@@ -145,7 +145,7 @@ allprojects {
     }
 }
 
-def exportedProjects= [
+def exportedProjects = [
         ":core",
         /*":sponge",*/
         ":bukkit",

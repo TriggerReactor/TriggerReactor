@@ -129,7 +129,7 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
                         }
                     } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
                         if (trigger != null && manager.copyTrigger(playerWrapped,
-                                                                   locationWrapped)) {
+                                locationWrapped)) {
                             player.sendMessage(ChatColor.GREEN + "Copy Complete!");
                             player.sendMessage(ChatColor.GREEN + "Now you can paste it by left click on any block!");
                             e.setCancelled(true);
@@ -152,9 +152,9 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
 
         Block block = e.getBlock();
         SimpleLocation sloc = new SimpleLocation(block.getWorld().getName(),
-                                                 block.getX(),
-                                                 block.getY(),
-                                                 block.getZ());
+                block.getX(),
+                block.getY(),
+                block.getZ());
         for (SimpleLocation surrounding : manager.getSurroundingBlocks(sloc, this::isWallSign)) {
             World world = block.getWorld();
             Block target = world.getBlockAt(surrounding.getX(), surrounding.getY(), surrounding.getZ());
@@ -216,8 +216,8 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
 
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
         SimpleChunkLocation scLoc = new SimpleChunkLocation(chunk.getWorld().getName(),
-                                                            chunk.getX(),
-                                                            chunk.getZ());
+                chunk.getX(),
+                chunk.getZ());
         return manager.getTriggersInChunk(scLoc);
     }
 

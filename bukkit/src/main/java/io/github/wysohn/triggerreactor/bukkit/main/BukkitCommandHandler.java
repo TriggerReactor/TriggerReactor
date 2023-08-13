@@ -56,13 +56,13 @@ public class BukkitCommandHandler implements ICommandHandler {
 
         Command overridden = rawCommandMap.get(name);
         Optional.ofNullable(overridden)
-            .ifPresent(c -> overridens.put(name, c));
+                .ifPresent(c -> overridens.put(name, c));
 
         rawCommandMap.put(name, command);
         // register aliases manually here
         for (String alias : aliases) {
             Optional.ofNullable(rawCommandMap.get(alias))
-                .ifPresent(c -> overridens.put(alias, c));
+                    .ifPresent(c -> overridens.put(alias, c));
             rawCommandMap.put(alias, command);
         }
 
@@ -110,7 +110,7 @@ public class BukkitCommandHandler implements ICommandHandler {
 
             plugin.getLogger()
                     .warning("Couldn't construct 'PluginCommand'. This may indicate that you are using very very old" +
-                                     " version of Bukkit. Please report this to TR team, so we can work on it.");
+                            " version of Bukkit. Please report this to TR team, so we can work on it.");
             plugin.getLogger().warning("Use /trg debug to see more details.");
             return null;
         }

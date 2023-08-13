@@ -155,7 +155,7 @@ public class ReflectionUtilTest {
     }
 
     @Test
-    public void invocationHandlerTest() throws Throwable{
+    public void invocationHandlerTest() throws Throwable {
         SomeInterface obj = mock(SomeInterface.class);
         LambdaFunction lambdaFunction = mock(LambdaFunction.class);
 
@@ -200,7 +200,7 @@ public class ReflectionUtilTest {
     }
 
     @Test
-    public void invocationHandlerTest2() throws Throwable{
+    public void invocationHandlerTest2() throws Throwable {
         SomeInterface obj = mock(SomeInterface.class);
         LambdaFunction lambdaFunction = mock(LambdaFunction.class);
 
@@ -221,7 +221,7 @@ public class ReflectionUtilTest {
     }
 
     @Test
-    public void invocationHandlerTest3() throws Throwable{
+    public void invocationHandlerTest3() throws Throwable {
         SomeInterface obj = mock(SomeInterface.class);
         LambdaFunction lambdaFunction = mock(LambdaFunction.class);
 
@@ -373,7 +373,7 @@ public class ReflectionUtilTest {
         }
     }
 
-    private interface SomeInterface{
+    private interface SomeInterface {
         void noArg(Runnable run);
 
         void oneArg(Consumer<Object> run);
@@ -381,42 +381,42 @@ public class ReflectionUtilTest {
         void twoArg(BiConsumer<Object, Object> run);
     }
 
-    private static class SomeStaticClass{
+    private static class SomeStaticClass {
         static SomeInterface obj;
 
-        public static void noArg(Runnable run){
+        public static void noArg(Runnable run) {
             obj.noArg(run);
         }
 
-        public static void noArg(int b, Runnable run){
+        public static void noArg(int b, Runnable run) {
             obj.noArg(run);
         }
 
-        public static void noArg(int b, Runnable run, String a){
+        public static void noArg(int b, Runnable run, String a) {
             obj.noArg(run);
         }
 
-        public static void noArg(String c, Runnable run, int a){
+        public static void noArg(String c, Runnable run, int a) {
             obj.noArg(run);
         }
 
-        public static void noArg(String c, Runnable run, String a){
+        public static void noArg(String c, Runnable run, String a) {
             obj.noArg(run);
         }
 
-        public static void noArg(Runnable run, String a){
+        public static void noArg(Runnable run, String a) {
             obj.noArg(run);
         }
 
-        public static void noArg(Runnable run, int a){
+        public static void noArg(Runnable run, int a) {
             obj.noArg(run);
         }
 
-        public static void oneArg(Consumer<Object> run){
+        public static void oneArg(Consumer<Object> run) {
             obj.oneArg(run);
         }
 
-        public static void twoArg(BiConsumer<Object, Object> run){
+        public static void twoArg(BiConsumer<Object, Object> run) {
             obj.twoArg(run);
         }
     }

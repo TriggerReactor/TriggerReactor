@@ -128,7 +128,7 @@ public class BukkitEventRegistry implements IEventRegistry {
     }
 
     @Override
-    public void unregisterAll(){
+    public void unregisterAll() {
         for (Map.Entry<IEventHook, Listener> entry : registeredListerners.entrySet()) {
             HandlerList.unregisterAll(entry.getValue());
         }

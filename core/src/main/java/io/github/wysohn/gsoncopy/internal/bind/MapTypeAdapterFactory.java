@@ -141,7 +141,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         // we don't define a type parameter for the key or value types
-                TypeAdapter<T> result = new Adapter(gson, keyAndValueTypes[0], keyAdapter, keyAndValueTypes[1], valueAdapter,
+        TypeAdapter<T> result = new Adapter(gson, keyAndValueTypes[0], keyAdapter, keyAndValueTypes[1], valueAdapter,
                 constructor);
         return result;
     }

@@ -41,15 +41,15 @@ public class GsonConfigSourceTest {
 
         pluginManagement = mock(IPluginManagement.class);
         gsonConfigSource = new GsonConfigSource(new SaveWorker(5, Exception::printStackTrace),
-            triggerFolder,
-            "test");
+                triggerFolder,
+                "test");
         Guice.createInjector(
-            new AbstractModule() {
-                @Override
-                protected void configure() {
-                    bind(IPluginManagement.class).toInstance(pluginManagement);
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(IPluginManagement.class).toInstance(pluginManagement);
+                    }
                 }
-            }
         ).injectMembers(gsonConfigSource);
     }
 
@@ -189,9 +189,9 @@ public class GsonConfigSourceTest {
         }
 
         assertJsonEquals("{" + IntStream.range(0, max)
-                .mapToObj(i -> "\"key" + i + "\":\"val" + i + "\"")
-                .collect(Collectors.joining(",")) + "}",
-            readContent("triggers", "test.json"));
+                        .mapToObj(i -> "\"key" + i + "\":\"val" + i + "\"")
+                        .collect(Collectors.joining(",")) + "}",
+                readContent("triggers", "test.json"));
     }
 
     @Test

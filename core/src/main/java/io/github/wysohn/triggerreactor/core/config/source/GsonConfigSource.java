@@ -29,27 +29,27 @@ import static io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFa
 
 public class GsonConfigSource implements IConfigSource {
     private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
-        .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
-        .setPrettyPrinting().serializeNulls()
-        .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
-        .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class, Boolean.class, NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
-        .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class, Integer.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-        .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class, Long.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-        .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class, Float.class, NullTypeAdapters.NULL_ADOPTER_FLOAT))
-        .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class, Double.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-        .registerTypeAdapter(UUID.class, new UUIDSerializer())
-        .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
-        .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
+            .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
+            .setPrettyPrinting().serializeNulls()
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class, Boolean.class, NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class, Integer.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class, Long.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class, Float.class, NullTypeAdapters.NULL_ADOPTER_FLOAT))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class, Double.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapter(UUID.class, new UUIDSerializer())
+            .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
+            .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
 
     public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
         GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);
     }
 
     private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder()
-        .addChain(new DefaultValidator())
-        .addChain(new UUIDValidator())
-        .addChain(new SimpleLocationValidator())
-        .addChain(new SimpleChunkLocationValidator());
+            .addChain(new DefaultValidator())
+            .addChain(new UUIDValidator())
+            .addChain(new SimpleLocationValidator())
+            .addChain(new SimpleChunkLocationValidator());
 
     public static void registerValidator(ITypeValidator... validators) {
         ValidationUtil.notNull(validators);

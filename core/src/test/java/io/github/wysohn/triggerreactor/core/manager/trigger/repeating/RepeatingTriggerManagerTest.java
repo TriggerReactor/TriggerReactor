@@ -71,27 +71,27 @@ public class RepeatingTriggerManagerTest {
         interrupter = mock(ProcessInterrupter.class);
 
         manager = Guice.createInjector(
-            new TestFileModule(folder),
-            TestTriggerDependencyModule.Builder.begin()
-                .taskSupervisor(task)
-                .pluginManagement(pluginManagement)
-                .build(),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            new FactoryModuleBuilder().build(IRepeatingTriggerFactory.class),
-            new AbstractModule() {
-                @Provides
-                public ITriggerLoader<RepeatingTrigger> provideLoader() {
-                    return loader;
-                }
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin()
+                        .taskSupervisor(task)
+                        .pluginManagement(pluginManagement)
+                        .build(),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new FactoryModuleBuilder().build(IRepeatingTriggerFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<RepeatingTrigger> provideLoader() {
+                        return loader;
+                    }
 
-                @Provides
-                @Named("RepeatingTriggerManagerFolder")
-                public String provideFolder() throws IOException {
-                    return "RepeatingTrigger";
+                    @Provides
+                    @Named("RepeatingTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "RepeatingTrigger";
+                    }
                 }
-            }
         ).getInstance(RepeatingTriggerManager.class);
 
         when(task.newThread(any(), anyString(), anyInt())).thenReturn(thread);

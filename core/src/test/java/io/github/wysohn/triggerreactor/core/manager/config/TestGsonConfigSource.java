@@ -44,40 +44,40 @@ public class TestGsonConfigSource {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     private final String jsonString = "{\n" +
-        "   \"string\":\"teststring\",\n" +
-        "   \"number\":8,\n" +
-        "   \"number2\":9.9,\n" +
-        "   \"boolean\":true,\n" +
-        "   \"list\":[\n" +
-        "      \"a\",\n" +
-        "      \"b\",\n" +
-        "      \"c\"\n" +
-        "   ],\n" +
-        "   \"object\":{\n" +
-        "      \"value\":\"abc\"\n" +
-        "   },\n" +
-        "   \"uuid\":{\n" +
-        "      \"" + Serializer.SER_KEY + "\":\"java.util.UUID\",\n" +
-        "      \"" + Serializer.SER_VALUE + "\":\"968cee8d-ec72-4a2f-a3bc-09a521a06f89\"\n" +
-        "   },\n" +
-        "   \"hashset\":{\n" +
-        "      \"" + Serializer.SER_KEY + "\":\"java.util.HashSet\",\n" +
-        "      \"" + Serializer.SER_VALUE + "\":[\n" +
-        "         \"e\",\n" +
-        "         \"f\",\n" +
-        "         \"g\"\n" +
-        "      ]\n" +
-        "   },\n" +
-        "   \"myobj1\":{\n" +
-        "      \"" + Serializer.SER_KEY + "\":\"" + CustomObject.class.getName() + "\",\n" +
-        "      \"" + Serializer.SER_VALUE + "\":{\n" +
-        "         \"s\":\"some string\",\n" +
-        "         \"i\":22,\n" +
-        "         \"d\":88.8,\n" +
-        "         \"b\":false\n" +
-        "      }\n" +
-        "   }\n" +
-        "}";
+            "   \"string\":\"teststring\",\n" +
+            "   \"number\":8,\n" +
+            "   \"number2\":9.9,\n" +
+            "   \"boolean\":true,\n" +
+            "   \"list\":[\n" +
+            "      \"a\",\n" +
+            "      \"b\",\n" +
+            "      \"c\"\n" +
+            "   ],\n" +
+            "   \"object\":{\n" +
+            "      \"value\":\"abc\"\n" +
+            "   },\n" +
+            "   \"uuid\":{\n" +
+            "      \"" + Serializer.SER_KEY + "\":\"java.util.UUID\",\n" +
+            "      \"" + Serializer.SER_VALUE + "\":\"968cee8d-ec72-4a2f-a3bc-09a521a06f89\"\n" +
+            "   },\n" +
+            "   \"hashset\":{\n" +
+            "      \"" + Serializer.SER_KEY + "\":\"java.util.HashSet\",\n" +
+            "      \"" + Serializer.SER_VALUE + "\":[\n" +
+            "         \"e\",\n" +
+            "         \"f\",\n" +
+            "         \"g\"\n" +
+            "      ]\n" +
+            "   },\n" +
+            "   \"myobj1\":{\n" +
+            "      \"" + Serializer.SER_KEY + "\":\"" + CustomObject.class.getName() + "\",\n" +
+            "      \"" + Serializer.SER_VALUE + "\":{\n" +
+            "         \"s\":\"some string\",\n" +
+            "         \"i\":22,\n" +
+            "         \"d\":88.8,\n" +
+            "         \"b\":false\n" +
+            "      }\n" +
+            "   }\n" +
+            "}";
 
     private File mockFolder;
     private StringWriter stringWriter;
@@ -92,11 +92,11 @@ public class TestGsonConfigSource {
         Files.write(new File(mockFolder, "test.json").toPath(), jsonString.getBytes());
 
         source = new GsonConfigSource(
-            saveWorker,
-            mockFolder,
-            "test",
-            (f) -> new StringReader(jsonString),
-            (f) -> stringWriter);
+                saveWorker,
+                mockFolder,
+                "test",
+                (f) -> new StringReader(jsonString),
+                (f) -> stringWriter);
     }
 
     @Test
@@ -227,9 +227,9 @@ public class TestGsonConfigSource {
             if (o == null || getClass() != o.getClass()) return false;
             CustomObject that = (CustomObject) o;
             return i == that.i &&
-                Double.compare(that.d, d) == 0 &&
-                b == that.b &&
-                Objects.equals(s, that.s);
+                    Double.compare(that.d, d) == 0 &&
+                    b == that.b &&
+                    Objects.equals(s, that.s);
         }
 
         @Override

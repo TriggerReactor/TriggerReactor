@@ -52,7 +52,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         this.folder = folder;
 
         saveWorker = new SaveWorker(5, (ex) ->
-            exceptionHandle.handleException((Object) null, ex));
+                exceptionHandle.handleException((Object) null, ex));
     }
 
     public File getFolder() {
@@ -66,8 +66,8 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     @Override
     public void saveAll() {
         triggers.values().stream()
-            .map(Trigger::getInfo)
-            .forEach(TriggerInfo::saveAll);
+                .map(Trigger::getInfo)
+                .forEach(TriggerInfo::saveAll);
     }
 
     @Override
@@ -108,13 +108,13 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             info.reload();
             T t = loader.load(info);
             Optional.of(t)
-                .ifPresent(trigger -> {
-                    if (has(info.getTriggerName())) {
-                        logger.warning(info + " is already registered! Duplicated Trigger?");
-                    } else {
-                        put(info.getTriggerName(), trigger);
-                    }
-                });
+                    .ifPresent(trigger -> {
+                        if (has(info.getTriggerName())) {
+                            logger.warning(info + " is already registered! Duplicated Trigger?");
+                        } else {
+                            put(info.getTriggerName(), trigger);
+                        }
+                    });
 
             checkDuplicatedKeys(info);
         } catch (Exception e) {
@@ -161,7 +161,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         T deleted = triggers.remove(name);
 
         Optional.ofNullable(deleted)
-            .ifPresent(loader::delete);
+                .ifPresent(loader::delete);
 
         return deleted;
     }
@@ -217,7 +217,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         }
 
         logger.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
-            trigger.getInfo() + " =====");
+                trigger.getInfo() + " =====");
         for (Warning w : warnings) {
             for (String line : w.getMessageLines()) {
                 logger.log(L, line);

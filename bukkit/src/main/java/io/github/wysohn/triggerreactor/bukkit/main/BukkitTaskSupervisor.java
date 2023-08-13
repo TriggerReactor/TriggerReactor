@@ -67,14 +67,16 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
     /**
      * Create a future that will be executed upon creation.
+     *
      * @param call
-     * @return
      * @param <T>
+     * @return
      */
     private <T> Future<T> immediateFuture(Callable<T> call) {
         return new Future<T>() {
             private T result = null;
             private Exception exception = null;
+
             {
                 try {
                     result = call.call();
@@ -82,6 +84,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
                     exception = e;
                 }
             }
+
             @Override
             public boolean cancel(boolean arg0) {
                 return false;
@@ -99,7 +102,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
             @Override
             public T get() throws ExecutionException {
-                if(exception != null)
+                if (exception != null)
                     throw new ExecutionException(exception);
 
                 return result;
@@ -108,7 +111,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
             @Override
             public T get(long arg0, TimeUnit arg1)
                     throws ExecutionException {
-                if(exception != null)
+                if (exception != null)
                     throw new ExecutionException(exception);
 
                 return result;

@@ -31,25 +31,25 @@ public class SpongeWrapper {
 
     public IPlayerBlockLocationEvent wrap(PlayerBlockLocationEvent event) {
         return new SpongePlayerBlockLocationEvent(event);
-	}
+    }
 
-	public ICommandSender wrap(CommandSource commandSender) {
-		return new SpongeCommandSender(commandSender);
-	}
+    public ICommandSender wrap(CommandSource commandSender) {
+        return new SpongeCommandSender(commandSender);
+    }
 
-	public IInventory wrap(Inventory inventory) {
-		return new SpongeInventory(inventory, null);
-	}
+    public IInventory wrap(Inventory inventory) {
+        return new SpongeInventory(inventory, null);
+    }
 
-	public IInventory wrap(Inventory inventory, Carrier carrier) {
-		return new SpongeInventory(inventory, carrier);
-	}
+    public IInventory wrap(Inventory inventory, Carrier carrier) {
+        return new SpongeInventory(inventory, carrier);
+    }
 
-	public IItemStack wrap(ItemStack itemStack) {
-		return new SpongeItemStack(itemStack);
-	}
+    public IItemStack wrap(ItemStack itemStack) {
+        return new SpongeItemStack(itemStack);
+    }
 
-	public ILocation wrap(Location<World> location) {
-		return new SpongeLocation(location);
-	}
+    public ILocation wrap(Location<World> location) {
+        return new SpongeLocation(location);
+    }
 }

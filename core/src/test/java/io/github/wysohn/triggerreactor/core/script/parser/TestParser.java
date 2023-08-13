@@ -308,10 +308,10 @@ public class TestParser {
     @Test
     public void testRangeFor_Inclusive() throws Exception {
         String text = String.join(
-            "\n",
-            "FOR i = 0..=3",
-            "  #TEST i",
-            "ENDFOR"
+                "\n",
+                "FOR i = 0..=3",
+                "  #TEST i",
+                "ENDFOR"
         );
 
         Lexer lexer = new Lexer(text, charset);
@@ -342,10 +342,10 @@ public class TestParser {
     @Test
     public void testRangeFor_Exclusive() throws Exception {
         String text = String.join(
-            "\n",
-            "FOR i = 0..3",
-            "  #TEST i",
-            "ENDFOR"
+                "\n",
+                "FOR i = 0..3",
+                "  #TEST i",
+                "ENDFOR"
         );
 
         Lexer lexer = new Lexer(text, charset);
@@ -560,8 +560,8 @@ public class TestParser {
     public void testLiteralStringTrueOrFalse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
-            + "temp1 = \"true\";"
-            + "temp2 = true;";
+                + "temp1 = \"true\";"
+                + "temp2 = true;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -577,11 +577,11 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.STRING, "true")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
 
-      assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
-      assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
-      assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
-      assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
-      assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
 
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
@@ -590,13 +590,13 @@ public class TestParser {
     @Test
     public void testSwitch() throws Exception {
         final String text = String.join(
-            "\n",
-            "rand = $random:1:6",
-            "",
-            "SWITCH rand",
-            "  CASE 1, 2, 3 => #MESSAGE \"You are winner! The chosen number is \" + rand",
-            "  DEFAULT => #MESSAGE \"You are lose! The chosen number is \" + rand",
-            "ENDSWITCH"
+                "\n",
+                "rand = $random:1:6",
+                "",
+                "SWITCH rand",
+                "  CASE 1, 2, 3 => #MESSAGE \"You are winner! The chosen number is \" + rand",
+                "  DEFAULT => #MESSAGE \"You are lose! The chosen number is \" + rand",
+                "ENDSWITCH"
         );
 
         final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
@@ -650,11 +650,11 @@ public class TestParser {
     @Test(expected = ParserException.class)
     public void testSwitch_MissingVariableExpression() throws Exception {
         final String text = String.join(
-            "\n",
-            "SWITCH",
-            "  CASE 1, 2, 3 => #MESSAGE \"You are winner! The chosen number is \" + rand",
-            "  DEFAULT => #MESSAGE \"You are lose! The chosen number is \" + rand",
-            "ENDSWITCH"
+                "\n",
+                "SWITCH",
+                "  CASE 1, 2, 3 => #MESSAGE \"You are winner! The chosen number is \" + rand",
+                "  DEFAULT => #MESSAGE \"You are lose! The chosen number is \" + rand",
+                "ENDSWITCH"
         );
 
         final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
@@ -666,9 +666,9 @@ public class TestParser {
     @Test(expected = ParserException.class)
     public void testSwitch_EmptyBody() throws Exception {
         final String text = String.join(
-            "\n",
-            "SWITCH rand",
-            "ENDSWITCH"
+                "\n",
+                "SWITCH rand",
+                "ENDSWITCH"
         );
 
         final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
@@ -680,9 +680,9 @@ public class TestParser {
     @Test(expected = ParserException.class)
     public void testSwitch_MissingEndSwitchStatement() throws Exception {
         final String text = String.join(
-            "\n",
-            "SWITCH rand",
-            "  DEFAULT => #STOP"
+                "\n",
+                "SWITCH rand",
+                "  DEFAULT => #STOP"
         );
 
         final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);

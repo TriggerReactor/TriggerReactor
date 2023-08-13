@@ -8,6 +8,7 @@ import java.util.UUID;
 public interface IEntity extends IMinecraftObject {
 
     UUID getUniqueId();
+
     boolean isDead();
 
     boolean isValid();

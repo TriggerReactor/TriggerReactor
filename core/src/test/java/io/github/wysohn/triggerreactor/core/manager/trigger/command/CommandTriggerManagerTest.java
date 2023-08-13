@@ -61,34 +61,34 @@ public class CommandTriggerManagerTest {
         eventManager = mock(IEventManagement.class);
         loader = mock(CommandTriggerLoader.class);
         manager = Guice.createInjector(
-            new TestFileModule(folder),
-            TestTriggerDependencyModule.Builder.begin().build(),
-            new FactoryModuleBuilder().build(ICommandTriggerFactory.class),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            new AbstractModule() {
-                @Provides
-                @Named("CommandTriggerManagerFolder")
-                public String provideFolder() {
-                    return "CommandTrigger";
-                }
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(ICommandTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    @Named("CommandTriggerManagerFolder")
+                    public String provideFolder() {
+                        return "CommandTrigger";
+                    }
 
-                @Provides
-                public ITriggerLoader<CommandTrigger> provideLoader() {
-                    return loader;
-                }
+                    @Provides
+                    public ITriggerLoader<CommandTrigger> provideLoader() {
+                        return loader;
+                    }
 
-                @Provides
-                public ICommandHandler provideCommandHandler() {
-                    return commandHandler;
-                }
+                    @Provides
+                    public ICommandHandler provideCommandHandler() {
+                        return commandHandler;
+                    }
 
-                @Provides
-                public IEventManagement provideEventManager() {
-                    return eventManager;
+                    @Provides
+                    public IEventManagement provideEventManager() {
+                        return eventManager;
+                    }
                 }
-            }
         ).getInstance(CommandTriggerManager.class);
     }
 

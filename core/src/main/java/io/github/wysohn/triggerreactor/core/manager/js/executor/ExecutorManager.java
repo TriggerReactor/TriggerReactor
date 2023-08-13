@@ -71,7 +71,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
 
         evaluables.clear();
         for (File file : Optional.ofNullable(fileLoader.listFiles(new File(folder, JAR_FOLDER_LOCATION), filter))
-            .orElse(new File[0])) {
+                .orElse(new File[0])) {
 
             try {
                 reloadExecutors(file, filter);

@@ -26,6 +26,7 @@ public interface ICommandMapHandler {
      * Get the actual command map from the server.
      * Do not delete commands from this map unless the commands are what we registered.
      * If we do, we might be deleting commands that were registered by other plugins.
+     *
      * @return the actual command map from the server.
      */
     Map<String, Command> getCommandMap();

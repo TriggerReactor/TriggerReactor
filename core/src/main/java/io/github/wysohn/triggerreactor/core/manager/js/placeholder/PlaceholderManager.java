@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 
 @Singleton
 public class PlaceholderManager
-    extends AbstractJavascriptBasedManager<Placeholder> {
+        extends AbstractJavascriptBasedManager<Placeholder> {
 
     @Inject
     private Logger logger;
@@ -76,7 +76,7 @@ public class PlaceholderManager
 
         evaluables.clear();
         for (File file : Optional.ofNullable(fileLoader.listFiles(new File(folder, JAR_FOLDER_LOCATION), filter))
-            .orElse(new File[0])) {
+                .orElse(new File[0])) {
 
             try {
                 reloadPlaceholders(file, filter);
@@ -97,7 +97,7 @@ public class PlaceholderManager
     }
 
     private void reloadPlaceholders(Stack<String> name, File file, FileFilter filter) throws ScriptException,
-        IOException {
+            IOException {
         if (file.isDirectory()) {
             name.push(file.getName());
             for (File f : Objects.requireNonNull(file.listFiles(filter))) {

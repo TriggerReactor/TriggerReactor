@@ -7,5 +7,6 @@ public interface IWorld {
     Iterable<IEntity> getEntities();
 
     IBlock getBlock(SimpleLocation clicked);
+
     IBlock getBlock(ILocation location);
 }

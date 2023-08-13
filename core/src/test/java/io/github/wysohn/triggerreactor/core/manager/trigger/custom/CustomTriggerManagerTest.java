@@ -58,29 +58,29 @@ public class CustomTriggerManagerTest {
         loader = mock(CustomTriggerLoader.class);
         registry = mock(IEventRegistry.class);
         manager = Guice.createInjector(
-            new TestFileModule(folder),
-            new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
-            TestTriggerDependencyModule.Builder.begin().build(),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            new AbstractModule() {
-                @Provides
-                @Named("CustomTriggerManagerFolder")
-                public String provideFolder() {
-                    return "CustomTrigger";
-                }
+                new TestFileModule(folder),
+                new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    @Named("CustomTriggerManagerFolder")
+                    public String provideFolder() {
+                        return "CustomTrigger";
+                    }
 
-                @Provides
-                public ITriggerLoader<CustomTrigger> provideLoader() {
-                    return loader;
-                }
+                    @Provides
+                    public ITriggerLoader<CustomTrigger> provideLoader() {
+                        return loader;
+                    }
 
-                @Provides
-                public IEventRegistry provideRegistry() {
-                    return registry;
+                    @Provides
+                    public IEventRegistry provideRegistry() {
+                        return registry;
+                    }
                 }
-            }
         ).getInstance(CustomTriggerManager.class);
     }
 
@@ -91,7 +91,7 @@ public class CustomTriggerManagerTest {
 
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockInfo.get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, String.class))
-            .thenReturn(Optional.of(DummyEvent.class.getName()));
+                .thenReturn(Optional.of(DummyEvent.class.getName()));
         when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);

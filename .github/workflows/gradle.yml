@@ -2,7 +2,7 @@ name: Java CI
 
 on:
   push:
-    tags: 
+    tags:
       - '*-Release'
 
 jobs:
@@ -97,7 +97,7 @@ jobs:
           key: ${{ runner.os }}-build-release
 
   to_release:
-    needs: [build]
+    needs: [ build ]
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
 
@@ -125,7 +125,7 @@ jobs:
           file_glob: true
 
   javadocs:
-    needs: [build]
+    needs: [ build ]
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
 

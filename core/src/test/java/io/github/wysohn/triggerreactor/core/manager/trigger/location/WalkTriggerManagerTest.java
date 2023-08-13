@@ -54,24 +54,24 @@ public class WalkTriggerManagerTest {
         loader = mock(WalkTriggerLoader.class);
 
         manager = Guice.createInjector(
-            new TestFileModule(folder),
-            TestTriggerDependencyModule.Builder.begin().build(),
-            new FactoryModuleBuilder().build(IWalkTriggerFactory.class),
-            new FactoryModuleBuilder()
-                .implement(IConfigSource.class, GsonConfigSource.class)
-                .build(IConfigSourceFactory.class),
-            new AbstractModule() {
-                @Provides
-                public ITriggerLoader<WalkTrigger> provideLoader() {
-                    return loader;
-                }
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(IWalkTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<WalkTrigger> provideLoader() {
+                        return loader;
+                    }
 
-                @Provides
-                @Named("WalkTriggerManagerFolder")
-                public String provideFolder() throws IOException {
-                    return "WalkTrigger";
+                    @Provides
+                    @Named("WalkTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "WalkTrigger";
+                    }
                 }
-            }
         ).getInstance(WalkTriggerManager.class);
     }
 
