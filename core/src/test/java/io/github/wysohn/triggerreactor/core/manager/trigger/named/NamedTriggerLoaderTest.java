@@ -20,7 +20,8 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
@@ -45,7 +46,7 @@ public class NamedTriggerLoaderTest {
 
 
     NamedTriggerLoader loader;
-    ConfigSourceFactory configSourceFactory;
+    IConfigSourceFactory configSourceFactory;
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
@@ -56,16 +57,18 @@ public class NamedTriggerLoaderTest {
         );
 
         loader = injector.getInstance(NamedTriggerLoader.class);
-        configSourceFactory = injector.getInstance(ConfigSourceFactory.class);
+        configSourceFactory = injector.getInstance(IConfigSourceFactory.class);
     }
 
     @Test
     public void listTriggers() throws IOException {
         TriggerInfo info = mock(TriggerInfo.class);
+        SaveWorker saveWorker = mock(SaveWorker.class);
+
         when(info.getTriggerName()).thenReturn("test");
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
 
-        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), configSourceFactory);
+        TriggerInfo[] loaded = loader.listTriggers(saveWorker, folder.getRoot(), configSourceFactory);
 
         assertEquals(1, loaded.length);
         assertEquals("test", loaded[0].getTriggerName());
@@ -77,6 +80,8 @@ public class NamedTriggerLoaderTest {
         File subsubFolder = folder.newFolder("sub", "subsub");
         File file2 = new File(subFolder, "test2.trg");
         File file3 = new File(subsubFolder, "test3.trg");
+        SaveWorker saveWorker = mock(SaveWorker.class);
+
         file2.createNewFile();
         file3.createNewFile();
 
@@ -87,7 +92,7 @@ public class NamedTriggerLoaderTest {
         when(info3.getTriggerName()).thenReturn("test3");
         when(info3.getSourceCodeFile()).thenReturn(file3);
 
-        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), configSourceFactory);
+        TriggerInfo[] loaded = loader.listTriggers(saveWorker, folder.getRoot(), configSourceFactory);
 
         assertEquals(2, loaded.length);
         assertTrue(isIn(loaded, "sub:test2"));

@@ -98,7 +98,7 @@ public class RepeatingTriggerManagerTest {
         RepeatingTrigger mockTrigger = mock(RepeatingTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockTrigger.isAutoStart()).thenReturn(true);

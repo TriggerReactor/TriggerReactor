@@ -100,7 +100,7 @@ public class InventoryTriggerManagerTest {
         when(mockInfo.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)).thenReturn(Optional.of(9));
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 

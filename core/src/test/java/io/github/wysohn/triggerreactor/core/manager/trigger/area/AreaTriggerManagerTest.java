@@ -84,8 +84,8 @@ public class AreaTriggerManagerTest {
 
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockTrigger.getArea()).thenReturn(new Area(new SimpleLocation("world", 0, 0, 0),
-                                                        new SimpleLocation("world", 0, 0, 0)));
-        when(loader.listTriggers(any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
+            new SimpleLocation("world", 0, 0, 0)));
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         manager.reload();
@@ -100,8 +100,8 @@ public class AreaTriggerManagerTest {
 
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockTrigger.getArea()).thenReturn(new Area(new SimpleLocation("world", 0, 0, 0),
-                                                        new SimpleLocation("world", 0, 0, 0)));
-        when(loader.listTriggers(any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
+            new SimpleLocation("world", 0, 0, 0)));
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         manager.reload();

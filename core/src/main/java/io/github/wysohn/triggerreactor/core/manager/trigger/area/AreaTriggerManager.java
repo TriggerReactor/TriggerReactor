@@ -312,7 +312,7 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
             return false;
 
         File areaFolder = concatPath(folder, name);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = getConfigSource(folder, name);
         AreaTrigger trigger = factory.create(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);
 

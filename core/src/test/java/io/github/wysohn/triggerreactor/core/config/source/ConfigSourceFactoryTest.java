@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,20 +20,17 @@ public class ConfigSourceFactoryTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     IPluginManagement pluginManagement;
-    ConfigSourceFactory configSourceFactory;
+    IConfigSourceFactory configSourceFactory;
 
     @Before
     public void init() {
         pluginManagement = mock(IPluginManagement.class);
 
         configSourceFactory = Guice.createInjector(
-                new AbstractModule() {
-                    @Override
-                    protected void configure() {
-                        bind(IPluginManagement.class).toInstance(pluginManagement);
-                    }
-                }
-        ).getInstance(ConfigSourceFactory.class);
+            new FactoryModuleBuilder()
+                .implement(IConfigSource.class, GsonConfigSource.class)
+                .build(IConfigSourceFactory.class)
+        ).getInstance(IConfigSourceFactory.class);
     }
 
     @Test
@@ -41,13 +38,13 @@ public class ConfigSourceFactoryTest {
         // arrange
         File configFile = folder.newFile("test.json");
         Files.write(configFile.toPath(), ("{" +
-                "\"first\": 123," +
-                "\"second\": \"abc\"," +
-                "\"third\": true" +
-                "}").getBytes());
+            "\"first\": 123," +
+            "\"second\": \"abc\"," +
+            "\"third\": true" +
+            "}").getBytes());
 
         // act
-        IConfigSource configSource = configSourceFactory.create(folder.getRoot(), "test");
+        IConfigSource configSource = configSourceFactory.create(mock(SaveWorker.class), folder.getRoot(), "test");
 
         configSource.reload();
 

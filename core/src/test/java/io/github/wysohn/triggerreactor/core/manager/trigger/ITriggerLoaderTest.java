@@ -1,8 +1,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +24,8 @@ public class ITriggerLoaderTest {
     @Test
     public void listTriggers() throws Exception {
         // arrange
+        SaveWorker saveWorker = mock(SaveWorker.class);
+
         File file1 = folder.newFile("test1.trg");
         File folder1 = folder.newFolder("folder1");
         File file2 = new File(folder1, "test2.trg");
@@ -37,13 +40,13 @@ public class ITriggerLoaderTest {
         file4.createNewFile();
         file5.createNewFile();
 
-        ConfigSourceFactory factory = mock(ConfigSourceFactory.class);
+        IConfigSourceFactory factory = mock(IConfigSourceFactory.class);
 
         // act
-        TriggerInfo[] result = loader.listTriggers(folder.getRoot(), factory);
+        TriggerInfo[] result = loader.listTriggers(saveWorker, folder.getRoot(), factory);
 
         // assert
-        verify(factory, times(5)).create(any(File.class), any());
+        verify(factory, times(5)).create(any(), any(File.class), any());
         assertEquals(5, result.length);
     }
 

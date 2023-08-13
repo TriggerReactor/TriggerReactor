@@ -92,7 +92,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
@@ -107,7 +107,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
@@ -125,7 +125,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(loader.toTriggerInfo(any(), any())).thenReturn(mockInfo);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
@@ -139,7 +139,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
