@@ -54,18 +54,20 @@ public class BukkitCommandHandler implements ICommandHandler {
 
         PluginCommand command = createCommand(name);
 
-        Optional.ofNullable(rawCommandMap.get(name))
-                .ifPresent(c -> overridens.put(name, c));
+        Command overridden = rawCommandMap.get(name);
+        Optional.ofNullable(overridden)
+            .ifPresent(c -> overridens.put(name, c));
+
         rawCommandMap.put(name, command);
         // register aliases manually here
         for (String alias : aliases) {
             Optional.ofNullable(rawCommandMap.get(alias))
-                    .ifPresent(c -> overridens.put(alias, c));
+                .ifPresent(c -> overridens.put(alias, c));
             rawCommandMap.put(alias, command);
         }
 
         commandMapHandler.synchronizeCommandMap();
-        return new BukkitCommand(command);
+        return new BukkitCommand(command, overridden);
     }
 
     @Override
