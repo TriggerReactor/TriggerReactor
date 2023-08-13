@@ -16,70 +16,70 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Player = Java.type('org.bukkit.entity.Player');
-var PotionEffect = Java.type('org.bukkit.potion.PotionEffect');
-var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
+var Player = Java.type("org.bukkit.entity.Player");
+var PotionEffect = Java.type("org.bukkit.potion.PotionEffect");
+var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
 
 var validation = {
-  overloads: [
-    [
-      { type: 'string', name: 'potionName' },
-      { type: 'int', minimum: 0, name: 'second' }
+    overloads: [
+        [
+            { type: "string", name: "potionName" },
+            { type: "int", minimum: 0, name: "second" },
+        ],
+        [
+            { type: "string", name: "potionName" },
+            { type: "int", minimum: 0, name: "second" },
+            { type: "int", minimum: 0, name: "amplifier" },
+        ],
+        [
+            { type: Player.class, name: "player" },
+            { type: "string", name: "potionName" },
+            { type: "int", minimum: 0, name: "second" },
+        ],
+        [
+            { type: Player.class, name: "player" },
+            { type: "string", name: "potionName" },
+            { type: "int", minimum: 0, name: "second" },
+            { type: "int", minimum: 0, name: "amplifier" },
+        ],
     ],
-    [
-      { type: 'string', name: 'potionName' },
-      { type: 'int', minimum: 0, name: 'second' },
-      { type: 'int', minimum: 0, name: 'amplifier' }
-    ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: 'string', name: 'potionName' },
-      { type: 'int', minimum: 0, name: 'second' }
-    ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: 'string', name: 'potionName' },
-      { type: 'int', minimum: 0, name: 'second' },
-      { type: 'int', minimum: 0, name: 'amplifier' }
-    ]
-  ]
 };
 
 function POTION(args) {
-  var target, potionName, second, amplifier;
+    var target, potionName, second, amplifier;
 
-  if (overload === 0) {
-    target = player;
-    potionName = args[0];
-    second = args[1];
-    amplifier = 1;
-  } else if (overload === 2) {
-    target = player;
-    potionName = args[0];
-    second = args[1];
-    amplifier = args[2];
-  } else if (overload === 0) {
-    target = args[0];
-    potionName = args[1];
-    second = args[2];
-    amplifier = 1;
-  } else if (overload === 2) {
-    target = args[0];
-    potionName = args[1];
-    second = args[2];
-    amplifier = args[3];
-  }
+    if (overload === 0) {
+        target = player;
+        potionName = args[0];
+        second = args[1];
+        amplifier = 1;
+    } else if (overload === 1) {
+        target = player;
+        potionName = args[0];
+        second = args[1];
+        amplifier = args[2];
+    } else if (overload === 2) {
+        target = args[0];
+        potionName = args[1];
+        second = args[2];
+        amplifier = 1;
+    } else if (overload === 3) {
+        target = args[0];
+        potionName = args[1];
+        second = args[2];
+        amplifier = args[3];
+    }
 
-  if (!target) throw new Error('Player is null.');
+    if (!target) throw new Error("Player is null.");
 
-  second *= 20;
+    second *= 20;
 
-  var effectType = PotionEffectType.getByName(potionName);
-  if (!effectType) throw new Error(args[0] + ' is not a valid potion.');
+    var effectType = PotionEffectType.getByName(potionName);
+    if (!effectType) throw new Error(args[0] + " is not a valid potion.");
 
-  var effect = new PotionEffect(effectType, second, amplifier);
+    var effect = new PotionEffect(effectType, second, amplifier);
 
-  target.addPotionEffect(effect);
+    target.addPotionEffect(effect);
 
-  return null;
+    return null;
 }
