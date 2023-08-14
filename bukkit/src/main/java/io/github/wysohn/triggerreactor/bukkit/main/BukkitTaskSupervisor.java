@@ -122,15 +122,11 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
     @Override
     public <T> Future<T> submitSync(Callable<T> call) {
-        try {
-            if (this.isServerThread()) {
-                return immediateFuture(call);
-            } else {
-                return Bukkit.getScheduler().callSyncMethod(plugin, call);
-            }
-        } catch (Exception e) {
+        if (this.isServerThread()) {
+            return immediateFuture(call);
+        } else {
+            return Bukkit.getScheduler().callSyncMethod(plugin, call);
         }
-        return null;
     }
 
     @Override
