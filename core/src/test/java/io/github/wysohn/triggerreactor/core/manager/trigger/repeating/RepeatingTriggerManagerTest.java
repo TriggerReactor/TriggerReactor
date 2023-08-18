@@ -22,6 +22,9 @@ import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerDependencyFacade;
@@ -73,6 +76,9 @@ public class RepeatingTriggerManagerTest {
                         .taskSupervisor(task)
                         .pluginManagement(pluginManagement)
                         .build(),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 new FactoryModuleBuilder().build(IRepeatingTriggerFactory.class),
                 new AbstractModule() {
                     @Provides
@@ -98,7 +104,7 @@ public class RepeatingTriggerManagerTest {
         RepeatingTrigger mockTrigger = mock(RepeatingTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockTrigger.isAutoStart()).thenReturn(true);

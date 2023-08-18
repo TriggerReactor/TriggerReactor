@@ -20,6 +20,9 @@ package io.github.wysohn.triggerreactor.core.manager;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,20 +32,25 @@ import java.io.File;
 @Singleton
 public class PluginConfigManager extends Manager implements IMigratable {
     @Inject
-    @Named("PluginConfig")
-    private IConfigSource configSource;
-    @Inject
     @Named("DataFolder")
     private File dataFolder;
+    @Inject
+    private IExceptionHandle exceptionHandle;
+    @Inject
+    private IConfigSourceFactory factory;
+
+    private IConfigSource configSource;
 
     @Inject
-    private PluginConfigManager(){
+    private PluginConfigManager() {
 
     }
 
     @Override
     public void initialize() {
-
+        configSource = factory.create(new SaveWorker(5, (ex) -> exceptionHandle.handleException(null, ex)),
+                dataFolder,
+                "config");
     }
 
     @Override

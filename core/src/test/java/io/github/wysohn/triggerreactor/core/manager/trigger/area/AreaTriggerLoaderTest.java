@@ -20,8 +20,9 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -69,22 +70,23 @@ public class AreaTriggerLoaderTest {
 
     @Test
     public void listTriggers() throws IOException {
-        ConfigSourceFactory factory = mock(ConfigSourceFactory.class);
+        IConfigSourceFactory factory = mock(IConfigSourceFactory.class);
         File triggerFolder = folder.newFolder("trigger");
         IConfigSource source = mock(IConfigSource.class);
+        SaveWorker saveWorker = mock(SaveWorker.class);
 
         File enterFile = new File(triggerFolder, AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg");
         enterFile.createNewFile();
         File exitFile = new File(triggerFolder, AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg");
         exitFile.createNewFile();
 
-        when(factory.create(folder.getRoot(), "trigger")).thenReturn(source);
+        when(factory.create(saveWorker, folder.getRoot(), "trigger")).thenReturn(source);
 
-        TriggerInfo[] triggerInfos = loader.listTriggers(folder.getRoot(), factory);
+        TriggerInfo[] triggerInfos = loader.listTriggers(saveWorker, folder.getRoot(), factory);
 
         assertEquals(1, triggerInfos.length);
         assertEquals("trigger", triggerInfos[0].getTriggerName());
-        verify(factory).create(folder.getRoot(), "trigger");
+        verify(factory).create(saveWorker, folder.getRoot(), "trigger");
     }
 
     private void writeContent(File file, String s) throws IOException {

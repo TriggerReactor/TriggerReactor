@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestParser {
 
@@ -307,10 +308,10 @@ public class TestParser {
     @Test
     public void testRangeFor_Inclusive() throws Exception {
         String text = String.join(
-            "\n",
-            "FOR i = 0..=3",
-            "  #TEST i",
-            "ENDFOR"
+                "\n",
+                "FOR i = 0..=3",
+                "  #TEST i",
+                "ENDFOR"
         );
 
         Lexer lexer = new Lexer(text, charset);
@@ -341,10 +342,10 @@ public class TestParser {
     @Test
     public void testRangeFor_Exclusive() throws Exception {
         String text = String.join(
-            "\n",
-            "FOR i = 0..3",
-            "  #TEST i",
-            "ENDFOR"
+                "\n",
+                "FOR i = 0..3",
+                "  #TEST i",
+                "ENDFOR"
         );
 
         Lexer lexer = new Lexer(text, charset);
@@ -559,8 +560,8 @@ public class TestParser {
     public void testLiteralStringTrueOrFalse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
-            + "temp1 = \"true\";"
-            + "temp2 = true;";
+                + "temp1 = \"true\";"
+                + "temp2 = true;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -576,14 +577,118 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.STRING, "true")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
 
-      assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
-      assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
-      assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
-      assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
-      assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
 
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testSwitch() throws Exception {
+        final String text = String.join(
+                "\n",
+                "rand = $random:1:6",
+                "",
+                "SWITCH rand",
+                "  CASE 1, 2, 3 => #MESSAGE \"You are winner! The chosen number is \" + rand",
+                "  DEFAULT => #MESSAGE \"You are lose! The chosen number is \" + rand",
+                "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Queue<Node> queue = new LinkedList<>();
+
+        serializeNode(queue, root);
+
+        // rand = $random1:6
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "rand")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "6")), queue.poll());
+        assertEquals(new Node(new Token(Type.PLACEHOLDER, "random")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "rand")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.PARAMETERS, "<PARAMETERS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "You are winner! The chosen number is ")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "rand")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.CASEBODY, "<CASEBODY>")), queue.poll());
+        assertEquals(new Node(new Token(Type.CASE, "<CASE>")), queue.poll());
+
+        assertEquals(new Node(new Token(Type.PARAMETERS, "<PARAMETERS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "You are lose! The chosen number is ")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "rand")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.CASEBODY, "<DEFAULTBODY>")), queue.poll());
+        assertEquals(new Node(new Token(Type.CASE, "<DEFAULT>")), queue.poll());
+
+        assertEquals(new Node(new Token(Type.SWITCH, "<SWITCH>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
+    }
+
+    @Test(expected = ParserException.class)
+    public void testSwitch_MissingVariableExpression() throws Exception {
+        final String text = String.join(
+                "\n",
+                "SWITCH",
+                "  CASE 1, 2, 3 => #MESSAGE \"You are winner! The chosen number is \" + rand",
+                "  DEFAULT => #MESSAGE \"You are lose! The chosen number is \" + rand",
+                "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        parser.parse();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testSwitch_EmptyBody() throws Exception {
+        final String text = String.join(
+                "\n",
+                "SWITCH rand",
+                "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        parser.parse();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testSwitch_MissingEndSwitchStatement() throws Exception {
+        final String text = String.join(
+                "\n",
+                "SWITCH rand",
+                "  DEFAULT => #STOP"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        parser.parse();
     }
 
     private void serializeNode(Queue<Node> queue, Node node) {

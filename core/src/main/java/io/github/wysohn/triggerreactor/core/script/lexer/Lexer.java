@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2023 TriggerReactor Team
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -28,7 +28,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -403,14 +405,14 @@ public class Lexer {
             if (c == '=') {
                 read();
                 return new Token(Type.OPERATOR_L, op + "=", row, col);
-            } else if(c == '>'){
+            } else if (c == '>') {
                 read();
                 return new Token(Type.OPERATOR, op + ">", row, col);
             } else {
                 return new Token(Type.OPERATOR, op, row, col);
             }
         } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%'
-                    || c == '^' || c == '~') {
+                || c == '^' || c == '~') {
             String op = String.valueOf(c);
             read();
 
@@ -419,7 +421,7 @@ public class Lexer {
                 return new Token(Type.OPERATOR, op + "=", row, col);
             } else if (("+".equals(op) || "-".equals(op)) && op.equals(String.valueOf(c))) {
                 read();
-                return new Token(Type.OPERATOR_UNARY, op+op, row, col);
+                return new Token(Type.OPERATOR_UNARY, op + op, row, col);
             } else {
                 return new Token(Type.OPERATOR_A, op, row, col);
             }
@@ -518,6 +520,7 @@ public class Lexer {
 
         return Token.Base.Decimal;
     }
+
     private static final Predicate<Character> PREDICATE_DECIMAL_DIGIT = c -> Character.isDigit(c) || c == '_';
     private static final Predicate<Character> PREDICATE_HEXADECIMAL_DIGIT = c -> PREDICATE_DECIMAL_DIGIT.test(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
     private static final BiConsumer<Appendable, Character> DIGIT_CONSUMER = (appendable, c) -> {
@@ -528,9 +531,11 @@ public class Lexer {
             }
         }
     };
+
     private static Predicate<Character> isDecimalDigit() {
         return PREDICATE_DECIMAL_DIGIT;
     }
+
     private static Predicate<Character> isHexadecimalDigit() {
         return PREDICATE_HEXADECIMAL_DIGIT;
     }

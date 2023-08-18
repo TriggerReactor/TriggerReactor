@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Optional;
 
 @Singleton
 public class ExceptionHandle implements IExceptionHandle {
@@ -73,20 +74,12 @@ public class ExceptionHandle implements IExceptionHandle {
 
     @Override
     public void handleException(ICommandSender sender, Exception ex) {
-        if (sender == null)
-            sender = pluginManagement.getConsoleSender();
-
-        sendExceptionMessage(sender, ex);
+        handleException(sender, (Throwable) ex);
     }
 
     @Override
     public void handleException(Object e, Exception ex) {
-        ICommandSender player = pluginManagement.extractPlayerFromContext(e);
-
-        if (player == null)
-            player = pluginManagement.getConsoleSender();
-
-        sendExceptionMessage(player, ex);
+        handleException(e, (Throwable) ex);
     }
 
     private void sendExceptionMessage(ICommandSender sender, Throwable e) {
@@ -94,8 +87,14 @@ public class ExceptionHandle implements IExceptionHandle {
             Throwable ex = e;
             sender.sendMessage("&cCould not execute this trigger.");
             while (ex != null) {
-                sender.sendMessage("&c >> Caused by:");
-                sender.sendMessage("&c" + ex.getMessage());
+                sender.sendMessage(String.format("&c >> Caused by: %s", Optional.of(ex)
+                        .map(Object::getClass)
+                        .map(Class::getName)
+                        .orElse("Unknown Exception")));
+                Optional.of(ex)
+                        .map(Throwable::getMessage)
+                        .map(msg -> String.format("&c%s", msg))
+                        .ifPresent(sender::sendMessage);
                 ex = ex.getCause();
             }
             sender.sendMessage("&cIf you are administrator, see console for details.");

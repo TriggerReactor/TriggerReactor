@@ -1,26 +1,26 @@
 on:
   push:
     branches:
-    - master
-    
+      - master
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     name: Sync development branch with master
 
     steps:
-    - name: Checkout Dev
-      uses: actions/checkout@v2
-      with:
-        ref: development
-        
-    - name: Merge master -> development
-      uses: devmasx/merge-branch@master
-      with:
-        type: now
-        from_branch: master
-        target_branch: development
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout Dev
+        uses: actions/checkout@v2
+        with:
+          ref: development
 
-    - name: Timestamp
-      run: date
+      - name: Merge master -> development
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: master
+          target_branch: development
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Timestamp
+        run: date

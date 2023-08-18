@@ -6,7 +6,7 @@ public class LambdaParameter {
     final String id;
     final Object defValue;
 
-    public LambdaParameter(Node idNode){
+    public LambdaParameter(Node idNode) {
         id = (String) idNode.getToken().value;
         defValue = null;
     }

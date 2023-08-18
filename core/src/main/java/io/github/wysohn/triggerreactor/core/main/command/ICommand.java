@@ -10,7 +10,11 @@ import java.util.Set;
  * the actual command instance that is registered to the corresponding API.
  */
 public interface ICommand {
+    String getName();
+
     void setTabCompleterMap(Map<Integer, Set<ITabCompleter>> tabCompleterMap);
+
+    ICommandExecutor getExecutor();
 
     void setExecutor(ICommandExecutor executor);
 }

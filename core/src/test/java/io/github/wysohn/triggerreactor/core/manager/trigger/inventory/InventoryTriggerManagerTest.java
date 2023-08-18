@@ -25,6 +25,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -70,6 +73,9 @@ public class InventoryTriggerManagerTest {
                 new FactoryModuleBuilder()
                         .implement(InventoryTrigger.class, InventoryTrigger.class)
                         .build(IInventoryTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 new AbstractModule() {
                     @Provides
                     @Named("InventoryTriggerManagerFolder")
@@ -100,7 +106,7 @@ public class InventoryTriggerManagerTest {
         when(mockInfo.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)).thenReturn(Optional.of(9));
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 

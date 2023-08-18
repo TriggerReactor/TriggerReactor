@@ -62,7 +62,7 @@ public abstract class AbstractBukkitWrapper {
         return new BukkitLocation(location);
     }
 
-    public IWorld wrap(World world){
+    public IWorld wrap(World world) {
         return new BukkitWorld(world);
     }
 }

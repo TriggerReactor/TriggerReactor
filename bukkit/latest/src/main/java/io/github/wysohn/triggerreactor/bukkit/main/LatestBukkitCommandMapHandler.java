@@ -63,7 +63,7 @@ public class LatestBukkitCommandMapHandler implements ICommandMapHandler {
                 ex.printStackTrace();
 
             logger.warning("Couldn't find 'commandMap'. This may indicate that you are using very very old" +
-                                   " version of Bukkit. Please report this to TR team, so we can work on it.");
+                    " version of Bukkit. Please report this to TR team, so we can work on it.");
             logger.warning("Use /trg debug to see more details.");
             return null;
         }
@@ -84,8 +84,8 @@ public class LatestBukkitCommandMapHandler implements ICommandMapHandler {
                     e.printStackTrace();
 
                 logger.warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer" +
-                                       " may not work with this error. Report to us if you believe this version has "
-                                       + "to support it.");
+                        " may not work with this error. Report to us if you believe this version has "
+                        + "to support it.");
                 logger.warning("Use /trg debug to see more details.");
                 notFound = true;
                 return;

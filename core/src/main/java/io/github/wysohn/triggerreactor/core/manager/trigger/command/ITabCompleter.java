@@ -1,7 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 
-
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -97,29 +96,29 @@ public interface ITabCompleter {
     Pattern getCondition(Integer index);
 
 
-    class Builder{
+    class Builder {
 
-        List<String> hint,candidate;
+        List<String> hint, candidate;
         PredefinedTabCompleters preDefinedValue;
         Map<Integer, Pattern> conditions;
 
-        private Builder(){
+        private Builder() {
             this.hint = new ArrayList<>();
             this.candidate = new ArrayList<>();
         }
 
-        private Builder(String... arg){
+        private Builder(String... arg) {
             this.hint = Arrays.stream(arg)
                     .collect(Collectors.toList());
             this.candidate = this.hint;
         }
 
-        private Builder(Template template){
-            if(template == Template.EMPTY){
+        private Builder(Template template) {
+            if (template == Template.EMPTY) {
                 this.hint = new ArrayList<>();
                 this.candidate = new ArrayList<>();
             }
-            if(template == Template.PLAYER){
+            if (template == Template.PLAYER) {
                 this.hint = null;
                 this.candidate = null;
                 this.preDefinedValue = PredefinedTabCompleters.PLAYERS;
@@ -127,82 +126,92 @@ public interface ITabCompleter {
             }
         }
 
-        public static Builder of(String... arg){
+        public static Builder of(String... arg) {
             return new Builder(arg);
         }
 
-        public static Builder of(Template template){
+        public static Builder of(Template template) {
             return new Builder(template);
         }
 
-        public static Builder withHint(String hint){
+        public static Builder withHint(String hint) {
             return Builder.of().appendHint(hint);
         }
 
-        public Builder appendHint(String... hints){
+        public Builder appendHint(String... hints) {
             this.hint.addAll(list(hints));
 
             return this;
         }
-        public Builder appendHint(Collection<String> hints){
+
+        public Builder appendHint(Collection<String> hints) {
             this.hint.addAll(hints);
 
             return this;
         }
-        public Builder appendCandidate(String... candidates){
+
+        public Builder appendCandidate(String... candidates) {
             this.candidate.addAll(list(candidates));
 
             return this;
         }
-        public Builder appendCandidate(Collection<String> candidates){
+
+        public Builder appendCandidate(Collection<String> candidates) {
             this.candidate.addAll(candidates);
 
             return this;
         }
-        public Builder setCondition(int index, String regex) throws PatternSyntaxException{
+
+        public Builder setCondition(int index, String regex) throws PatternSyntaxException {
             Pattern ptn = Pattern.compile(regex);
-            if(this.conditions== null){
+            if (this.conditions == null) {
                 this.conditions = new HashMap<Integer, Pattern>();
             }
             this.conditions.put(index, ptn);
             return this;
         }
-        public Builder setCondition(int index, Pattern pattern) throws PatternSyntaxException{
-            if(this.conditions== null){
+
+        public Builder setCondition(int index, Pattern pattern) throws PatternSyntaxException {
+            if (this.conditions == null) {
                 this.conditions = new HashMap<Integer, Pattern>();
             }
             this.conditions.put(index, pattern);
             return this;
         }
-        public Builder setHint(String...hints){
+
+        public Builder setHint(String... hints) {
             this.hint = list(hints);
 
             return this;
         }
-        public Builder setHint(Collection<String> hints){
+
+        public Builder setHint(Collection<String> hints) {
             this.hint = hints instanceof List ? (List<String>) hints : new ArrayList<>(hints);
 
             return this;
         }
-        public Builder setCandidate(String...candidates){
+
+        public Builder setCandidate(String... candidates) {
             this.candidate = list(candidates);
 
             return this;
         }
-        public Builder setCandidate(Collection<String> candidates){
-            if(candidates == null)
+
+        public Builder setCandidate(Collection<String> candidates) {
+            if (candidates == null)
                 this.candidate = new ArrayList<>();
             else
                 this.candidate = candidates instanceof List ? (List<String>) candidates : new ArrayList<>(candidates);
 
             return this;
         }
-        public Builder setPreDefinedValue(PredefinedTabCompleters val){
+
+        public Builder setPreDefinedValue(PredefinedTabCompleters val) {
             this.preDefinedValue = val;
             return this;
         }
 
-        public Builder reset(){
+        public Builder reset() {
             this.hint = new ArrayList<>();
             this.candidate = new ArrayList<>();
             this.preDefinedValue = null;
@@ -211,14 +220,14 @@ public interface ITabCompleter {
             return this;
         }
 
-        public Builder setConditionMap(Map<Integer, Pattern> conditionMap){
+        public Builder setConditionMap(Map<Integer, Pattern> conditionMap) {
             this.conditions = conditionMap;
 
             return this;
         }
 
 
-        public ITabCompleter build(){
+        public ITabCompleter build() {
             return new ITabCompleterImpl(this);
 
         }
@@ -230,7 +239,7 @@ public interface ITabCompleter {
         return Arrays.stream(strings).collect(Collectors.toList());
     }
 
-    enum Template{
-        EMPTY,PLAYER
+    enum Template {
+        EMPTY, PLAYER
     }
 }

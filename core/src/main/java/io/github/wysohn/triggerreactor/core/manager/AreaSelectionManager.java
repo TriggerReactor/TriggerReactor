@@ -132,9 +132,9 @@ public final class AreaSelectionManager extends Manager {
      */
     public static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
         return new SimpleLocation(left.getWorld(),
-                                  Math.min(left.getX(), right.getX()),
-                                  Math.min(left.getY(), right.getY()),
-                                  Math.min(left.getZ(), right.getZ()));
+                Math.min(left.getX(), right.getX()),
+                Math.min(left.getY(), right.getY()),
+                Math.min(left.getZ(), right.getZ()));
     }
 
     /**
@@ -147,9 +147,9 @@ public final class AreaSelectionManager extends Manager {
      */
     public static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
         return new SimpleLocation(right.getWorld(),
-                                  Math.max(left.getX(), right.getX()),
-                                  Math.max(left.getY(), right.getY()),
-                                  Math.max(left.getZ(), right.getZ()));
+                Math.max(left.getX(), right.getX()),
+                Math.max(left.getY(), right.getY()),
+                Math.max(left.getZ(), right.getZ()));
     }
 
     /**

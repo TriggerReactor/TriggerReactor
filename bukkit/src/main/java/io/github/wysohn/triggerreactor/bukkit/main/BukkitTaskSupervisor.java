@@ -32,12 +32,20 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
     /**
      * Cached Pool for thread execution.
+     * <p>
+     * TODO: make this configurable
      */
-    private static final ExecutorService CACHED_THREAD_POOL = Executors.newCachedThreadPool(r -> {
-        Thread thread = new Thread(r);
-        thread.setPriority(Thread.MIN_PRIORITY);
-        return thread;
-    });
+    protected static final ExecutorService CACHED_THREAD_POOL = new ThreadPoolExecutor(
+        8, // # of always alive threads
+        1024, // if all 8 threads are busy and queue is full, then create up to 1024 threads
+        60L, // if the extra threads are idle for 60 seconds, remove it
+        TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(2048),
+        r -> {
+            Thread thread = new Thread(r);
+            thread.setPriority(Thread.NORM_PRIORITY - 1);
+            return thread;
+        });
 
     @Override
     public boolean isServerThread() {
@@ -59,14 +67,16 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
     /**
      * Create a future that will be executed upon creation.
+     *
      * @param call
-     * @return
      * @param <T>
+     * @return
      */
     private <T> Future<T> immediateFuture(Callable<T> call) {
         return new Future<T>() {
             private T result = null;
             private Exception exception = null;
+
             {
                 try {
                     result = call.call();
@@ -74,6 +84,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
                     exception = e;
                 }
             }
+
             @Override
             public boolean cancel(boolean arg0) {
                 return false;
@@ -91,7 +102,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
             @Override
             public T get() throws ExecutionException {
-                if(exception != null)
+                if (exception != null)
                     throw new ExecutionException(exception);
 
                 return result;
@@ -100,7 +111,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
             @Override
             public T get(long arg0, TimeUnit arg1)
                     throws ExecutionException {
-                if(exception != null)
+                if (exception != null)
                     throw new ExecutionException(exception);
 
                 return result;

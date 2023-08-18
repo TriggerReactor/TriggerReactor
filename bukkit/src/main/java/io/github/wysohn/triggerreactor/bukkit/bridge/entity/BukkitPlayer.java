@@ -12,6 +12,7 @@ import org.bukkit.inventory.Inventory;
 
 public class BukkitPlayer extends BukkitEntity implements IPlayer {
     private final Player player;
+
     public BukkitPlayer(Player player) {
         super(player);
         this.player = player;
@@ -46,8 +47,8 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     public SimpleChunkLocation getChunk() {
         Location location = player.getLocation();
         return new SimpleChunkLocation(location.getWorld().getName(),
-                                       location.getBlockX() >> 4,
-                                       location.getBlockZ() >> 4);
+                location.getBlockX() >> 4,
+                location.getBlockZ() >> 4);
     }
 
     @Override

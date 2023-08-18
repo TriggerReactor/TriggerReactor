@@ -699,9 +699,9 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
      * @return The SerializableLocation value
      */
     public abstract Object serializeLocation(World world, double x, double y, double z);
@@ -713,10 +713,10 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
-     * @param yaw The absolute rotation on the x-plane, in degrees
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
+     * @param yaw   The absolute rotation on the x-plane, in degrees
      * @param pitch The absolute rotation on the y-plane, in degrees
      * @return The SerializableLocation value
      */

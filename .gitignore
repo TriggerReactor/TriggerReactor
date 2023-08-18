@@ -16,7 +16,6 @@ bukkit/*/build/
 bukkit/build
 core/build
 build
-*/.gitignore
 bin/
 /bin/*
 /.classpath

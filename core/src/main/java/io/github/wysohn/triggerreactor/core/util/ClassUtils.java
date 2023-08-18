@@ -2,7 +2,8 @@ package io.github.wysohn.triggerreactor.core.util;
 
 public final class ClassUtils {
 
-    private ClassUtils() {}
+    private ClassUtils() {
+    }
 
     /**
      * Tests whether the given class exists or not in the class hierarchy.

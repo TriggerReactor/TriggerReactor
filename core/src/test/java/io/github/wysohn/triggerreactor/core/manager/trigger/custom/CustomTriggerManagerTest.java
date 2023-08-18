@@ -22,6 +22,9 @@ import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -58,6 +61,9 @@ public class CustomTriggerManagerTest {
                 new TestFileModule(folder),
                 new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
                 TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 new AbstractModule() {
                     @Provides
                     @Named("CustomTriggerManagerFolder")
@@ -86,7 +92,7 @@ public class CustomTriggerManagerTest {
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockInfo.get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, String.class))
                 .thenReturn(Optional.of(DummyEvent.class.getName()));
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         doReturn(DummyEvent.class).when(mockTrigger).getEvent();
@@ -120,7 +126,7 @@ public class CustomTriggerManagerTest {
         assertNull(manager.get("test"));
     }
 
-    public static class DummyEvent{
+    public static class DummyEvent {
 
     }
 }

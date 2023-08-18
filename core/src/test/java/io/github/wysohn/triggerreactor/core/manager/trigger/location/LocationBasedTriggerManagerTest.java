@@ -28,6 +28,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -68,6 +71,9 @@ public class LocationBasedTriggerManagerTest {
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build(),
                 new FactoryModuleBuilder().build(IClickTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 new AbstractModule() {
                     @Provides
                     public ITriggerLoader<ClickTrigger> provideLoader() {
@@ -96,7 +102,7 @@ public class LocationBasedTriggerManagerTest {
 
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockInfo.getTriggerName()).thenReturn("world@1,2,3");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         // act
@@ -119,7 +125,7 @@ public class LocationBasedTriggerManagerTest {
 
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockInfo.getTriggerName()).thenReturn("world@1,2,3");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockLocation.toSimpleLocation()).thenReturn(new SimpleLocation("world", 1, 2, 3));
 
@@ -161,7 +167,7 @@ public class LocationBasedTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockInfo.getTriggerName()).thenReturn("world@1,2,3");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.clone()).thenReturn(mockTrigger2);
 
@@ -195,7 +201,7 @@ public class LocationBasedTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockInfo.getTriggerName()).thenReturn("world@1,2,3");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.clone()).thenReturn(mockTrigger2);
 
@@ -442,7 +448,7 @@ public class LocationBasedTriggerManagerTest {
         when(player.getName()).thenReturn("test");
         when(player.getLocation()).thenReturn(new TempLoc("world", 1, 2, 3));
 
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         // act
@@ -487,7 +493,7 @@ public class LocationBasedTriggerManagerTest {
         when(player.getName()).thenReturn("test");
         when(player.getLocation()).thenReturn(new TempLoc("world", 1, 2, 3));
 
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         // act
@@ -523,7 +529,7 @@ public class LocationBasedTriggerManagerTest {
         when(player.getName()).thenReturn("test");
         when(player.getLocation()).thenReturn(new TempLoc("world", 1, 2, 3));
 
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         // act

@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 /**
  * Collection of keys used in trigger configuration.
- *
+ * <p>
  * From now on, all keys must be camalCase.
  */
 public enum TriggerConfigKey {
@@ -23,6 +23,10 @@ public enum TriggerConfigKey {
     KEY_TRIGGER_REPEATING_INTERVAL("interval", "Interval"),
 
     KEY_TRIGGER_CUSTOM_EVENT("event", "Event"),
+
+    KEY_TRIGGER_TEST_INTEGER("first"),
+    KEY_TRIGGER_TEST_STRING("second"),
+    KEY_TRIGGER_TEST_BOOLEAN("third"),
     ;
 
     private final String key;
@@ -37,35 +41,38 @@ public enum TriggerConfigKey {
         this.oldKey = oldKey;
     }
 
-    public String getKey(){
+    public String getKey() {
         return key;
     }
 
     /**
      * Get the key value but the index appended to the end.
      * getKey(1) -> "myKey.1"
+     *
      * @param index
      * @return
      */
-    public String getKey(int index){
+    public String getKey(int index) {
         return key + "." + index;
     }
 
     /**
      * Get the old key.
+     *
      * @deprecated This is for migration purpose only. Use {@link #getKey()} instead.
      */
-    public String getOldKey(){
+    public String getOldKey() {
         return oldKey;
     }
 
     /**
      * Get the key value but the index appended to the end.
      * getOldKey(1) -> "myKey.1"
+     *
      * @param index
      * @deprecated This is for migration purpose only. Use {@link #getOldKey(int)} instead.
      */
-    public String getOldKey(int index){
+    public String getOldKey(int index) {
         return oldKey == null ? null : oldKey + "." + index;
     }
 }

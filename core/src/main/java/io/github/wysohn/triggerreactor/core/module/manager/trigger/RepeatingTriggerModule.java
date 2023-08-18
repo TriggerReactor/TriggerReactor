@@ -34,8 +34,8 @@ public class RepeatingTriggerModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new FactoryModuleBuilder()
-                        .implement(RepeatingTrigger.class, RepeatingTrigger.class)
-                        .build(IRepeatingTriggerFactory.class));
+                .implement(RepeatingTrigger.class, RepeatingTrigger.class)
+                .build(IRepeatingTriggerFactory.class));
 
         binder().bind(new TypeLiteral<AbstractTriggerManager<RepeatingTrigger>>() {
                 })

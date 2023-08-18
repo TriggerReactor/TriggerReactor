@@ -35,7 +35,7 @@ import java.util.Collection;
 public class CommonFunctions extends AbstractCommonFunctions {
 
     @Inject
-    private CommonFunctions(){
+    private CommonFunctions() {
 
     }
 
@@ -142,7 +142,7 @@ public class CommonFunctions extends AbstractCommonFunctions {
      */
     @Deprecated
     @Override
-    public SerializableLocation serializeLocation(World world, double x, double y, double z){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z) {
         return new SerializableLocation(new Location(world, x, y, z));
     }
 
@@ -151,7 +151,7 @@ public class CommonFunctions extends AbstractCommonFunctions {
      */
     @Deprecated
     @Override
-    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch) {
         return new SerializableLocation(new Location(world, x, y, z, toFloat(yaw), toFloat(pitch)));
     }
 
@@ -160,7 +160,7 @@ public class CommonFunctions extends AbstractCommonFunctions {
      */
     @Deprecated
     @Override
-    public SerializableLocation serializeLocation(Location loc){
+    public SerializableLocation serializeLocation(Location loc) {
         return new SerializableLocation(loc);
     }
 //Eventually, this has to be created either as Executor or Placeholder

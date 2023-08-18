@@ -49,18 +49,24 @@ allprojects {
 subprojects {
     dependencies {
         implementation fileTree(dir: "libs", includes: ['*.jar'])
-        api project(":bukkit")
+        implementation(project(":bukkit")) {
+            exclude group: 'org.spigotmc', module: 'spigot-api'
+        }
 
-        testImplementation project(':bukkit').sourceSets.test.output
+        testImplementation(project(':bukkit').sourceSets.test.output)
+    }
+
+    test {
+        classpath += sourceSets.test.runtimeClasspath
+    }
+
+    tasks.register('copyTestResources', Copy) {
+        from project(":bukkit").sourceSets.main.output.resourcesDir
+        into "${buildDir}/classes/test"
     }
 
     jar.dependsOn project(':bukkit').jar
 
-
-    task copyTestResources(type: Copy) {
-        from project(":bukkit").sourceSets.main.output.resourcesDir
-        into "${buildDir}/classes/test"
-    }
     copyTestResources.dependsOn project(":bukkit").copyResources
     copyTestResources.dependsOn project(":bukkit").processResources
 

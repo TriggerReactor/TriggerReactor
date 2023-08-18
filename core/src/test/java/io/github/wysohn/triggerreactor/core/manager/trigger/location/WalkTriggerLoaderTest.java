@@ -18,6 +18,10 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import com.google.inject.Guice;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
@@ -43,6 +47,9 @@ public class WalkTriggerLoaderTest {
         loader = Guice.createInjector(
                 new WalkTriggerModule(),
                 new TestFileModule(folder),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 TestTriggerDependencyModule.Builder.begin().build()
         ).getInstance(WalkTriggerLoader.class);
     }

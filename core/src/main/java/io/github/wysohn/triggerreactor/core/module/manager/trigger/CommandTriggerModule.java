@@ -34,13 +34,15 @@ public class CommandTriggerModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new FactoryModuleBuilder()
-                        .implement(CommandTrigger.class, CommandTrigger.class)
-                        .build(ICommandTriggerFactory.class));
+                .implement(CommandTrigger.class, CommandTrigger.class)
+                .build(ICommandTriggerFactory.class));
 
-        binder().bind(new TypeLiteral<ITriggerLoader<CommandTrigger>>(){})
+        binder().bind(new TypeLiteral<ITriggerLoader<CommandTrigger>>() {
+                })
                 .to(CommandTriggerLoader.class);
 
-        binder().bind(new TypeLiteral<AbstractTriggerManager<CommandTrigger>>(){})
+        binder().bind(new TypeLiteral<AbstractTriggerManager<CommandTrigger>>() {
+                })
                 .to(CommandTriggerManager.class);
     }
 

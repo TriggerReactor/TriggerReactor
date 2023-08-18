@@ -33,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.logging.Logger;
 
@@ -74,7 +75,9 @@ public class PlaceholderManager
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         evaluables.clear();
-        for (File file : fileLoader.listFiles(new File(folder, JAR_FOLDER_LOCATION), filter)) {
+        for (File file : Optional.ofNullable(fileLoader.listFiles(new File(folder, JAR_FOLDER_LOCATION), filter))
+                .orElse(new File[0])) {
+
             try {
                 reloadPlaceholders(file, filter);
             } catch (ScriptException | IOException e) {

@@ -7,6 +7,7 @@ import io.github.wysohn.triggerreactor.core.main.command.ICommandExecutor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.PredefinedTabCompleters;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 
@@ -16,9 +17,23 @@ import java.util.stream.Collectors;
 
 public class BukkitCommand implements ICommand {
     private final PluginCommand command;
+    private final Command original;
+
+    private ICommandExecutor executor;
+
+    public BukkitCommand(PluginCommand command,
+                         Command original) {
+        this.command = command;
+        this.original = original;
+    }
 
     public BukkitCommand(PluginCommand command) {
-        this.command = command;
+        this(command, null);
+    }
+
+    @Override
+    public String getName() {
+        return command.getName();
     }
 
     @Override
@@ -94,9 +109,14 @@ public class BukkitCommand implements ICommand {
         return returning;
     }
 
+    @Override
+    public ICommandExecutor getExecutor() {
+        return this.executor;
+    }
 
     @Override
     public void setExecutor(ICommandExecutor executor) {
+        this.executor = executor;
         command.setExecutor((sender, command1, label, args) -> {
             ICommandSender isender;
 
@@ -106,8 +126,38 @@ public class BukkitCommand implements ICommand {
                 isender = new BukkitCommandSender(sender);
             }
 
-            executor.execute(isender, label, args);
+            executor.execute(isender, label, args, Optional.ofNullable(original)
+                    .map(Overridden::new)
+                    .orElse(null));
             return true;
         });
+    }
+
+    public static class Overridden implements ICommand {
+        private final Command command;
+
+        public Overridden(Command command) {
+            this.command = command;
+        }
+
+        @Override
+        public String getName() {
+            return command.getName();
+        }
+
+        @Override
+        public void setTabCompleterMap(Map<Integer, Set<ITabCompleter>> tabCompleterMap) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ICommandExecutor getExecutor() {
+            return (sender, label, args, original) -> command.execute(sender.get(), label, args);
+        }
+
+        @Override
+        public void setExecutor(ICommandExecutor executor) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

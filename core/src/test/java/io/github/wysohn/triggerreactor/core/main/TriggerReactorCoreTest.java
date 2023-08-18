@@ -1,9 +1,7 @@
 package io.github.wysohn.triggerreactor.core.main;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
+import com.google.inject.*;
+import com.google.inject.name.Names;
 import io.github.wysohn.gsoncopy.JsonElement;
 import io.github.wysohn.gsoncopy.JsonParser;
 import io.github.wysohn.triggerreactor.core.bridge.*;
@@ -13,9 +11,11 @@ import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
@@ -177,21 +177,23 @@ public class TriggerReactorCoreTest {
         modules.add(new CorePluginModule());
         modules.addAll(Arrays.asList(additionalModules));
 
-        return Guice.createInjector(modules);
+        Injector injector = Guice.createInjector(modules);
+        injector.getInstance(TriggerReactorCore.class).initialize();
+        return injector;
     }
 
     @Test
-    public void initialize() {
+    public void initialize_manager() {
         // arrange
         DummyManager dummyManager = new DummyManager();
 
         TriggerReactorCore triggerReactorCore = createInjector(
-                new AbstractModule() {
-                    @Override
-                    protected void configure() {
-                        bind(DummyManager.class).toInstance(dummyManager);
-                    }
+            new AbstractModule() {
+                @Override
+                protected void configure() {
+                    bind(DummyManager.class).toInstance(dummyManager);
                 }
+            }
         ).getInstance(TriggerReactorCore.class);
 
         // act
@@ -199,6 +201,145 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertTrue(dummyManager.initialized);
+    }
+
+    private void createDummyInfo(File triggerInfoFile) throws IOException {
+        triggerInfoFile.getParentFile().mkdirs();
+        if (!triggerInfoFile.exists())
+            triggerInfoFile.createNewFile();
+
+        Files.write(triggerInfoFile.toPath(), ("{" +
+            "\"first\": 123," +
+            "\"second\": \"abc\"," +
+            "\"third\": true" +
+            "}").getBytes());
+    }
+
+    private void verifyDummyInfo(TriggerInfo info) {
+        assertEquals(123, (int) info.get(TriggerConfigKey.KEY_TRIGGER_TEST_INTEGER, Integer.class)
+            .orElseThrow(RuntimeException::new));
+        assertEquals("abc", info.get(TriggerConfigKey.KEY_TRIGGER_TEST_STRING, String.class)
+            .orElseThrow(RuntimeException::new));
+        assertEquals(true, info.get(TriggerConfigKey.KEY_TRIGGER_TEST_BOOLEAN, Boolean.class)
+            .orElseThrow(RuntimeException::new));
+    }
+
+    private void createDummyFile(File triggerFile, File triggerInfoFile) throws IOException {
+        triggerFile.getParentFile().mkdirs();
+        if (!triggerFile.exists())
+            triggerFile.createNewFile();
+
+        Files.write(triggerFile.toPath(), "#MESSAGE \"Hello World!\"".getBytes());
+        createDummyInfo(triggerInfoFile);
+    }
+
+    private void verifyTrigger(Trigger trigger) {
+        assertEquals("#MESSAGE \"Hello World!\"", trigger.getScript());
+        verifyDummyInfo(trigger.getInfo());
+    }
+
+    @Test
+    public void initialize_triggerLoaded() throws Exception {
+        // arrange
+        Injector injector = createInjector();
+
+        File rootFolder = folder.getRoot(); // TriggerReactor
+
+        File clickTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("ClickTriggerManagerFolder"))));
+        File clickTriggerFile = new File(clickTriggerFolder, "world@3,5,2.trg");
+        File clickTriggerInfoFile = new File(clickTriggerFolder, "world@3,5,2.json");
+        createDummyFile(clickTriggerFile, clickTriggerInfoFile);
+
+        File walkTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("WalkTriggerManagerFolder"))));
+        File walkTriggerFile = new File(walkTriggerFolder, "world@3,5,2.trg");
+        File walkTriggerInfoFile = new File(walkTriggerFolder, "world@3,5,2.json");
+        createDummyFile(walkTriggerFile, walkTriggerInfoFile);
+
+        File commandTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("CommandTriggerManagerFolder"))));
+        File commandTriggerFile = new File(commandTriggerFolder, "command.trg");
+        File commandTriggerInfoFile = new File(commandTriggerFolder, "command.json");
+        createDummyFile(commandTriggerFile, commandTriggerInfoFile);
+
+        File areaTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("AreaTriggerManagerFolder"))));
+        File areaTriggerFile = new File(areaTriggerFolder, "area"); // area trigger is folder
+        File areaTriggerInfoFile = new File(areaTriggerFolder, "area.json");
+        File areaTriggerEnterFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_ENTER + ".trg");
+        File areaTriggerEnterInfoFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_ENTER + ".json");
+        File areaTriggerExitFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_EXIT + ".trg");
+        File areaTriggerExitInfoFile = new File(areaTriggerFile, AreaTriggerLoader.NAME_EXIT + ".json");
+        createDummyInfo(areaTriggerInfoFile);
+        createDummyFile(areaTriggerEnterFile, areaTriggerEnterInfoFile);
+        createDummyFile(areaTriggerExitFile, areaTriggerExitInfoFile);
+
+        File namedTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("NamedTriggerManagerFolder"))));
+        File namedTriggerFile = new File(namedTriggerFolder, "named.trg");
+        File namedTriggerInfoFile = new File(namedTriggerFolder, "named.json");
+        createDummyFile(namedTriggerFile, namedTriggerInfoFile);
+
+        File customTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("CustomTriggerManagerFolder"))));
+        File customTriggerFile = new File(customTriggerFolder, "custom.trg");
+        File customTriggerInfoFile = new File(customTriggerFolder, "custom.json");
+        createDummyFile(customTriggerFile, customTriggerInfoFile);
+        Files.write(customTriggerInfoFile.toPath(), ("{" +
+            "\"first\": 123," +
+            "\"second\": \"abc\"," +
+            "\"third\": true," +
+            "\"event\": \"org.test.event.Event\"" +
+            "}").getBytes());
+
+        File inventoryTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("InventoryTriggerManagerFolder"))));
+        File inventoryTriggerFile = new File(inventoryTriggerFolder, "inventory.trg");
+        File inventoryTriggerInfoFile = new File(inventoryTriggerFolder, "inventory.json");
+        createDummyFile(inventoryTriggerFile, inventoryTriggerInfoFile);
+        Files.write(inventoryTriggerInfoFile.toPath(), ("{" +
+            "\"first\": 123," +
+            "\"second\": \"abc\"," +
+            "\"third\": true," +
+            "\"size\": 18" +
+            "}").getBytes());
+
+        File repeatingTriggerFolder = new File(rootFolder, injector.getInstance(Key.get(String.class, Names.named("RepeatingTriggerManagerFolder"))));
+        File repeatingTriggerFile = new File(repeatingTriggerFolder, "repeating.trg");
+        File repeatingTriggerInfoFile = new File(repeatingTriggerFolder, "repeating.json");
+        createDummyFile(repeatingTriggerFile, repeatingTriggerInfoFile);
+
+        TriggerReactorCore triggerReactorCore = injector.getInstance(TriggerReactorCore.class);
+
+        ClickTriggerManager clickTriggerManager = injector.getInstance(ClickTriggerManager.class);
+        WalkTriggerManager walkTriggerManager = injector.getInstance(WalkTriggerManager.class);
+        CommandTriggerManager commandTriggerManager = injector.getInstance(CommandTriggerManager.class);
+        AreaTriggerManager areaTriggerManager = injector.getInstance(AreaTriggerManager.class);
+        NamedTriggerManager namedTriggerManager = injector.getInstance(NamedTriggerManager.class);
+        CustomTriggerManager customTriggerManager = injector.getInstance(CustomTriggerManager.class);
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+        RepeatingTriggerManager repeatingTriggerManager = injector.getInstance(RepeatingTriggerManager.class);
+
+        when(commandHandler.register(any(), any())).thenReturn(mock(ICommand.class));
+        when(javascriptFileLoader.listFiles(any(), any())).thenReturn(new File[0]);
+        when(eventRegistry.eventExist(any())).thenReturn(true);
+        when(eventRegistry.getEvent(any())).thenReturn((Class) Object.class);
+
+        // act
+        triggerReactorCore.initialize();
+
+        // assert
+        assertNotNull(clickTriggerManager.get("world@3,5,2"));
+        verifyTrigger(clickTriggerManager.get("world@3,5,2"));
+        assertNotNull(walkTriggerManager.get("world@3,5,2"));
+        verifyTrigger(walkTriggerManager.get("world@3,5,2"));
+        assertNotNull(commandTriggerManager.get("command"));
+        verifyTrigger(commandTriggerManager.get("command"));
+        assertNotNull(areaTriggerManager.get("area"));
+        verifyTrigger(areaTriggerManager.get("area").getEnterTrigger());
+        verifyTrigger(areaTriggerManager.get("area").getExitTrigger());
+        assertNotNull(namedTriggerManager.get("named"));
+        verifyTrigger(namedTriggerManager.get("named"));
+        assertNotNull(customTriggerManager.get("custom"));
+        verifyTrigger(customTriggerManager.get("custom"));
+        assertNotNull(inventoryTriggerManager.get("inventory"));
+        verifyTrigger(inventoryTriggerManager.get("inventory"));
+        assertNotNull(repeatingTriggerManager.get("repeating"));
+        verifyTrigger(repeatingTriggerManager.get("repeating"));
     }
 
     @Test
@@ -218,7 +359,7 @@ public class TriggerReactorCoreTest {
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "something"
+            "something"
         });
 
         // assert
@@ -233,12 +374,12 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = createInjector().getInstance(TRGCommandHandler.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "debug"
+            "debug"
         });
 
         // assert
@@ -253,13 +394,13 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = createInjector().getInstance(TRGCommandHandler.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(pluginManagement.getVersion()).thenReturn("1.3.4");
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "version"
+            "version"
         });
 
         // assert
@@ -287,12 +428,12 @@ public class TriggerReactorCoreTest {
         ClickTriggerManager clickTriggerManager = injector.getInstance(ClickTriggerManager.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "click"
+            "click"
         });
         boolean result1 = scriptEditManager.isEditing(sender);
         scriptEditManager.onChat(sender, "anystring");
@@ -331,13 +472,13 @@ public class TriggerReactorCoreTest {
         ClickTriggerManager clickTriggerManager = injector.getInstance(ClickTriggerManager.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "click",
-                "#MESSAGE \"Hello World\""
+            "click",
+            "#MESSAGE \"Hello World\""
         });
         clickTriggerManager.handleLocationSetting(location, sender);
 
@@ -370,12 +511,12 @@ public class TriggerReactorCoreTest {
         WalkTriggerManager walkTriggerManager = injector.getInstance(WalkTriggerManager.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "walk"
+            "walk"
         });
         boolean result1 = scriptEditManager.isEditing(sender);
         scriptEditManager.onChat(sender, "anystring");
@@ -414,13 +555,13 @@ public class TriggerReactorCoreTest {
         WalkTriggerManager walkTriggerManager = injector.getInstance(WalkTriggerManager.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "walk",
-                "#MESSAGE \"Hello World\""
+            "walk",
+            "#MESSAGE \"Hello World\""
         });
         walkTriggerManager.handleLocationSetting(location, sender);
 
@@ -449,14 +590,14 @@ public class TriggerReactorCoreTest {
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "cmd",
-                commandName
+            "cmd",
+            commandName
         });
         boolean result1 = scriptEditManager.isEditing(sender);
         scriptEditManager.onChat(sender, "anystring");
@@ -471,9 +612,9 @@ public class TriggerReactorCoreTest {
 
         injector.getInstance(TriggerReactorCore.class).shutdown();
         assertJsonEquals("{\"aliases\":[], \"permissions\":[]}",
-                readContent(triggerFolder, commandName + ".json"));
+            readContent(triggerFolder, commandName + ".json"));
         assertEquals("#MESSAGE \"Hello World\"",
-                readContent(triggerFolder, commandName + ".trg"));
+            readContent(triggerFolder, commandName + ".trg"));
     }
 
     @Test
@@ -492,15 +633,15 @@ public class TriggerReactorCoreTest {
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION))
-                .thenReturn(true);
+            .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{
-                "cmd",
-                commandName,
-                "#MESSAGE \"Hello World\""
+            "cmd",
+            commandName,
+            "#MESSAGE \"Hello World\""
         });
 
         // assert
@@ -508,9 +649,9 @@ public class TriggerReactorCoreTest {
 
         injector.getInstance(TriggerReactorCore.class).shutdown();
         assertJsonEquals("{\"aliases\":[], \"permissions\":[]}",
-                readContent(triggerFolder, commandName + ".json"));
+            readContent(triggerFolder, commandName + ".json"));
         assertEquals("#MESSAGE \"Hello World\"",
-                readContent(triggerFolder, commandName + ".trg"));
+            readContent(triggerFolder, commandName + ".trg"));
     }
 
     @Test
@@ -557,7 +698,7 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertEquals(Arrays.asList("my.permission1", "my.permission2", "my.permission3"),
-                cmdTriggerManager.get("mycmd").getInfo().get(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, List.class).get());
+            cmdTriggerManager.get("mycmd").getInfo().get(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, List.class).get());
     }
 
     @Test
@@ -581,7 +722,7 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertEquals(Arrays.asList("myalias1", "myalias2", "myalias3"),
-                cmdTriggerManager.get("mycmd").getInfo().get(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, List.class).get());
+            cmdTriggerManager.get("mycmd").getInfo().get(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, List.class).get());
     }
 
     @Test
@@ -983,11 +1124,11 @@ public class TriggerReactorCoreTest {
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "toggle"});
         boolean result1 = areaSelectionManager.isSelecting(uuid);
         areaSelectionManager.onClick(AreaSelectionManager.ClickAction.LEFT_CLICK_BLOCK,
-                uuid,
-                new SimpleLocation("world", 0, 0, 0));
+            uuid,
+            new SimpleLocation("world", 0, 0, 0));
         areaSelectionManager.onClick(AreaSelectionManager.ClickAction.RIGHT_CLICK_BLOCK,
-                uuid,
-                new SimpleLocation("world", 10, 10, 10));
+            uuid,
+            new SimpleLocation("world", 10, 10, 10));
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "create"});
         boolean result2 = areaSelectionManager.isSelecting(uuid);
 
@@ -1025,8 +1166,8 @@ public class TriggerReactorCoreTest {
         when(areaTrigger.getScript()).thenReturn("#MESSAGE \"Hello World\"");
 
         areaTriggerManager.createArea("MyArea",
-                new SimpleLocation("world", 0, 0, 0),
-                new SimpleLocation("world", 10, 10, 10));
+            new SimpleLocation("world", 0, 0, 0),
+            new SimpleLocation("world", 10, 10, 10));
         boolean exists = areaTriggerManager.get("MyArea") != null;
 
         // act
@@ -1057,8 +1198,8 @@ public class TriggerReactorCoreTest {
         when(areaTrigger.getScript()).thenReturn("#MESSAGE \"Hello World\"");
 
         areaTriggerManager.createArea("MyArea",
-                new SimpleLocation("world", 0, 0, 0),
-                new SimpleLocation("world", 10, 10, 10));
+            new SimpleLocation("world", 0, 0, 0),
+            new SimpleLocation("world", 10, 10, 10));
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "enter", "#MESSAGE \"Hello World\""});
@@ -1089,8 +1230,8 @@ public class TriggerReactorCoreTest {
         when(areaTrigger.getScript()).thenReturn("#MESSAGE \"Hello World\"");
 
         areaTriggerManager.createArea("MyArea",
-                new SimpleLocation("world", 0, 0, 0),
-                new SimpleLocation("world", 10, 10, 10));
+            new SimpleLocation("world", 0, 0, 0),
+            new SimpleLocation("world", 10, 10, 10));
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "exit", "#MESSAGE \"Hello World\""});
@@ -1157,6 +1298,53 @@ public class TriggerReactorCoreTest {
         assertFalse(result2);
         assertNotNull(repeatingTriggerManager.get("MyRepeat"));
         assertEquals("#MESSAGE \"Hello World\"", repeatingTriggerManager.get("MyRepeat").getScript());
+    }
+
+    @Test
+    public void command_repeatTrigger_reload() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+
+        RepeatingTriggerManager repeatingTriggerManager = injector.getInstance(RepeatingTriggerManager.class);
+        ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+
+        when(javascriptFileLoader.listFiles(any(), any())).thenReturn(new File[0]);
+        when(taskSupervisor.submitSync(any(Callable.class))).thenAnswer(invocation -> {
+            Callable callable = invocation.getArgument(0);
+            callable.call();
+            CompletableFuture future = new CompletableFuture();
+            future.complete(null);
+            return future;
+        });
+        when(taskSupervisor.newThread(any(), any(), anyInt())).thenAnswer(invocation ->
+            new Thread((Runnable) invocation.getArgument(0)));
+
+        // act
+        for (int i = 0; i < 30; i++) {
+            handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat" + i});
+            scriptEditManager.isEditing(sender);
+            scriptEditManager.onChat(sender, "anystring");
+            scriptEditManager.onChat(sender, "#MESSAGE \"Hello World\"" + i + "; #WAIT 2;");
+            scriptEditManager.onChat(sender, "save");
+            scriptEditManager.isEditing(sender);
+        }
+
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat", "toggle"});
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat", "autostart"});
+
+        for (int i = 0; i < 1000; i++)
+            handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
+
+        repeatingTriggerManager.shutdown();
+        // assert
+
     }
 
     private void assertJsonEquals(String expected, String actual) {

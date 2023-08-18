@@ -23,6 +23,9 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.IEventManagement;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
@@ -61,6 +64,9 @@ public class CommandTriggerManagerTest {
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build(),
                 new FactoryModuleBuilder().build(ICommandTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 new AbstractModule() {
                     @Provides
                     @Named("CommandTriggerManagerFolder")
@@ -92,7 +98,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
@@ -107,7 +113,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
@@ -125,7 +131,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(loader.toTriggerInfo(any(), any())).thenReturn(mockInfo);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
@@ -139,7 +145,7 @@ public class CommandTriggerManagerTest {
         CommandTrigger mockTrigger = mock(CommandTrigger.class);
 
         when(mockInfo.getTriggerName()).thenReturn("test");
-        when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 

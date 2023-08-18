@@ -15,102 +15,112 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Sound = Java.type('org.bukkit.Sound');
-var Location = Java.type('org.bukkit.Location');
+var Sound = Java.type("org.bukkit.Sound");
+var Location = Java.type("org.bukkit.Location");
 
 var validation = {
   overloads: [
     [
-      { type: Location.class, name: 'location' },
-      { type: 'string', name: 'sound' }
+      { type: Location.class, name: "location" },
+      { type: "string", name: "sound" },
     ],
     [
-      { type: Location.class, name: 'location' },
-      { type: 'string', name: 'sound' },
-      { type: 'number', name: 'volume' }
+      { type: Location.class, name: "location" },
+      { type: "string", name: "sound" },
+      { type: "number", name: "volume" },
     ],
     [
-      { type: Location.class, name: 'location' },
-      { type: 'string', name: 'sound' },
-      { type: 'number', name: 'volume' },
-      { type: 'number', name: 'pitch' }
+      { type: Location.class, name: "location" },
+      { type: "string", name: "sound" },
+      { type: "number", name: "volume" },
+      { type: "number", name: "pitch" },
     ],
     [
-      { type: Location.class, name: 'location' },
-      { type: Sound.class, name: 'sound' },
+      { type: Location.class, name: "location" },
+      { type: Sound.class, name: "sound" },
     ],
     [
-      { type: Location.class, name: 'location' },
-      { type: Sound.class, name: 'sound' },
-      { type: 'number', name: 'volume' }
+      { type: Location.class, name: "location" },
+      { type: Sound.class, name: "sound" },
+      { type: "number", name: "volume" },
     ],
     [
-      { type: Location.class, name: 'location' },
-      { type: Sound.class, name: 'sound' },
-      { type: 'number', name: 'volume' },
-      { type: 'number', name: 'pitch' }
+      { type: Location.class, name: "location" },
+      { type: Sound.class, name: "sound" },
+      { type: "number", name: "volume" },
+      { type: "number", name: "pitch" },
     ],
     [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { type: 'string', name: 'sound' }
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: "string", name: "sound" },
     ],
     [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { type: 'string', name: 'sound' },
-      { type: 'number', name: 'volume' }
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: "string", name: "sound" },
+      { type: "number", name: "volume" },
     ],
     [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { type: 'string', name: 'sound' },
-      { type: 'number', name: 'volume' },
-      { type: 'number', name: 'pitch' }
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: "string", name: "sound" },
+      { type: "number", name: "volume" },
+      { type: "number", name: "pitch" },
     ],
     [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { type: Sound.class, name: 'sound' }
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: Sound.class, name: "sound" },
     ],
     [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { type: Sound.class, name: 'sound' },
-      { type: 'number', name: 'volume' }
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: Sound.class, name: "sound" },
+      { type: "number", name: "volume" },
     ],
     [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { type: Sound.class, name: 'sound' },
-      { type: 'number', name: 'volume' },
-      { type: 'number', name: 'pitch' }
-    ]
-  ]
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: Sound.class, name: "sound" },
+      { type: "number", name: "volume" },
+      { type: "number", name: "pitch" },
+    ],
+  ],
 };
+
+function toEnumOrString(str) {
+  try {
+    var sound = Sound.valueOf(str.toUpperCase());
+    return sound;
+  } catch (e) {
+    var sound = str;
+    return sound;
+  }
+}
 
 function SOUNDALL(args) {
   var location, sound, volume, pitch;
 
   if (overload === 0) {
     location = args[0];
-    sound = Sound.valueOf(args[1].toUpperCase());
+    sound = toEnumOrString(args[1]);
     volume = 1;
     pitch = 1;
   } else if (overload === 1) {
     location = args[0];
-    sound = Sound.valueOf(args[1].toUpperCase());
+    sound = toEnumOrString(args[1]);
     volume = args[2];
     pitch = 1;
   } else if (overload === 2) {
     location = args[0];
-    sound = Sound.valueOf(args[1].toUpperCase());
+    sound = toEnumOrString(args[1]);
     volume = args[2];
     pitch = args[3];
   } else if (overload === 3) {
@@ -130,37 +140,37 @@ function SOUNDALL(args) {
     pitch = args[3];
   } else if (overload === 6) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
       args[0],
       args[1],
       args[2]
     );
-    sound = Sound.valueOf(args[3].toUpperCase());
+    sound = toEnumOrString(args[1]);
     volume = 1;
     pitch = 1;
   } else if (overload === 7) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
       args[0],
       args[1],
       args[2]
     );
-    sound = Sound.valueOf(args[3].toUpperCase());
+    sound = toEnumOrString(args[1]);
     volume = args[4];
     pitch = 1;
   } else if (overload === 8) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
       args[0],
       args[1],
       args[2]
     );
-    sound = Sound.valueOf(args[3].toUpperCase());
+    sound = toEnumOrString(args[1]);
     volume = args[4];
     pitch = args[5];
   } else if (overload === 9) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
       args[0],
       args[1],
       args[2]
@@ -170,7 +180,7 @@ function SOUNDALL(args) {
     pitch = 1;
   } else if (overload === 10) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
       args[0],
       args[1],
       args[2]
@@ -180,7 +190,7 @@ function SOUNDALL(args) {
     pitch = 1;
   } else if (overload === 11) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
       args[0],
       args[1],
       args[2]
@@ -191,7 +201,7 @@ function SOUNDALL(args) {
   }
 
   if (!sound)
-    throw new Error(overload >= 6 ? args[3] : args[1] + ' is not valid sound.');
+    throw new Error(overload >= 6 ? args[3] : args[1] + " is not valid sound.");
 
   location.getWorld().playSound(location, sound, volume, pitch);
 

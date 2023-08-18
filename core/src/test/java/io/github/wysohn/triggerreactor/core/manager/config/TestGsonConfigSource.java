@@ -23,19 +23,26 @@ import io.github.wysohn.gsoncopy.internal.LinkedTreeMap;
 import io.github.wysohn.gsoncopy.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
 public class TestGsonConfigSource {
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
+
     private final String jsonString = "{\n" +
             "   \"string\":\"teststring\",\n" +
             "   \"number\":8,\n" +
@@ -72,30 +79,33 @@ public class TestGsonConfigSource {
             "   }\n" +
             "}";
 
-    private File mockFile;
+    private File mockFolder;
     private StringWriter stringWriter;
-    private GsonConfigSource manager;
+    private GsonConfigSource source;
 
     @Before
-    public void init() {
-        mockFile = Mockito.mock(File.class);
+    public void init() throws IOException {
+        mockFolder = testFolder.getRoot();
         stringWriter = new StringWriter();
+        SaveWorker saveWorker = new SaveWorker(5);
 
-        manager = new GsonConfigSource(mockFile,
+        Files.write(new File(mockFolder, "test.json").toPath(), jsonString.getBytes());
+
+        source = new GsonConfigSource(
+                saveWorker,
+                mockFolder,
+                "test",
                 (f) -> new StringReader(jsonString),
                 (f) -> stringWriter);
-
-        Mockito.when(mockFile.exists()).thenReturn(true);
-        Mockito.when(mockFile.length()).thenReturn(Long.MAX_VALUE);
     }
 
     @Test
-    public void testReload() throws Exception{
-        manager.reload();
+    public void testReload() throws Exception {
+        source.reload();
 
-        Field field = manager.getClass().getDeclaredField("cache");
+        Field field = source.getClass().getDeclaredField("cache");
         field.setAccessible(true);
-        Map<String, Object> cache = (Map<String, Object>) field.get(manager);
+        Map<String, Object> cache = (Map<String, Object>) field.get(source);
 
         assertEquals("teststring", cache.get("string"));
         assertEquals(8, cache.get("number"));
@@ -126,9 +136,9 @@ public class TestGsonConfigSource {
 
     @Test
     public void testSaveAll() throws Exception {
-        Field field = manager.getClass().getDeclaredField("cache");
+        Field field = source.getClass().getDeclaredField("cache");
         field.setAccessible(true);
-        Map<String, Object> cache = (Map<String, Object>) field.get(manager);
+        Map<String, Object> cache = (Map<String, Object>) field.get(source);
 
         cache.put("string2", "teststring2");
         cache.put("number2", 123);
@@ -161,7 +171,7 @@ public class TestGsonConfigSource {
         myobj2.b = false;
         cache.put("myobj2", myobj2);
 
-        manager.saveAll();
+        source.saveAll();
 
         String out = stringWriter.toString();
 

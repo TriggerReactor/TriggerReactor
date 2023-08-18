@@ -80,7 +80,7 @@ subprojects {
         testImplementation 'org.javassist:javassist:3.20.0-GA'
     }
 
-    java{
+    java {
         sourceCompatibility = JavaVersion.VERSION_16
         targetCompatibility = JavaVersion.VERSION_16
     }
@@ -90,13 +90,12 @@ subprojects {
     // TASKS
 
     test {
-        reports.html.enabled = false
         testLogging {
             events "failed"
             exceptionFormat "full"
         }
 
-        if(!project.hasProperty("Legacy")){
+        if (!project.hasProperty("Legacy")) {
             jvmArgs = [
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
@@ -130,14 +129,23 @@ subprojects {
 }
 
 allprojects {
-    task testLegacy{
+    task testLegacy {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     testLegacy.finalizedBy test
+
+    test {
+        beforeTest {
+            logger.quiet "Executing test ${it.name} [${it.className}]"
+        }
+        afterTest { desc, result ->
+            logger.quiet "Done test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+        }
+    }
 }
 
-def exportedProjects= [
+def exportedProjects = [
         ":core",
         /*":sponge",*/
         ":bukkit",

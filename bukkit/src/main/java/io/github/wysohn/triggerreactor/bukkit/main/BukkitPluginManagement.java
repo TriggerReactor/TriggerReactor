@@ -193,8 +193,8 @@ public class BukkitPluginManagement implements IPluginManagement {
                             return true;
                         } else {
                             throw new RuntimeException("Parameter type not match; it should be a String."
-                                                               + " Make sure to put double quotes, if you provided "
-                                                               + "String literal.");
+                                    + " Make sure to put double quotes, if you provided "
+                                    + "String literal.");
                         }
                     }
 

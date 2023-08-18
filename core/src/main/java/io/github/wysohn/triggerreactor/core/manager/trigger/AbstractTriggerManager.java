@@ -16,8 +16,10 @@
  */
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
@@ -36,15 +38,21 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     @Inject
     private ITriggerLoader<T> loader;
     @Inject
-    protected ConfigSourceFactory configSourceFactory;
+    private IConfigSourceFactory configSourceFactory;
+    @Inject
+    private IExceptionHandle exceptionHandle;
 
     private final Observer observer = new Observer();
     private final Map<String, T> triggers = new ConcurrentHashMap<>();
+    private final SaveWorker saveWorker;
 
     protected final File folder;
 
     public AbstractTriggerManager(File folder) {
         this.folder = folder;
+
+        saveWorker = new SaveWorker(5, (ex) ->
+                exceptionHandle.handleException((Object) null, ex));
     }
 
     public File getFolder() {
@@ -52,7 +60,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     public TriggerInfo[] getTriggerInfos() {
-        return loader.listTriggers(folder, configSourceFactory);
+        return loader.listTriggers(saveWorker, folder, configSourceFactory);
     }
 
     @Override
@@ -63,13 +71,18 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     @Override
+    public void initialize() {
+        saveWorker.start();
+    }
+
+    @Override
     public void reload() {
         if (!folder.exists())
             folder.mkdirs();
 
         triggers.clear();
 
-        for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
+        for (TriggerInfo info : loader.listTriggers(saveWorker, folder, configSourceFactory)) {
             try {
                 reload(info);
 
@@ -83,7 +96,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     public void reload(String triggerName) {
-        IConfigSource configSource = configSourceFactory.create(folder, triggerName);
+        IConfigSource configSource = configSourceFactory.create(saveWorker, folder, triggerName);
         File sourceCodeFile = new File(folder, triggerName + ".trg");
         TriggerInfo info = loader.toTriggerInfo(sourceCodeFile, configSource);
 
@@ -167,6 +180,10 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
                 strs.add(str);
         }
         return strs;
+    }
+
+    protected IConfigSource getConfigSource(File folder, String name) {
+        return configSourceFactory.create(saveWorker, folder, name);
     }
 
     @FunctionalInterface

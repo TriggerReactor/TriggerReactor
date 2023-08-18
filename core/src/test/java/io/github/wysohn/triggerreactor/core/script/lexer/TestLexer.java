@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2023 TriggerReactor Team
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class TestLexer {
-    
+
     private static final Charset charset = StandardCharsets.UTF_8;
 
     private static void testToken(Lexer lexer, Type id, String s) throws IOException, LexerException {
@@ -375,8 +375,8 @@ public class TestLexer {
         testEnd(lexer);
 
         text = "4/**\n"
-            + " * heya" +
-            " */+5";
+                + " * heya" +
+                " */+5";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.INTEGER, "4");
         testToken(lexer, Type.OPERATOR_A, "+");
@@ -859,7 +859,7 @@ public class TestLexer {
     }
 
     @Test
-    public void testImportWithUnderscore() throws Exception{
+    public void testImportWithUnderscore() throws Exception {
         String text;
         Lexer lexer;
 

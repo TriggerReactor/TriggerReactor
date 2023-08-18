@@ -17,7 +17,7 @@ task writePluginYml {
     options.setPrettyFlow(true);
 
     File file = new File("$projectDir/src/main/resources/plugin.yml")
-    if (!file.exists()){
+    if (!file.exists()) {
         file.getParentFile().mkdirs()
         file.createNewFile()
     }
@@ -27,7 +27,7 @@ task writePluginYml {
     Map<String, Object> map = yaml.load(input);
     input.close();
 
-    if(map == null)
+    if (map == null)
         map = new LinkedHashMap<String, Object>();
 
     String id = project.ext.id

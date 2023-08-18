@@ -34,12 +34,14 @@ public class NamedTriggerModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new FactoryModuleBuilder()
-                        .implement(NamedTrigger.class, NamedTrigger.class)
-                        .build(INamedTriggerFactory.class));
+                .implement(NamedTrigger.class, NamedTrigger.class)
+                .build(INamedTriggerFactory.class));
 
-        binder().bind(new TypeLiteral<AbstractTriggerManager<NamedTrigger>>(){})
+        binder().bind(new TypeLiteral<AbstractTriggerManager<NamedTrigger>>() {
+                })
                 .to(NamedTriggerManager.class);
-        binder().bind(new TypeLiteral<ITriggerLoader<NamedTrigger>>(){})
+        binder().bind(new TypeLiteral<ITriggerLoader<NamedTrigger>>() {
+                })
                 .to(NamedTriggerLoader.class);
     }
 

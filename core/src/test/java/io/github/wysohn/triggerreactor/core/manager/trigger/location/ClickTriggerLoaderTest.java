@@ -19,7 +19,11 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
@@ -51,6 +55,9 @@ public class ClickTriggerLoaderTest {
                 new ClickTriggerModule(),
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
                 new AbstractModule() {
 
                 }

@@ -128,8 +128,8 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
             // Micro-optimization: avoid polymorphic calls to
             // Comparator.compare().
             @SuppressWarnings("unchecked") // Throws a ClassCastException below
-                    // if there's trouble.
-                    Comparable<Object> comparableKey = (comparator == NATURAL_ORDER) ? (Comparable<Object>) key : null;
+            // if there's trouble.
+            Comparable<Object> comparableKey = (comparator == NATURAL_ORDER) ? (Comparable<Object>) key : null;
 
             while (true) {
                 comparison = (comparableKey != null) ? comparableKey.compareTo(nearest.key)

@@ -60,7 +60,7 @@ public class SimpleLocation implements Cloneable {
             throw new SimpleLocationFormatException(str);
 
         return new SimpleLocation(world, Integer.parseInt(splitl[0]), Integer.parseInt(splitl[1]),
-                                  Integer.parseInt(splitl[2]));
+                Integer.parseInt(splitl[2]));
     }
 
     public String getWorld() {

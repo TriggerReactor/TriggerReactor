@@ -16,6 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -2654,8 +2655,8 @@ public class TestInterpreter {
 
                         Runnable run = invocation.getArgument(0);
                         run.run();
-                        System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
-                        System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
+//                        System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
+//                        System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
                     });
                     return null;
                 }
@@ -2795,6 +2796,867 @@ public class TestInterpreter {
         assertNull(test.getScriptVar("testLambdaFnResult"));
     }
 
+    @Test
+    public void testSwitch() throws Exception {
+        // arrange
+        final String text = ""
+                + "dice = random(1, 7)\n\n"
+                + "SWITCH dice\n"
+                + "  CASE 1, 2 => #MESSAGE \"You are lose!\"\n"
+                + "  CASE 3, 4 =>\n"
+                + "    #MESSAGE \"Good! You are draw.\"\n"
+                + "  ENDCASE\n"
+                + "  CASE 5, 6 =>\n"
+                + "    #MESSAGE \"Perfect! You are win!\"\n"
+                + "  DEFAULT =>\n"
+                + "    #MESSAGE \"Unexpected result! I guess you are a cheater?\"\n"
+                + "ENDSWITCH";
+
+        // act
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(mockExecutor, times(1)).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testSwitchComplex() throws Exception {
+        // arrange
+        final String text = ""
+                + "rand = random(0, 21)\n\n"
+                + "SWITCH rand"
+                + "  CASE 0..10 => #TEST\n"
+                + "  CASE 10..=15 =>\n"
+                + "    #TEST\n"
+                + "  ENDCASE\n"
+                + "  CASE 16, 17, 18 =>\n"
+                + "    #TEST\n"
+                + "  DEFAULT => #TEST\n"
+                + "ENDSWITCH";
+
+        // act
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(mockExecutor, times(1)).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testSwitchComplex2() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH random(0, 21)"
+                + "  CASE 0..10 => #TEST\n"
+                + "  CASE 10..=15 =>\n"
+                + "    #TEST\n"
+                + "  ENDCASE\n"
+                + "  CASE 16, 17, 18, 19, 20 => #TEST\n"
+                + "ENDSWITCH";
+
+        // act
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", mockExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(mockExecutor, times(1)).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testSwitchWithUnderscore() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH true\n"
+                + "  _ => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithBoolean() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH true\n"
+                + "  CASE true => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithString() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH \"THAT\"\n"
+                + "  CASE \"that\" => #FAIL\n"
+                + "  CASE \"tHaT\", \"ThAt\", \"ThaT\" => #FAIL\n"
+                + "  CASE \"THAT\" => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger() throws Exception {
+        // arrange
+        final String text = ""
+                + "result = 1\n\n"
+                + "SWITCH result\n"
+                + "  CASE 1, 2 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger2() throws Exception {
+        // arrange
+        final String text = ""
+                + "result = 3\n\n"
+                + "SWITCH result\n"
+                + "  CASE 1, 2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger3() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 3\n"
+                + "  CASE 1, 2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger_RangeExclusive() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 1\n"
+                + "  CASE 1..2 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger_RangeExclusive2() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 3\n"
+                + "  CASE 1..2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger_RangeInclusive() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2\n"
+                + "  CASE 1..=2 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger_RangeInclusive2() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 3\n"
+                + "  CASE 1..=2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal() throws Exception {
+        // arrange
+        final String text = ""
+                + "result = 1.0\n\n"
+                + "SWITCH result\n"
+                + "  CASE 1.0, 1.1, 1.2 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal2() throws Exception {
+        // arrange
+        final String text = ""
+                + "result = 2.0\n\n"
+                + "SWITCH result\n"
+                + "  CASE 1.0, 1.1, 1.2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal3() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.0\n"
+                + "  CASE 1.0, 1.1, 1.2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeExclusive() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 1.5\n"
+                + "  CASE 1..2 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeExclusive2() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 1.5\n"
+                + "  CASE 1.0..2.0 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeExclusive3() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.5\n"
+                + "  CASE 1..2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeExclusive4() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.5\n"
+                + "  CASE 1.0..2.0 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeInclusive() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.0\n"
+                + "  CASE 1..=2 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeInclusive2() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.0\n"
+                + "  CASE 1.0..=2.0 => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeInclusive3() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.5\n"
+                + "  CASE 1..=2 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal_RangeInclusive4() throws Exception {
+        // arrange
+        final String text = ""
+                + "SWITCH 2.5\n"
+                + "  CASE 1.0..=2.0 => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + GameMode.class.getName() + "\n"
+                + "result = GameMode.SURVIVAL\n\n"
+                + "SWITCH result\n"
+                + "  CASE GameMode.SURVIVAL => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum2() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + GameMode.class.getName() + "\n"
+                + "result = GameMode.SURVIVAL\n\n"
+                + "SWITCH result\n"
+                + "  CASE GameMode.CREATIVE, GameMode.ADVENTURE, GameMode.SPECTATOR => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnum() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + GameMode.class.getName() + "\n"
+                + "result = GameMode.SURVIVAL\n\n"
+                + "SWITCH result\n"
+                + "  CASE SURVIVAL => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnum2() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + GameMode.class.getName() + "\n"
+                + "result = GameMode.SURVIVAL\n\n"
+                + "SWITCH result\n"
+                + "  CASE CREATIVE, ADVENTURE, SPECTATOR => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnum3() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + GameMode.class.getName() + "\n"
+                + "result = GameMode.SURVIVAL\n"
+                + "condition = GameMode.CREATIVE\n\n"
+                + "SWITCH result\n"
+                + "  CASE condition, ADVENTURE, \"SPECTATOR\" => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnumByString() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + TestEnum.class.getName() + "\n"
+                + "result = TestEnum.IMTEST\n\n"
+                + "SWITCH result"
+                + "  CASE \"IMTEST\" => #PASS\n"
+                + "  DEFAULT => #FAIL\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnumByString2() throws Exception {
+        // arrange
+        final String text = ""
+                + "IMPORT " + TestEnum.class.getName() + "\n"
+                + "result = TestEnum.IMTEST\n\n"
+                + "SWITCH result\n"
+                + "  CASE \"IMTEST2\", \"IMTEST3\" => #FAIL\n"
+                + "  DEFAULT => #PASS\n"
+                + "ENDSWITCH";
+
+        // act
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        final InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("PASS", passExecutor)
+                .putExecutor("FAIL", failExecutor)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
@@ -2853,7 +3715,16 @@ public class TestInterpreter {
     }
 
     public enum TestEnum {
-        IMTEST
+        IMTEST,
+        IMTEST2,
+        IMTEST3
+    }
+
+    public enum GameMode {
+        CREATIVE,
+        SURVIVAL,
+        ADVENTURE,
+        SPECTATOR
     }
 
     public static class ConstTest {

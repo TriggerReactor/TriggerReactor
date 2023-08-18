@@ -45,5 +45,4 @@ public class SerializableLocation extends Location implements ConfigurationSeria
     }
 
 
-
 }

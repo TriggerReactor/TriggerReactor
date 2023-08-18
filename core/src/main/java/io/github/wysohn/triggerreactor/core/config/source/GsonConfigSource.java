@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.gsoncopy.Gson;
 import io.github.wysohn.gsoncopy.GsonBuilder;
 import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
@@ -13,7 +14,6 @@ import io.github.wysohn.triggerreactor.core.config.validation.DefaultValidator;
 import io.github.wysohn.triggerreactor.core.config.validation.SimpleChunkLocationValidator;
 import io.github.wysohn.triggerreactor.core.config.validation.SimpleLocationValidator;
 import io.github.wysohn.triggerreactor.core.config.validation.UUIDValidator;
-import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
@@ -24,6 +24,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
+
+import static io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory.assertFile;
 
 public class GsonConfigSource implements IConfigSource {
     private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
@@ -58,7 +60,7 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     //Lock order: file -> cache
-    private final File file;
+    final File file;
     private final Function<File, Reader> readerFactory;
     private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
@@ -66,49 +68,43 @@ public class GsonConfigSource implements IConfigSource {
     private final Gson gson = GSON_BUILDER.create();
 
     private final ITypeValidator typeValidator;
-    private final SaveWorker saveWorker = new SaveWorker(5);
+
+    private final SaveWorker saveWorker;
 
     @Inject
-    private IPluginManagement pluginManagement;
-
-    GsonConfigSource(File file) {
-        this(file, f -> {
+    GsonConfigSource(@Assisted SaveWorker saveWorker, @Assisted File folder, @Assisted String fileName) {
+        this(saveWorker, folder, fileName, (f) -> {
             try {
                 return new FileReader(f);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                return null;
             }
-        }, f -> {
+            return null;
+        }, (f) -> {
             try {
                 return new FileWriter(f);
             } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
+            return null;
         });
     }
 
-    /**
-     * @param file
-     * @param readerFactory
-     * @param writerFactory
-     * @deprecated for test. Do not use it directly unless necessary.
-     */
-    public GsonConfigSource(File file,
+    public GsonConfigSource(SaveWorker saveWorker, File folder, String fileName,
                             Function<File, Reader> readerFactory,
                             Function<File, Writer> writerFactory) {
-        ValidationUtil.notNull(file);
+        assertFile(folder, fileName);
+
+        ValidationUtil.notNull(saveWorker);
+        ValidationUtil.validate(saveWorker.isAlive(), "SaveWorker is not alive!");
         ValidationUtil.notNull(readerFactory);
         ValidationUtil.notNull(writerFactory);
 
-        this.file = file;
+        this.saveWorker = saveWorker;
+        this.file = new File(folder, fileName + ".json");
         this.readerFactory = readerFactory;
         this.writerFactory = writerFactory;
         this.typeValidator = VALIDATOR_BUILDER.build();
-
-        saveWorker.setPriority(Thread.NORM_PRIORITY - 1);
-        saveWorker.start();
     }
 
     @Override
@@ -157,13 +153,15 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void saveAll() {
-        saveWorker.saveNow();
+        cacheToFile();
     }
 
     /**
      * Blocking operation
      */
-    private void cacheToFile() {
+    void cacheToFile() {
+        ensureFile();
+
         try (Writer fw = this.writerFactory.apply(file)) {
             String ser;
 
@@ -248,7 +246,7 @@ public class GsonConfigSource implements IConfigSource {
             put(cache, IConfigSource.toPath(key), value);
         }
 
-        saveWorker.flush();
+        saveWorker.flush(this);
     }
 
     @Override
@@ -280,7 +278,7 @@ public class GsonConfigSource implements IConfigSource {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            saveWorker.saveNow();
+            cacheToFile();
         }
     }
 
@@ -301,66 +299,4 @@ public class GsonConfigSource implements IConfigSource {
         return cache.toString();
     }
 
-    class SaveWorker extends Thread {
-        private final int buffer;
-        private final long maxFlushInterval = 1000L;
-
-        private long count = 0;
-        private long lastFlush = System.currentTimeMillis();
-        private volatile boolean running = true;
-
-        public SaveWorker(int buffer) {
-            this.buffer = buffer;
-        }
-
-        private synchronized void flush() {
-            count++;
-            notify();
-        }
-
-        private synchronized void shutdown() {
-            running = false;
-            notify();
-        }
-
-        private boolean bufferFilled() {
-            // either buffer is filled or interval is reached
-            return count >= buffer || System.currentTimeMillis() - lastFlush >= maxFlushInterval;
-        }
-
-        public void saveNow() {
-            synchronized (file) {
-                ensureFile();
-                cacheToFile();
-
-                count = 0;
-                lastFlush = System.currentTimeMillis();
-            }
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (running && !Thread.interrupted()) {
-                    if (count == 0 || !bufferFilled()) {
-                        synchronized (this) {
-                            wait();
-                        }
-
-                        continue;
-                    }
-
-                    if (running) {
-                        saveNow();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                saveNow();
-                if (!pluginManagement.isEnabled())
-                    pluginManagement.disablePlugin();
-            }
-        }
-    }
 }

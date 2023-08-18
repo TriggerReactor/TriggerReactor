@@ -72,9 +72,6 @@ public class InterpreterLocalContext {
 
     private int callArgsSize = 0;
 
-    //TODO this is a temporary solution. Move this to variable map with a special key.
-    private Object triggerCause = null;
-
     public InterpreterLocalContext(Timings.Timing timing) {
         this(timing, null);
     }
@@ -86,10 +83,6 @@ public class InterpreterLocalContext {
 
     /**
      * Copy current state, except for the current stack.
-     * <p>
-     * This is the only method that is thread-safe, as when we execute LAMBDA block,
-     * we may have to copy the current state to the new context (eg. LAMBDA block
-     * is executed in ASYNC block).
      *
      * @param timingsName name to be used as the timing. Since the context will be
      *                    inherited from 'this' context, the timing will be attached
@@ -256,12 +249,7 @@ public class InterpreterLocalContext {
 
     @Deprecated
     public Object getTriggerCause() {
-        return tryOrThrow(() -> triggerCause);
-    }
-
-    @Deprecated
-    public void setTriggerCause(Object triggerCause) {
-        tryOrThrow(() -> this.triggerCause = triggerCause);
+        return tryOrThrow(() -> vars.get("event"));
     }
 
     private class DelegatedReentrantLock extends ReentrantLock {

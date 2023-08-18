@@ -43,7 +43,8 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test driving class for testing Placeholders
@@ -51,12 +52,12 @@ import static org.mockito.Mockito.*;
 public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @BeforeClass
-    public static void begin(){
+    public static void begin() {
         PlaceholderTest.coverage.clear();
     }
 
     @AfterClass
-    public static void tearDown(){
+    public static void tearDown() {
         PlaceholderTest.coverage.forEach((key, b) -> System.out.println(key));
         PlaceholderTest.coverage.clear();
     }
@@ -145,7 +146,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testCmdLine1() throws Exception {
         class FakeEvent {
-            public String getMessage() { return null; }
+            public String getMessage() {
+                return null;
+            }
         }
 
         FakeEvent event = mock(FakeEvent.class);
@@ -164,7 +167,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testCmdLine2() throws Exception {
         class FakeEvent {
-            public String getMessage() { return null; }
+            public String getMessage() {
+                return null;
+            }
         }
 
         FakeEvent event = mock(FakeEvent.class);
@@ -184,7 +189,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testCmdLine3() throws Exception {
         class FakeEvent {
-            public String getMessage() { return null; }
+            public String getMessage() {
+                return null;
+            }
         }
 
         FakeEvent event = mock(FakeEvent.class);
@@ -281,7 +288,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testEntityName() throws Exception {
         class FakeEvent {
-            public Entity getEntity() { return null; }
+            public Entity getEntity() {
+                return null;
+            }
         }
 
         FakeEvent event = mock(FakeEvent.class);
@@ -341,7 +350,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testFirstGroup() throws Exception {
         class FakePermission {
-            public String[] getPlayerGroups(Object any, Player player) { return null; }
+            public String[] getPlayerGroups(Object any, Player player) {
+                return null;
+            }
         }
 
         class FakeVault {
@@ -353,7 +364,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         FakeVault vault = mock(FakeVault.class);
         FakePermission permission = mock(FakePermission.class);
         Player player = mock(Player.class);
-        String[] group = { "parent", "child" };
+        String[] group = {"parent", "child"};
 
         when(vault.permission()).thenReturn(permission);
         when(permission.getPlayerGroups(null, player)).thenReturn(group);
@@ -403,7 +414,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testGroup() throws Exception {
         class FakePermission {
-            public String[] getPlayerGroups(Object any, Player player) { return null; }
+            public String[] getPlayerGroups(Object any, Player player) {
+                return null;
+            }
         }
 
         class FakeVault {
@@ -415,7 +428,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         FakeVault vault = mock(FakeVault.class);
         FakePermission permission = mock(FakePermission.class);
         Player player = mock(Player.class);
-        String[] group = { "parent", "child" };
+        String[] group = {"parent", "child"};
 
         when(vault.permission()).thenReturn(permission);
         when(permission.getPlayerGroups(null, player)).thenReturn(group);
@@ -812,7 +825,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
                 super(player, drops, droppedExp, deathMessage);
             }
 
-            public Player getEntity() { return null; }
+            public Player getEntity() {
+                return null;
+            }
         }
 
         FakeEvent event = mock(FakeEvent.class);
@@ -1021,7 +1036,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testPackList2() throws Exception {
         String type = "Double";
-        Double[] value = { 10.0, -5.5 };
+        Double[] value = {10.0, -5.5};
 
         JsTest test = new PlaceholderTest(engine, "packlist");
 
@@ -1092,7 +1107,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(location.getBlockZ()).thenReturn(z);
         when(world.getName()).thenReturn(worldName);
 
-        String expected = worldName+"@"+x+","+y+","+z;
+        String expected = worldName + "@" + x + "," + y + "," + z;
 
         JsTest test = new PlaceholderTest(engine, "playerloc")
                 .addVariable("player", player);
@@ -1121,7 +1136,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(location.getZ()).thenReturn(z);
         when(world.getName()).thenReturn(worldName);
 
-        String expected = worldName+"@"+x+","+y+","+z;
+        String expected = worldName + "@" + x + "," + y + "," + z;
 
         JsTest test = new PlaceholderTest(engine, "playerlocexact")
                 .addVariable("player", player);
@@ -1164,7 +1179,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testPrefix() throws Exception {
         class FakeChat {
-            public String getPlayerPrefix(Player player) { return null; }
+            public String getPlayerPrefix(Player player) {
+                return null;
+            }
         }
 
         class FakeVault {
@@ -1239,7 +1256,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testSuffix() throws Exception {
         class FakeChat {
-            public String getPlayerSuffix(Player player) { return null; }
+            public String getPlayerSuffix(Player player) {
+                return null;
+            }
         }
 
         class FakeVault {
@@ -1292,7 +1311,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testTps() throws Exception {
         class FakeTpsHelper {
-            public double getTPS() { return 0; }
+            public double getTPS() {
+                return 0;
+            }
         }
 
         class FakePlugin {

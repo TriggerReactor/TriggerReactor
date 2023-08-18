@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -45,6 +46,7 @@ public class Parser {
     private final List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
+    private boolean pauseUnderscore = false;
 
     public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
@@ -114,7 +116,7 @@ public class Parser {
                 Token tryToken = token;
                 nextToken();
                 return parseTry(tryToken);
-            }  else if ("CATCH".equals(token.value)) {
+            } else if ("CATCH".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -130,7 +132,7 @@ public class Parser {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            }  else if ("IF".equals(token.value)) {
+            } else if ("IF".equals(token.value)) {
                 Token ifToken = token;
                 nextToken();
                 return parseIf(ifToken);
@@ -143,6 +145,31 @@ public class Parser {
                 nextToken();
                 return node;
             } else if ("ENDIF".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("SWITCH".equals(token.value)) {
+                final Token switchToken = token;
+                nextToken();
+                return parseSwitch(switchToken);
+            } else if ("ENDSWITCH".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("CASE".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("ENDCASE".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("DEFAULT".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if (this.pauseUnderscore && "_".equals(token.value)) {
+                this.pauseUnderscore = false;
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -191,8 +218,8 @@ public class Parser {
 
                 if (token.type == Type.RANGE || (token.type == Type.OPERATOR && ":".equals(token.value))) {
                     final Node range = token.type == Type.RANGE
-                        ? new Node(token)
-                        : new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>"));  // Compatibility for `:` operator
+                            ? new Node(token)
+                            : new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>"));  // Compatibility for `:` operator
                     iteration.getChildren().add(range);
 
                     nextToken();
@@ -430,13 +457,184 @@ public class Parser {
         return tryNode;
     }
 
-    private Node parseAssignment() throws IOException, LexerException, ParserException{
+    private Node parseSwitch(final Token switchToken) throws IOException, LexerException, ParserException {
+        final Node switchNode = new Node(new Token(Type.SWITCH, "<SWITCH>", switchToken));
+
+        final Node varName = parseBitwise();
+        if (varName == null) {
+            throw new ParserException("Could not find variable name for SWITCH statement! " + switchNode.getToken());
+        }
+
+        switchNode.getChildren().add(varName);
+
+        // `null` value is equivalent to meet "ENDSWITCH" statement
+        this.pauseUnderscore = true;
+        Node mayCaseOrDefaultNode = parseStatement();
+        while (mayCaseOrDefaultNode != null) {
+            if ("CASE".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString())) {
+                mayCaseOrDefaultNode = parseCase(switchNode);
+                continue;
+            } else if ("DEFAULT".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString()) || "_".equals(mayCaseOrDefaultNode.getToken().value)) {
+                // NOTE(Sayakie): Underscore(`_`) represents the end of arms of the switch. This is same as
+                // the `DEFAULT` keyword as do.
+                parseDefault(switchNode);
+                break;
+            } else if ("ENDCASE".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString())) {
+                mayCaseOrDefaultNode = parseStatement();
+                continue;
+            } else if ("ENDSWITCH".equalsIgnoreCase(mayCaseOrDefaultNode.getToken().value.toString())) {
+                break;
+            }
+
+            throw new ParserException("Expected CASE or DEFAULT clause but found " + mayCaseOrDefaultNode);
+        }
+
+        if (switchNode.getChildren().size() < 2) {
+            throw new ParserException("SWITCH statement should have at least one branch! " + switchNode.getToken());
+        }
+
+        // Clean up so that block unexpected behaviour can occur.
+        if (this.pauseUnderscore) {
+            this.pauseUnderscore = false;
+        }
+
+        return switchNode;
+    }
+
+    private Node parseCase(final Node switchNode) throws IOException, LexerException, ParserException {
+        final Node caseNode = new Node(new Token(Type.CASE, "<CASE>", token));
+
+        Node caseComponent = parseLogic();
+        if (caseComponent == null) {
+            throw new ParserException("Could not find any series of CASE clause! " + caseNode.getToken());
+        } else if (Type.LAMBDA.equals(caseComponent.getToken().getType())) {
+            throw new ParserException("Ambiguous series of CASE clause! " + caseNode.getToken());
+        }
+
+        final Node parameterBody = new Node(new Token(Type.PARAMETERS, "<PARAMETERS>", caseComponent.getToken()));
+        parameterBody.getChildren().add(caseComponent);
+
+        while (token != null && ",".equals(token.value)) {
+            nextToken();  // Advance comma(,)
+
+            caseComponent = parseLogic();
+            if (caseComponent == null) {
+                throw new ParserException("Could not find any series of CASE clause! " + caseNode.getToken());
+            }
+
+            parameterBody.getChildren().add(caseComponent);
+        }
+
+        // NOTE(Sayakie): We have to avoid double check comma(,) and RANGE token so that end-user can handle
+        // multiple match patterns like `CASE 1, 3, 5..=7, 10 =>`. At this moment just checking parameters size
+        // to ensure that parser did _NOT_ eat any further tokens.
+        if (token != null && token.type == Type.RANGE && parameterBody.getChildren().size() == 1) {
+            parameterBody.getChildren().add(new Node(token));
+            nextToken();  // Advance RANGE token
+
+            caseComponent = parseLogic();
+            if (caseComponent == null) {
+                throw new ParserException("Could not find any series of CASE clause! " + caseNode.getToken());
+            }
+
+            parameterBody.getChildren().add(caseComponent);
+        }
+
+        caseNode.getChildren().add(parameterBody);
+        switchNode.getChildren().add(caseNode);
+
+        if (token == null) {
+            throw new ParserException("Expected an arrow operator(=>) but end of stream is reached.");
+        } else if (!"=>".equals(token.value)) {
+            throw new ParserException("Expected an arrow operator(=>) but found " + token);
+        }
+        nextToken();
+        skipEndLines();
+
+        final Node caseBody = new Node(new Token(Type.CASEBODY, "<CASEBODY>", token));
+
+        Node codes = null;
+        while (token != null
+                && (codes = parseStatement()) != null
+                && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"_".equals(codes.getToken().value)
+                && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+            caseBody.getChildren().add(codes);
+        }
+
+        if (caseBody.getChildren().size() == 0) {
+            throw new ParserException("CASE clause should have at least one statement: " + caseBody.getToken());
+        }
+
+        caseNode.getChildren().add(caseBody);
+
+        if (codes != null) {
+            if ("CASE".equalsIgnoreCase(codes.getToken().value.toString())
+                    || "ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                    || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                    || "_".equals(codes.getToken().value)) {
+                return codes;
+            } else if ("ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+                return null;
+            }
+        }
+
+        throw new ParserException("Could not find ENDSWITCH statement! " + caseNode.getToken());
+    }
+
+    private Node parseDefault(final Node switchNode) throws IOException, LexerException, ParserException {
+        final Node defaultNode = new Node(new Token(Type.CASE, "<DEFAULT>", token));
+
+        final Node parameterBody = new Node(new Token(Type.PARAMETERS, "<PARAMETERS>", token));
+        defaultNode.getChildren().add(parameterBody);  // `DEFAULT` have no parameters
+
+        if (token == null || !"=>".equals(token.value)) {
+            throw new ParserException("Expected an arrow operator(=>) but found " + token);
+        }
+        nextToken();
+        skipEndLines();
+
+        final Node defaultBody = new Node(new Token(Type.CASEBODY, "<DEFAULTBODY>", token));
+
+        Node codes = null;
+        while (token != null
+                && (codes = parseStatement()) != null
+                && !"CASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"_".equalsIgnoreCase(codes.getToken().value.toString())
+                && !"ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+            defaultBody.getChildren().add(codes);
+        }
+
+        if (defaultBody.getChildren().size() == 0) {
+            throw new ParserException("DEFAULT clause should have at least one statement: " + defaultBody.getToken());
+        }
+
+        defaultNode.getChildren().add(defaultBody);
+        switchNode.getChildren().add(defaultNode);
+
+        if (codes != null) {
+            if ("ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+                return null;
+            } else {
+                // CASE, ENDCASE, DEFAULT, _
+                throw new ParserException("Expected ENDSWITCH statement but found " + codes.getToken());
+            }
+        }
+
+        throw new ParserException("Could not find ENDSWITCH statement! " + defaultNode.getToken());
+    }
+
+    private Node parseAssignment() throws IOException, LexerException, ParserException {
         Node id = parseLogic();
-        if(id == null)
-            throw new ParserException("Expected Id but found nothing. Token: "+token);
+        if (id == null)
+            throw new ParserException("Expected Id but found nothing. Token: " + token);
 
         Node parent = parseAssignmentAndLogic(id);
-        if(parent != null){
+        if (parent != null) {
             return parent;
         } else {
             return id;
@@ -864,44 +1062,44 @@ public class Parser {
         if (token == null)
             return null;
 
-        if("LAMBDA".equals(token.value)){
+        if ("LAMBDA".equals(token.value)) {
             Node lambda = new Node(new Token(Type.LAMBDA, "<LAMBDA>", token));
             nextToken();
 
             Node parameters = new Node(new Token(Type.PARAMETERS, "<PARAMETERS>", token));
             lambda.getChildren().add(parameters);
 
-            if(token != null && token.getType() == Type.ID) {
+            if (token != null && token.getType() == Type.ID) {
                 parameters.getChildren().add(new Node(token));
                 nextToken();
             }
 
-            if(parameters.getChildren().size() > 0){
-                while(token != null && ",".equals(token.value)){
+            if (parameters.getChildren().size() > 0) {
+                while (token != null && ",".equals(token.value)) {
                     nextToken();
-                    if(token == null || token.getType() != Type.ID)
-                        throw new ParserException("Expected a parameter after a comma but found "+token);
+                    if (token == null || token.getType() != Type.ID)
+                        throw new ParserException("Expected a parameter after a comma but found " + token);
 
                     parameters.getChildren().add(new Node(token));
                     nextToken();
                 }
             }
 
-            if(token == null || !"=>".equals(token.value))
-                throw new ParserException("Expected an arrow operator, =>, but found "+token);
+            if (token == null || !"=>".equals(token.value))
+                throw new ParserException("Expected an arrow operator, =>, but found " + token);
             Node body = new Node(new Token(Type.LAMBDABODY, "<LAMBDABODY>", token));
             lambda.getChildren().add(body);
             nextToken();
 
             Node statement = null;
             while ((statement = parseStatement()) != null) {
-                if("ENDLAMBDA".equals(statement.getToken().getValue()))
+                if ("ENDLAMBDA".equals(statement.getToken().getValue()))
                     break;
                 body.getChildren().add(statement);
             }
 
-            if(body.getChildren().size() < 1)
-                throw new ParserException("LAMBDA body should have at least one statement: "+body);
+            if (body.getChildren().size() < 1)
+                throw new ParserException("LAMBDA body should have at least one statement: " + body);
 
             return lambda;
         }
@@ -1053,7 +1251,7 @@ public class Parser {
             return node;
         }
 
-        if(token.getType() == Type.ENDL){
+        if (token.getType() == Type.ENDL) {
             return null;
         }
 
@@ -1063,7 +1261,7 @@ public class Parser {
     private Node parsePostUnary() throws IOException, LexerException, ParserException {
         Node left = parseId();
 
-        if(left != null && token != null && token.type == Type.OPERATOR_UNARY) {
+        if (left != null && token != null && token.type == Type.OPERATOR_UNARY) {
             Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
             node.getChildren().add(left);
             nextToken();
@@ -1204,75 +1402,32 @@ public class Parser {
     }
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException {
-        Charset charset = StandardCharsets.UTF_8;
-/*        String text = ""
-                + "X = 5\n"
-                + "str = \"abc\"\n"
-                + "WHILE 1 > 0\n"
-                + "    str = str + X\n"
-                + "    IF player.in.health > 2 && player.in.health > 0\n"
-                + "        #MESSAGE 3*4\n"
-                + "    ELSE\n"
-                + "        #MESSAGE str\n"
-                + "    ENDIF\n"
-                + "    #MESSAGE player.getTest().in.getHealth()\n"
-                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
-                + "    #MESSAGE player.in.hasPermission(\"t\")\n"
-                + "    X = X - 1\n"
-                + "    IF X < 0\n"
-                + "        #STOP\n"
-                + "    ENDIF\n"
-                + "    #WAIT 1\n"
-                + "ENDWHILE";*/
-/*        String text = ""
-                + "rand = common.random(3)\n"
-                + "IF rand == 0\n"
-                + "#MESSAGE 0\n"
-                + "ENDIF\n"
-                + "IF rand == 1\n"
-                + "#MESSAGE 1\n"
-                + "ENDIF\n"
-                + "IF rand == 2\n"
-                + "#MESSAGE 2\n"
-                + "ENDIF";*/
-        //String text = "#MESSAGE /mw goto ETC";
-        //String text = "#MESSAGE args[0]";
-/*        String text = ""
-                + "FOR i = 0:10\n"
-                + "    #TEST:MESSAGE \"test i=\"+i..i\n"
-                + "ENDFOR\n";*/
-/*        String text = "x = 4.0;"
-                + "#TEST1 -1;"
-                + "#TEST2 -2.0;"
-                + "#TEST3 -$test3;"
-                + "#TEST4 -x;";*/
-/*        String text = ""
-                + "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" +
-                "    IF args[0] == \"option\"\n" +
-                "        IF {$playername+\".kit\"} != true\n" +
-                "            #MESSAGE \"&f[ &c! &f] &ctrue message!\"\n" +
-                "            #STOP\n" +
-                "        ELSEIF {$playername+\".kit\"}\n" +
-                "            {$playername+\".kit\"} = null\n" +
-                "            #MESSAGE \"&f[ &c! &f] :: null message.\"\n" +
-                "        ELSEIF $haspermission: \"lenz.perms\" == false\n" +
-                "            #MESSAGE \"&f[ &c! &f] :: &cfalse message.\"\n" +
-                "            #STOP\n" +
-                "        ENDIF\n" +
-                "    ENDIF\n" +
-                "ENDIF";*/
-//        String text = "a = 2\n" +
-//                "a = ++a * --a - a++ / a--\n" +
-//                "a = -(--a) -(++a) -(a++) -(a--)\n" +
-//                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
-        String text = "" +
-                "abc = LAMBDA =>\n" +
-                "    3\n" +
-                "ENDLAMBDA\n" +
-                "cdf = 55";
+        final Charset charset = StandardCharsets.UTF_8;
+        final String[] texts = new String[]{
+                "a = 3",
+                "SWITCH a",
+                "  CASE 1,2 =>",
+                "    #MESSAGE \"1 or 2\"",
+                "  CASE 3 => #MESSAGE \"It's 3\"",
+                "  CASE 4, 5, 6 =>",
+                "    #MESSAGE \"Hello, \" + a",
+                "  ENDCASE",
+                "  CASE 7 => #STOP",
+                "  DEFAULT => #MESSAGE \"default\"",
+                "ENDSWITCH"
+        };
+        final StringJoiner joiner = new StringJoiner("\n");
+
+        int row = 1;
+        for (final CharSequence cs : texts) {
+            final int i = row++;
+            joiner.add(StringUtils.spaces(4 - (i / 10)) + i + " | " + cs);
+        }
+
+        final String text = joiner.toString();
         System.out.println("original: \n" + text);
 
-        Lexer lexer = new Lexer(text, charset);
+        Lexer lexer = new Lexer(String.join("\n", texts), charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();

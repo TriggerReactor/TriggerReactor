@@ -18,8 +18,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -56,13 +57,13 @@ public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
     }
 
     @Override
-    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
+    public TriggerInfo[] listTriggers(SaveWorker saveWorker, File folder, IConfigSourceFactory fn) {
         File[] files = getAllFiles(new ArrayList<>(), folder);
         return Arrays.stream(files)
                 .filter(file -> file.getName().endsWith(".trg"))
                 .map(file -> {
                     String name = TriggerInfo.extractName(file);
-                    IConfigSource config = fn.create(folder, name);
+                    IConfigSource config = fn.create(saveWorker, folder, name);
                     return new NamedTriggerInfo(folder, file, config);
                 }).toArray(NamedTriggerInfo[]::new);
     }

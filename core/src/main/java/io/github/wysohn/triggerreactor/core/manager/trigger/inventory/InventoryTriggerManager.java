@@ -125,10 +125,11 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
             return false;
 
         File file = getTriggerFile(folder, name, true);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = getConfigSource(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         InventoryTrigger trigger = factory.create(info, script, new IItemStack[size]);
 
+        trigger.init();
         put(name, trigger);
 
         return true;

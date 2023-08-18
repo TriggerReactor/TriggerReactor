@@ -34,8 +34,8 @@ public class InventoryTriggerModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new FactoryModuleBuilder()
-                        .implement(InventoryTrigger.class, InventoryTrigger.class)
-                        .build(IInventoryTriggerFactory.class));
+                .implement(InventoryTrigger.class, InventoryTrigger.class)
+                .build(IInventoryTriggerFactory.class));
 
         binder().bind(new TypeLiteral<ITriggerLoader<InventoryTrigger>>() {
                 })
