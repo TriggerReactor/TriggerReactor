@@ -64,7 +64,7 @@ public class LambdaFunction implements InvocationHandler {
         return lambdaBody.result(lambdaContext);
     }
 
-    public Object invoke(Object... args) throws Throwable {
+    public Object run(Object... args) throws Throwable {
         return invoke(null, null, args);
     }
 }

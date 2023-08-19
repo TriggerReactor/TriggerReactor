@@ -3665,7 +3665,7 @@ public class TestInterpreter {
                 "  a + b\n" +
                 "ENDLAMBDA\n" +
                 "\n" +
-                "testLambdaFnResult = testLambdaFn.invoke(10, 15)\n";
+                "testLambdaFnResult = testLambdaFn.run(10, 15)\n";
 
         // act
         InterpreterTest test = InterpreterTest.Builder.of(text).build();
