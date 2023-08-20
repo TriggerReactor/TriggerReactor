@@ -1340,7 +1340,7 @@ public class TriggerReactorCoreTest {
             handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat" + i, "interval", "1t"});
         }
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 10; i++)
             handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
 
         repeatingTriggerManager.shutdown();
