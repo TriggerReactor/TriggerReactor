@@ -31,6 +31,8 @@ import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
@@ -114,7 +116,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @TriggerRuntimeDependency
     private boolean paused;
     @TriggerRuntimeDependency
-    private boolean running = true;
+    private boolean running;
 
     public boolean isPaused() {
         return paused;
@@ -128,6 +130,15 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 this.notify();
             }
         }
+    }
+
+    public void start() {
+        if (running)
+            return;
+
+        running = true;
+
+        THREAD_POOL.submit(this);
     }
 
     public void stop() {
@@ -180,4 +191,17 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         // we re-use the variables over and over.
         activate(new Object(), vars, true);
     }
+
+    private static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool((r) -> {
+        Thread thread = new Thread(r);
+        thread.setPriority(Thread.MIN_PRIORITY + 1);
+
+        Optional.of(r)
+                .filter(RepeatingTrigger.class::isInstance)
+                .map(RepeatingTrigger.class::cast)
+                .map(RepeatingTrigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .ifPresent((name) -> thread.setName("RepeatingTrigger-" + name));
+        return thread;
+    });
 }

@@ -34,8 +34,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Singleton
 public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
@@ -163,12 +161,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
             vars.put(TRIGGER, "init");
 
             trigger.activate(new Object(), vars, true);
-
-//            Thread thread = task.newThread(trigger,
-//                    "RepeatingTrigger-" + triggerName,
-//                    Thread.MIN_PRIORITY + 1);
-//            thread.start();
-            THREAD_POOL.submit(trigger);
+            trigger.start();
         }
 
         return true;
@@ -207,17 +200,4 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
     protected interface ThrowableHandler {
         void onFail(Throwable throwable);
     }
-
-    private static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool((r) -> {
-        Thread thread = new Thread(r);
-        thread.setPriority(Thread.MIN_PRIORITY + 1);
-
-        Optional.of(r)
-                .filter(RepeatingTrigger.class::isInstance)
-                .map(RepeatingTrigger.class::cast)
-                .map(RepeatingTrigger::getInfo)
-                .map(TriggerInfo::getTriggerName)
-                .ifPresent((name) -> thread.setName("RepeatingTrigger-" + name));
-        return thread;
-    });
 }
