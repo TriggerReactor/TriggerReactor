@@ -26,7 +26,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.HashMap;
@@ -115,7 +114,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @TriggerRuntimeDependency
     private boolean paused;
     @TriggerRuntimeDependency
-    private boolean running;
+    private boolean running = true;
 
     public boolean isPaused() {
         return paused;
