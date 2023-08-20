@@ -64,9 +64,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
         // update variable state, so we can use it in the next iteration.
         vars = new HashMap<>();
-        Optional.ofNullable(getLastExecution())
-                .map(ExecutingTrigger::getLocalContext)
-                .map(InterpreterLocalContext::getVarCopy)
+        Optional.ofNullable(getVarCopy())
                 .ifPresent(vars::putAll);
 
         return result;

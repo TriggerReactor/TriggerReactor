@@ -291,14 +291,15 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     /**
-     * Get the state of the last execution of this trigger.
-     * <p>
-     * WARNING) Re-using this object may cause unexpected behavior if carried out without caution.
+     * Get the copy of variables that were used in the last execution.
      *
      * @return null if the trigger is still running or has not been executed yet.
      */
-    public ExecutingTrigger getLastExecution() {
-        return lastExecution;
+    public synchronized Map<String, Object> getVarCopy() {
+        return Optional.ofNullable(lastExecution)
+                .map(ExecutingTrigger::getLocalContext)
+                .map(InterpreterLocalContext::getVarCopy)
+                .orElse(null);
     }
 
     @Override

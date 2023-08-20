@@ -41,7 +41,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.tools.ArgumentUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
@@ -485,9 +484,7 @@ public class TRGCommandHandler {
                         Map<String, Object> variables = new HashMap<>(); // shares same variable space
                         trigger.activate(eventManagement.createEmptyPlayerEvent(sender), variables, true);
                         Optional.of(trigger)
-                                .map(Trigger::getLastExecution)
-                                .map(Trigger.ExecutingTrigger::getLocalContext)
-                                .map(InterpreterLocalContext::getVarCopy)
+                                .map(Trigger::getVarCopy)
                                 .ifPresent(variables::putAll);
                         targetTrigger.activate(eventManagement.createEmptyPlayerEvent(sender), variables);
 
