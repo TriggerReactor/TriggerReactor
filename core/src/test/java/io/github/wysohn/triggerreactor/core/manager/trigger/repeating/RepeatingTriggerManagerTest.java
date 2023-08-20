@@ -55,7 +55,6 @@ public class RepeatingTriggerManagerTest {
     RepeatingTriggerLoader loader;
     RepeatingTriggerManager manager;
     TaskSupervisor task;
-    Thread thread;
     Future future;
     IPluginManagement pluginManagement;
     ProcessInterrupter interrupter;
@@ -65,7 +64,6 @@ public class RepeatingTriggerManagerTest {
     public void init() throws IllegalAccessException, NoSuchFieldException {
         loader = mock(RepeatingTriggerLoader.class);
         task = mock(TaskSupervisor.class);
-        thread = mock(Thread.class);
         future = mock(Future.class);
         pluginManagement = mock(IPluginManagement.class);
         interrupter = mock(ProcessInterrupter.class);
@@ -94,7 +92,6 @@ public class RepeatingTriggerManagerTest {
                 }
         ).getInstance(RepeatingTriggerManager.class);
 
-        when(task.newThread(any(), anyString(), anyInt())).thenReturn(thread);
         when(pluginManagement.createInterrupter(any())).thenReturn(interrupter);
     }
 
@@ -116,7 +113,7 @@ public class RepeatingTriggerManagerTest {
         manager.reload();
 
         assertNotNull(manager.get("test"));
-        verify(task).newThread(mockTrigger, "RepeatingTrigger-test", Thread.MIN_PRIORITY + 1);
+        verify(mockTrigger).start();
     }
 
     @Test
@@ -137,8 +134,6 @@ public class RepeatingTriggerManagerTest {
 
         assertTrue(manager.startTrigger("test"));
         assertTrue(manager.isRunning("test"));
-
-        verify(thread).start();
     }
 
     @Test
@@ -152,7 +147,5 @@ public class RepeatingTriggerManagerTest {
 
         assertTrue(manager.stopTrigger("test"));
         assertFalse(manager.isRunning("test"));
-
-        verify(thread).interrupt();
     }
 }
