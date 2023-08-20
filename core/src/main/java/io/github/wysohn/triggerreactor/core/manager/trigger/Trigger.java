@@ -269,8 +269,10 @@ public abstract class Trigger implements Cloneable, IObservable {
                 Future<Void> future = taskSupervisor.submitSync(task);
                 try {
                     future.get(3, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e1) {
-
+                } catch (InterruptedException e1) {
+                    // ignore
+                } catch (ExecutionException e1) {
+                    exceptionHandle.handleException(e, e1);
                 } catch (TimeoutException e1) {
                     exceptionHandle.handleException(e, new RuntimeException(
                             "Took too long to process Trigger [" + info + "]! Is the server lagging?",
