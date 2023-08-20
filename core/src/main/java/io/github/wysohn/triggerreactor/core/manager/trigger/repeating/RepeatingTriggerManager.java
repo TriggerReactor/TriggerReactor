@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Singleton
 public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
@@ -41,6 +43,19 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
     private TaskSupervisor task;
     @Inject
     private IRepeatingTriggerFactory factory;
+
+    private final ExecutorService threadPool = Executors.newCachedThreadPool((r) -> {
+        Thread thread = new Thread(r);
+        thread.setPriority(Thread.MIN_PRIORITY + 1);
+
+        Optional.of(r)
+                .filter(RepeatingTrigger.class::isInstance)
+                .map(RepeatingTrigger.class::cast)
+                .map(RepeatingTrigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .ifPresent((name) -> thread.setName("RepeatingTrigger-" + name));
+        return thread;
+    });
 
     protected static final String TRIGGER = "trigger";
 
@@ -69,6 +84,17 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
                 startTrigger(trigger.getInfo().getTriggerName());
             }
         }
+    }
+
+    @Override
+    public void shutdown() {
+        for (RepeatingTrigger trigger : getAllTriggers()) {
+            trigger.stop();
+        }
+
+        threadPool.shutdown();
+
+        super.shutdown();
     }
 
     /**
@@ -162,6 +188,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
 
             trigger.activate(new Object(), vars, true);
             trigger.start();
+            threadPool.submit(trigger);
         }
 
         return true;
