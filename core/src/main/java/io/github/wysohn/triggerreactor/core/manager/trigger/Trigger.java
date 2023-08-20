@@ -280,7 +280,13 @@ public abstract class Trigger implements Cloneable, IObservable {
                 }
             }
         } else {
-            ASYNC_POOL.submit(task);
+            taskSupervisor.submitAsync(() -> {
+                try {
+                    task.call();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
         }
     }
 
@@ -356,6 +362,4 @@ public abstract class Trigger implements Cloneable, IObservable {
             return localContext;
         }
     }
-
-    private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();
 }
