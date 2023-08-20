@@ -143,12 +143,10 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
                 task("repeat");
 
-                try {
-                    Thread.sleep(getInterval());
-                } catch (InterruptedException e) {
-                    break;
-                }
+                Thread.sleep(getInterval());
             }
+        } catch (InterruptedException e) {
+            // ignore
         } catch (Exception e) {
             exceptionHandle.handleException(null, e);
         }
