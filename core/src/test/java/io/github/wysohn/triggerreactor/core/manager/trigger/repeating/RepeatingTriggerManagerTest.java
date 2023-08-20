@@ -113,7 +113,7 @@ public class RepeatingTriggerManagerTest {
         manager.reload();
 
         assertNotNull(manager.get("test"));
-        verify(mockTrigger).start();
+        verify(mockTrigger).start(any());
     }
 
     @Test
