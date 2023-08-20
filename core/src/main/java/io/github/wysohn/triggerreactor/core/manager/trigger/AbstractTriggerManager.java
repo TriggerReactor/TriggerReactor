@@ -136,9 +136,20 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     @Override
     public void shutdown() {
-        for (T trigger : triggers.values()) {
-            trigger.getInfo().shutdown();
-            loader.save(trigger);
+        try {
+            saveWorker.shutdown();
+            saveWorker.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            for (T trigger : triggers.values()) {
+                try {
+                    trigger.getInfo().shutdown();
+                    loader.save(trigger);
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Failed to save " + trigger.getInfo(), e);
+                }
+            }
         }
     }
 

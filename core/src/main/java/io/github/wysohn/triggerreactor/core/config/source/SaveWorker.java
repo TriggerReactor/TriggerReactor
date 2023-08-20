@@ -41,7 +41,7 @@ public class SaveWorker extends Thread {
         }
     }
 
-    void shutdown() {
+    public void shutdown() {
         if (!running)
             return;
 
@@ -68,6 +68,9 @@ public class SaveWorker extends Thread {
 
         List<Exception> exceptions = new LinkedList<>();
         for (GsonConfigSource source : copy) {
+            if (source.isDeleted())
+                continue;
+
             try {
                 synchronized (source.file) {
                     source.cacheToFile();

@@ -71,6 +71,8 @@ public class GsonConfigSource implements IConfigSource {
 
     private final SaveWorker saveWorker;
 
+    private boolean deleted = false;
+
     @Inject
     GsonConfigSource(@Assisted SaveWorker saveWorker, @Assisted File folder, @Assisted String fileName) {
         this(saveWorker, folder, fileName, (f) -> {
@@ -272,25 +274,17 @@ public class GsonConfigSource implements IConfigSource {
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
     public void shutdown() {
-        saveWorker.shutdown();
-        try {
-            saveWorker.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            cacheToFile();
-        }
+        cacheToFile();
     }
 
     @Override
-    public void delete() {
-        saveWorker.shutdown();
-        try {
-            saveWorker.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public synchronized void delete() {
         file.delete();
+        this.deleted = true;
+    }
+
+    public synchronized boolean isDeleted() {
+        return deleted;
     }
 
     @Override
@@ -298,5 +292,4 @@ public class GsonConfigSource implements IConfigSource {
         //TODO this would print everything in the cache, which is not desired
         return cache.toString();
     }
-
 }
