@@ -31,6 +31,8 @@ import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
@@ -115,6 +117,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private boolean paused;
     @TriggerRuntimeDependency
     private boolean running;
+    @TriggerRuntimeDependency
+    private Future<?> future;
 
     public boolean isPaused() {
         return paused;
@@ -130,11 +134,12 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
     }
 
-    public void start() {
+    public void start(ExecutorService exec) {
         if (running)
             return;
 
         running = true;
+        future = exec.submit(this);
     }
 
     public void stop() {
@@ -142,6 +147,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
             return;
 
         running = false;
+        future.cancel(true);
 
         synchronized (this) {
             this.notify();

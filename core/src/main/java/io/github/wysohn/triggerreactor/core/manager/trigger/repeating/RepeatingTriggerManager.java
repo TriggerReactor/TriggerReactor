@@ -92,9 +92,9 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
             trigger.stop();
         }
 
-        threadPool.shutdown();
-
         super.shutdown();
+
+        threadPool.shutdown();
     }
 
     /**
@@ -187,8 +187,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
             vars.put(TRIGGER, "init");
 
             trigger.activate(new Object(), vars, true);
-            trigger.start();
-            threadPool.submit(trigger);
+            trigger.start(threadPool);
         }
 
         return true;
