@@ -44,6 +44,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -1311,38 +1313,39 @@ public class TriggerReactorCoreTest {
         RepeatingTriggerManager repeatingTriggerManager = injector.getInstance(RepeatingTriggerManager.class);
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
 
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+
         when(sender.getUniqueId()).thenReturn(uuid);
         when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
+        when(pluginManagement.getConsoleSender()).thenReturn(sender);
 
         when(javascriptFileLoader.listFiles(any(), any())).thenReturn(new File[0]);
         when(taskSupervisor.submitSync(any(Callable.class))).thenAnswer(invocation -> {
             Callable callable = invocation.getArgument(0);
-            callable.call();
-            CompletableFuture future = new CompletableFuture();
-            future.complete(null);
-            return future;
+            return exec.submit(callable);
         });
         when(taskSupervisor.newThread(any(), any(), anyInt())).thenAnswer(invocation ->
-            new Thread((Runnable) invocation.getArgument(0)));
+                new Thread((Runnable) invocation.getArgument(0)));
+        doAnswer(invocation -> {
+            exec.submit((Runnable) invocation.getArgument(0));
+            return null;
+        }).when(taskSupervisor).runTask(any(Runnable.class));
 
         // act
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 150; i++) {
             handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat" + i});
-            scriptEditManager.isEditing(sender);
             scriptEditManager.onChat(sender, "anystring");
-            scriptEditManager.onChat(sender, "#MESSAGE \"Hello World\"" + i + "; #WAIT 2;");
+            scriptEditManager.onChat(sender, "#MESSAGE \"Hello World\"" + i + ";");
             scriptEditManager.onChat(sender, "save");
-            scriptEditManager.isEditing(sender);
+            handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat" + i, "interval", "1t"});
         }
 
-        handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat", "toggle"});
-        handler.onCommand(sender, COMMAND_NAME, new String[]{"r", "MyRepeat", "autostart"});
-
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 100; i++)
             handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
 
         repeatingTriggerManager.shutdown();
+        exec.shutdown();
         // assert
 
     }

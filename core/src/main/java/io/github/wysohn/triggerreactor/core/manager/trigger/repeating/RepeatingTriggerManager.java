@@ -33,8 +33,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Singleton
 public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
@@ -44,8 +45,6 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
     private IRepeatingTriggerFactory factory;
 
     protected static final String TRIGGER = "trigger";
-
-    protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
 
     @Inject
@@ -61,21 +60,16 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
 
     @Override
     public void reload() {
+        for (RepeatingTrigger trigger : getAllTriggers()) {
+            trigger.stop();
+        }
+
         super.reload();
 
-        for (Entry<String, Thread> entry : runningThreads.entrySet()) {
-            entry.getValue().interrupt();
-        }
-        runningThreads.clear();
-
         for (RepeatingTrigger trigger : getAllTriggers()) {
-            final RepeatingTrigger triggerCopy = trigger;
-            //start 1 tick later so other managers can be initialized.
-            task.runTask(() -> {
-                if (triggerCopy.isAutoStart()) {
-                    startTrigger(trigger.getInfo().getTriggerName());
-                }
-            });
+            if (trigger.isAutoStart()) {
+                startTrigger(trigger.getInfo().getTriggerName());
+            }
         }
     }
 
@@ -86,12 +80,11 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
      * @param script      the code.
      * @param interval    interval in milliseconds.
      * @return true on success; false if already exists.
-     * @throws IOException     See {@link Trigger#init()}
      * @throws LexerException  See {@link Trigger#init()}
      * @throws ParserException See {@link Trigger#init()}
      */
     public boolean createTrigger(String triggerName, File file, String script, long interval)
-            throws TriggerInitFailedException, IOException {
+            throws TriggerInitFailedException {
         if (get(triggerName) != null) {
             return false;
         }
@@ -128,9 +121,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         RepeatingTrigger remove = super.remove(name);
 
         // stop the thread if it's running
-        if (runningThreads.containsKey(remove.getInfo().getTriggerName())) {
-            this.stopTrigger(remove.getInfo().getTriggerName());
-        }
+        Optional.ofNullable(remove).ifPresent(RepeatingTrigger::stop);
 
         return remove;
     }
@@ -143,7 +134,10 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
      * @return
      */
     public boolean isRunning(String triggerName) {
-        return runningThreads.containsKey(triggerName);
+        RepeatingTrigger trigger = get(triggerName);
+        return Optional.ofNullable(trigger)
+                .map(RepeatingTrigger::isRunning)
+                .orElse(false);
     }
 
     /**
@@ -170,12 +164,11 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
 
             trigger.activate(new Object(), vars, true);
 
-            Thread thread = task.newThread(trigger,
-                    "RepeatingTrigger-" + triggerName,
-                    Thread.MIN_PRIORITY + 1);
-            thread.start();
-
-            runningThreads.put(triggerName, thread);
+//            Thread thread = task.newThread(trigger,
+//                    "RepeatingTrigger-" + triggerName,
+//                    Thread.MIN_PRIORITY + 1);
+//            thread.start();
+            THREAD_POOL.submit(trigger);
         }
 
         return true;
@@ -188,12 +181,12 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
      * @return true on success; false if no such trigger found with name.
      */
     public boolean stopTrigger(String triggerName) {
-        Thread thread = runningThreads.remove(triggerName);
-        if (thread == null) {
+        RepeatingTrigger trigger = get(triggerName);
+        if (trigger == null) {
             return false;
         }
 
-        thread.interrupt();
+        trigger.stop();
         return true;
     }
 
@@ -215,4 +208,16 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         void onFail(Throwable throwable);
     }
 
+    private static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool((r) -> {
+        Thread thread = new Thread(r);
+        thread.setPriority(Thread.MIN_PRIORITY + 1);
+
+        Optional.of(r)
+                .filter(RepeatingTrigger.class::isInstance)
+                .map(RepeatingTrigger.class::cast)
+                .map(RepeatingTrigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .ifPresent((name) -> thread.setName("RepeatingTrigger-" + name));
+        return thread;
+    });
 }

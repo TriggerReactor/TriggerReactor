@@ -116,6 +116,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     //////////////////////////////////////////////////////////////////////////////////////
     @TriggerRuntimeDependency
     private boolean paused;
+    @TriggerRuntimeDependency
+    private boolean running;
 
     public boolean isPaused() {
         return paused;
@@ -131,15 +133,33 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
     }
 
+    public void stop() {
+        if (!running)
+            return;
+
+        running = false;
+
+        synchronized (this) {
+            this.notify();
+        }
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
     @Override
     public void run() {
         try {
-            while (!Thread.interrupted()) {
+            while (running && !Thread.interrupted()) {
                 synchronized (this) {
                     while (paused && !Thread.interrupted()) {
                         this.wait();
                     }
                 }
+
+                if (!running)
+                    break;
 
                 task("repeat");
 
