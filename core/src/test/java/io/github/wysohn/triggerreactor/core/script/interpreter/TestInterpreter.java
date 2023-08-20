@@ -3657,6 +3657,24 @@ public class TestInterpreter {
         verifyNoInteractions(failExecutor);
     }
 
+    @Test
+    public void testLambdaInvokeFunction() throws Exception {
+        // arrange
+        final String text = "" +
+                "testLambdaFn = LAMBDA a, b =>\n" +
+                "  a + b\n" +
+                "ENDLAMBDA\n" +
+                "\n" +
+                "testLambdaFnResult = testLambdaFn.run(10, 15)\n";
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text).build();
+        test.test();
+
+        // assert
+        assertEquals(25, test.getScriptVar("testLambdaFnResult"));
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
