@@ -52,7 +52,10 @@ function VELOCITY(args) {
 
   if (!target) throw new Error('Player is null.');
 
-  var vector = new Vector(x, y, z);
+  var vector = new Vector();
+  vector.setX(x);
+  vector.setY(y);
+  vector.setZ(z);
 
   target.setVelocity(vector);
 
