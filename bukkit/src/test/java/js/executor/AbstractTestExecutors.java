@@ -1844,6 +1844,22 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
+    public void testVelocity3() throws Exception {
+        Entity entity = mock(Entity.class);
+        double x = 10.5;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "VELOCITY");
+
+        test.withArgs(entity, x, y, z).test();
+
+        verify(entity).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(1, test.getOverload(entity, x, y, z));
+    }
+
+    @Test
     public void testWeather1() throws Exception {
         Player player = mock(Player.class);
         boolean isStorm = true;
