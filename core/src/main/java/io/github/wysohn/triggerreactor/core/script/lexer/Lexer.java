@@ -660,6 +660,10 @@ public class Lexer {
         while (predicate.test(c)) {
             if (fn != null) fn.accept(identity, c);
             read();
+
+            if (eos) {
+                break;
+            }
         }
 
         return identity;
