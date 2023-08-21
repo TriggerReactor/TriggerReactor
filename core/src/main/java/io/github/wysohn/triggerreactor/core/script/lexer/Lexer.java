@@ -657,9 +657,13 @@ public class Lexer {
      */
     private <R> R eatWhile(final Predicate<Character> predicate, final BiConsumer<R, Character> fn, final Supplier<R> sup) throws IOException {
         final R identity = sup != null ? sup.get() : null;
-        while (predicate.test(c) && !eos) {
+        while (predicate.test(c)) {
             if (fn != null) fn.accept(identity, c);
             read();
+
+            if (eos) {
+                break;
+            }
         }
 
         return identity;
