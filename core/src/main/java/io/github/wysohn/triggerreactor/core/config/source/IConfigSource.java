@@ -137,6 +137,11 @@ public interface IConfigSource {
         public void delete() {
 
         }
+
+        @Override
+        public String toString() {
+            return "EmptyConfigSource";
+        }
     }
 
     static IConfigSource empty() {
