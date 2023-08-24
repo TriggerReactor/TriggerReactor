@@ -123,12 +123,12 @@ jobs:
             return result;
 
       - name: Test on ${{ matrix.os }}
-        if: ${{ matrix.java }} > 8 # Temporal workaround (inline) - see below task
+        if: ${{ matrix.java }} != '8' # Temporal workaround (inline) - see below task
         run: ./gradlew test
 
       # Temporal workaround start
       - name: Test on ${{ matrix.os }}
-        if: ${{ matrix.java }} == 8
+        if: ${{ matrix.java }} == '8'
         run: ./gradlew testLegacy -P Legacy
       # Temporal workaround end
 
