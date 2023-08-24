@@ -1,10 +1,15 @@
 name: 'PR Triage'
 on:
   pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
 jobs:
   pr-triage:
-    name: PR Triage
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    name: PR Triage
     steps:
       - name: Automatically label PR
         uses: actions/labeler@v4.0.1
@@ -13,5 +18,10 @@ jobs:
           sync-labels: true
 
       - name: Automatically assign reviewers
-        if: github.event.action == 'opened'
-        uses: kentaro-m/auto-assign-action@v1.2.3
+        if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
+        uses: octokit/request-action@v2.1.9
+        with:
+          route: POST /repos/${{ github.event.repository.name }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
+          team_reviewers: '["maintainers"]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
