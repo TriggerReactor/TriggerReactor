@@ -1,0 +1,63 @@
+#
+# This action builds jars to be uploaded in the release
+name: Upload release jar files and update JavaDoc
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        java: [ 17 ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: GraalVM ${{ matrix.java }}
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'graalvm'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build Jars & Javadoc
+        run: ./gradlew build javadoc -x test -P version=${{ github.ref }} --stacktrace
+
+      - name: Upload Jars to release page
+        uses: svenstaro/upload-release-action@v2
+        continue-on-error: true
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/libs/TriggerReactor-*-${{ github.ref }}.jar
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          prerelease: contains(github.ref, 'Beta')
+
+      - name: Update JavaDoc
+        if: contains(github.ref, 'Release')
+        continue-on-error: true
+        run: |
+          mkdir build/docs/tmp
+          cd build/docs/tmp
+          git config --global user.email "wysohn2002@naver.com"
+          git config --global user.name "wysohn"
+          git config pull.rebase true
+          git init
+          git remote add origin https://x-access-token:${{ secrets.TRG_JAVADOC }}@github.com/TriggerReactor/TriggerReactor.github.io.git
+          git pull origin master
+
+          cp -rf ../javadoc/* ./
+          git add *
+          git commit -m "auto update from workflow"
+          git push origin master
