@@ -16,15 +16,7 @@ on:
     paths: ['core/**', 'bukkit/**', 'sponge/**']
 
 jobs:
-  # Run on all label events (won't be duplicated) or all push events or on PR syncs not from the same repo
-  pre_test:
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.action == 'labeled') || github.event_name != 'pull_request' || github.repository != github.event.pull_request.head.repo.full_name
-    steps:
-      - uses: actions/checkout@v3
-
   test_graalvm:
-    needs: pre_test
     runs-on: ${{ matrix.os }}
     permissions:
       checks: write
@@ -62,7 +54,6 @@ jobs:
           report_paths: '**/${{ matrix.subproject-path }}/build/test-results/test/TEST-*.xml'
 
   test_java:
-    needs: pre_test
     runs-on: ${{ matrix.os }}
     permissions:
       checks: write
