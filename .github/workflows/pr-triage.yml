@@ -21,7 +21,7 @@ jobs:
         if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
         uses: octokit/request-action@v2.1.9
         with:
-          route: POST /repos/${{ github.event.repository.name }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
+          route: POST /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
           team_reviewers: '["maintainers"]'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
