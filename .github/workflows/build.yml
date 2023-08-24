@@ -1,0 +1,145 @@
+#
+# This action builds jars to be updated in the body
+# of the PR relating to this action.
+#
+# This snippet is public-domain, most parts are taken from
+# https://github.com/PaperMC/Paper/blob/f9473d9928a922101bf5a1816c93e70a24bc7240/.github/workflows/build.yml
+# Modified extensively by Sayakie
+name: Build TriggerReactor
+
+on:
+  push:
+    branches: [ development ]
+    paths: ['core/**', 'bukkit/**', 'sponge/**']
+  pull_request:
+    types: [ opened, reopened, synchronize, labeled ]
+    paths: ['core/**', 'bukkit/**', 'sponge/**']
+
+jobs:
+  # Run on all label events (won't be duplicated) or all push events or on PR syncs not from the same repo
+  pre_test:
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'pull_request' && github.event.action == 'labeled') || github.event_name != 'pull_request' || github.repository != github.event.pull_request.head.repo.full_name
+    steps:
+      - uses: actions/checkout@v3
+
+  test_graalvm:
+    needs: pre_test
+    runs-on: ${{ matrix.os }}
+    permissions:
+      checks: write
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        java: [17]
+        subproject-path:
+          - 'bukkit/latest'
+          - 'bukkit/legacy'
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: GraalVM ${{ matrix.java }}
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'graalvm'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2.7.1
+
+      - name: Test on ${{ matrix.os }}
+        run: ./gradlew test --stacktrace
+
+      - name: Report
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: '**/${{ matrix.subproject-path }}/build/test-results/test/TEST-*.xml'
+
+  test_java:
+    needs: pre_test
+    runs-on: ${{ matrix.os }}
+    permissions:
+      checks: write
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest] # Should we test on [windows-latest, ubuntu-latest, macos-latest] especially?
+        java: [8, 17]
+        subproject-path:
+          - 'bukkit/latest'
+          - 'bukkit/legacy'
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'adopt' # See 'Supported distributions' for available options
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Configure Build
+        uses: actions/github-script@v6
+        id: determine
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const event_name = "${{ github.event_name }}";
+            const event = ${{ toJSON(github.event) }};
+            const ref_type = "${{ github.ref_type }}";
+            const ref_name = "${{ github.ref_name }}";
+            const result = {
+              action: "none"
+            };
+
+            if (event_name === "push" && ref_type === "branch") {
+              const { data: pulls } = await github.rest.pulls.list({ owner, repo, head: `${owner}:${ref_name}`, state: "open" });
+              const pull = pulls.find(pr => !!pr.labels.find(label => label.name === "build-pr-jar"));
+              if (pull) {
+                result["pr"] = pull.number;
+                result["action"] = "build";
+                core.notice(`This is a push action but to a branch with an open PR with the build label (${JSON.stringify(result)})`);
+                return result;
+              }
+            } else if (event_name === "pull_request" && event.pull_request.labels.find(label => label.name === "build-pr-jar")) {
+              result["pr"] = event.pull_request.number;
+              result["action"] = "build";
+              core.notice(`This is a pull request action with a build label (${JSON.stringify(result)})`);
+              return result;
+            }
+
+            core.notice("This will not build a jar");
+            return result;
+
+      - name: Test on ${{ matrix.os }}
+        run: ./gradlew test
+
+      - name: Report
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: '**/${{ matrix.subproject-path }}build/test-results/test/TEST-*.xml'
+
+      - name: Build Jars
+        if: fromJSON(steps.determine.outputs.result).action == 'build'
+        run: ./gradlew build -x test -P version=pr-${{ fromJSON(steps.determine.outputs.result).pr }} --stacktrace
+
+      - name: Upload Jars
+        if: fromJSON(steps.determine.outputs.result).action == 'build'
+        uses: actions/upload-artifact@v3
+        with:
+          name: TriggerReactor-${{ fromJSON(steps.determine.outputs.result).pr }}
+          path: |
+            build/libs/TriggerReactor-*-pr-*.jar
+            !build/libs/TriggerReactor-core-*.jar
+          retention-days: 7
