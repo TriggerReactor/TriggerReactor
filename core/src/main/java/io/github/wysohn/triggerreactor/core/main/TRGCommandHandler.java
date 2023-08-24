@@ -735,10 +735,10 @@ public class TRGCommandHandler {
                         }
 
                         TriggerInfo info = trigger.getInfo();
-                        info.put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_PICKUP, !trigger.isPickup());
+                        info.put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_PICKUP, !trigger.canPickup());
 
                         sender.sendMessage(
-                                "Successfully changed pickup : " + (trigger.isPickup() ? "&a" : "&c") + trigger.isPickup());
+                                "Successfully changed pickup : " + (trigger.canPickup() ? "&a" : "&c") + trigger.canPickup());
                     } else {
                         sendCommandDesc(sender,
                                 "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]",
