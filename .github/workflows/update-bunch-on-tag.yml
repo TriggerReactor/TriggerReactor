@@ -33,15 +33,20 @@ jobs:
       - name: Build Jars & Javadoc
         run: ./gradlew build javadoc -x test -P version=${{ github.ref_name }} --stacktrace
 
+      - name: Exclude by-products
+        run: |
+          cd build/libs
+          rm -f TriggerReactor-core-${{ github.ref_name }}.jar
+          rm -f TriggerReactor-bukkit-${{ github.ref_name }}.jar
+
       - name: Upload Jars to release page
         uses: svenstaro/upload-release-action@v2
         continue-on-error: true
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/libs/TriggerReactor-*-${{ github.ref_name }}.jar
-          tag: ${{ github.ref_name }}
-          overwrite: true
           file_glob: true
+          overwrite: true
           prerelease: contains(github.ref_name, 'Beta')
 
       - name: Update JavaDoc

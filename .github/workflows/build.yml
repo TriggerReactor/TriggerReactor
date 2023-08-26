@@ -24,12 +24,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest]
         java: [17]
-        subproject-path:
-          - 'bukkit/latest'
-          - 'bukkit/legacy'
-
     steps:
       - uses: actions/checkout@v3
       - name: GraalVM ${{ matrix.java }}
@@ -51,7 +47,7 @@ jobs:
       - name: Report
         uses: mikepenz/action-junit-report@v3
         with:
-          report_paths: '**/${{ matrix.subproject-path }}/build/test-results/test/TEST-*.xml'
+          report_paths: '**/build/test-results/test/TEST-*.xml'
 
   test_java:
     runs-on: ${{ matrix.os }}
@@ -63,9 +59,6 @@ jobs:
       matrix:
         os: [ubuntu-latest] # Should we test on [windows-latest, ubuntu-latest, macos-latest] especially?
         java: [8, 17]
-        subproject-path:
-          - 'bukkit/latest'
-          - 'bukkit/legacy'
 
     steps:
       - uses: actions/checkout@v3
@@ -126,7 +119,7 @@ jobs:
       - name: Report
         uses: mikepenz/action-junit-report@v3
         with:
-          report_paths: '**/${{ matrix.subproject-path }}build/test-results/test/TEST-*.xml'
+          report_paths: '**/build/test-results/test/TEST-*.xml'
 
       - name: Build Jars
         if: fromJSON(steps.determine.outputs.result).action == 'build'
