@@ -1348,6 +1348,48 @@ public class TriggerReactorCoreTest {
 
     }
 
+    @Test
+    public void command_saveAll_globalVariable() throws Exception {
+        // arrange
+        int max = 100000;
+        Injector injector = createInjector();
+
+        IPlayer sender = mock(IPlayer.class);
+
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+        GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
+
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+
+        // act
+        for (int i = 0; i < max; i++) {
+            globalVariableManager.put("key" + i, "value" + i);
+            if (i % 1000 == 0) {
+                handler.onCommand(sender, COMMAND_NAME, new String[]{"saveAll"});
+                handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
+            }
+        }
+
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"saveAll"});
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
+
+        // assert
+        assertJsonEquals(generateSampleJson(max), readContent("var.json"));
+    }
+
+    private String generateSampleJson(int size) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        for (int i = 0; i < size; i++) {
+            builder.append("\"key").append(i).append("\":\"value").append(i).append("\"");
+            if (i != size - 1)
+                builder.append(",");
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
     private void assertJsonEquals(String expected, String actual) {
         JsonParser parser = new JsonParser();
         JsonElement expectedJson = parser.parse(expected);
