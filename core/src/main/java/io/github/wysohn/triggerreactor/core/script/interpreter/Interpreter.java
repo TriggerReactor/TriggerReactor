@@ -619,7 +619,7 @@ public class Interpreter {
                 try {
                     copy.start(triggerCause, copiedContext);
                 } catch (InterpreterException e) {
-                    ExceptionUtil.appendStackTraceBefore(e, ExceptionUtil.pushStackTrace(stackTrace,
+                    ExceptionUtil.appendStackTraceAfter(e, ExceptionUtil.pushStackTrace(stackTrace,
                             new StackTraceElement(InterpreterException.class.getName(),
                                     "[TriggerReactor ASYNC]",
                                     "Interpreter.java",
