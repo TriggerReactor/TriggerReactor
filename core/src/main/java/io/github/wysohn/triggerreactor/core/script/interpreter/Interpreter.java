@@ -619,7 +619,12 @@ public class Interpreter {
                 try {
                     copy.start(triggerCause, copiedContext);
                 } catch (InterpreterException e) {
-                    ExceptionUtil.appendStackTrace(e, stackTrace);
+                    ExceptionUtil.appendStackTraceBefore(e, ExceptionUtil.pushStackTrace(stackTrace,
+                            new StackTraceElement(InterpreterException.class.getName(),
+                                    "[TriggerReactor ASYNC]",
+                                    "Interpreter.java",
+                                    -1),
+                            0));
                     globalContext.exceptionHandle.handleException(triggerCause, e);
                 }
             });
