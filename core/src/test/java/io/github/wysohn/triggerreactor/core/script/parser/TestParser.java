@@ -691,6 +691,25 @@ public class TestParser {
         parser.parse();
     }
 
+    @Test
+    public void testInterfaceCasting() throws Exception {
+        // arrange
+        final String text = String.join(
+                "\n",
+                "con@HttpsURLConnection.abc()",
+                "temp2 = temp as ITest",
+                "temp2.Test()"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        // act
+        final Node root = parser.parse();
+
+        // assert
+    }
+
     private void serializeNode(Queue<Node> queue, Node node) {
         for (Node child : node.getChildren()) {
             serializeNode(queue, child);
