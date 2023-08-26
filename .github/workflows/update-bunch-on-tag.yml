@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        java: [ 17 ]
+        java: [17]
 
     steps:
       - uses: actions/checkout@v3
@@ -31,18 +31,18 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build Jars & Javadoc
-        run: ./gradlew build javadoc -x test -P version=${{ github.ref }} --stacktrace
+        run: ./gradlew build javadoc -x test -P version=${{ github.ref_name }} --stacktrace
 
       - name: Upload Jars to release page
         uses: svenstaro/upload-release-action@v2
         continue-on-error: true
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/TriggerReactor-*-${{ github.ref }}.jar
-          tag: ${{ github.ref }}
+          file: build/libs/TriggerReactor-*-${{ github.ref_name }}.jar
+          tag: ${{ github.ref_name }}
           overwrite: true
           file_glob: true
-          prerelease: contains(github.ref, 'Beta')
+          prerelease: contains(github.ref_name, 'Beta')
 
       - name: Update JavaDoc
         if: contains(github.ref, 'Release')
