@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.ExceptionUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
@@ -603,6 +604,11 @@ public class Interpreter {
                 throw new InterpreterException("Synchronous task error.", ex);
             }
         } else if (node.getToken().getType() == Type.ASYNC) {
+            // WARNING) Remember that 'localContext' is not thread-safe. It should not be
+            //          used in the asynchronous task.
+            final Object triggerCause = localContext.getTriggerCause();
+            final InterpreterLocalContext copiedContext = localContext.copyState("ASYNC");
+            final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             globalContext.task.submitAsync(() -> {
                 Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
                 rootCopy.getChildren().addAll(node.getChildren());
@@ -611,9 +617,10 @@ public class Interpreter {
                         .build();
 
                 try {
-                    copy.start(localContext.getTriggerCause(), localContext.copyState("ASYNC"));
+                    copy.start(triggerCause, copiedContext);
                 } catch (InterpreterException e) {
-                    globalContext.exceptionHandle.handleException(localContext.getTriggerCause(), e);
+                    ExceptionUtil.appendStackTrace(e, stackTrace);
+                    globalContext.exceptionHandle.handleException(triggerCause, e);
                 }
             });
             return;
