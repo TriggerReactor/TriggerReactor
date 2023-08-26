@@ -46,6 +46,11 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
             return engine;
         }
 
+        engine = sem.getEngineByName("nashorn");
+        if (engine != null) {
+            return engine;
+        }
+
         engine = sem.getEngineByName("JavaScript");
         if (engine != null) {
             return engine;

@@ -8,6 +8,10 @@ repositories {
     mavenCentral()
 }
 
+def javaVersionFromCli = providers.gradleProperty("java_version")
+        .map { JavaVersion.toVersion(it) }
+        .getOrElse(JavaVersion.VERSION_17)
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
@@ -60,8 +64,6 @@ subprojects {
     dependencies {
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
         api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
-        // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-        api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
         // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
         api group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
@@ -76,18 +78,13 @@ subprojects {
 //        testImplementation 'org.powermock:powermock-module-junit4:2.+'
 //        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
+        if (javaVersionFromCli.java11Compatible) {
+            testImplementation("org.openjdk.nashorn:nashorn-core:15.4")
+        }
     }
 
     java {
-        def javaVersionFromCli = providers.gradleProperty("java_version")
-                .map { JavaVersion.toVersion(it) }
-                .getOrElse(JavaVersion.VERSION_16)
-
         sourceCompatibility = targetCompatibility = javaVersionFromCli
-
-        if (javaVersionFromCli.java11Compatible) {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersionFromCli.ordinal() + 1))
-        }
     }
 
     archivesBaseName = parent.archivesBaseName + "-" + archivesBaseName
@@ -101,7 +98,7 @@ subprojects {
             exceptionFormat "full"
         }
 
-        if (java.toolchain.languageVersion.getOrElse(JavaLanguageVersion.of(17)).asInt() >= 16) {
+        if (javaVersionFromCli.java11Compatible) {
             jvmArgs = [
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
@@ -132,6 +129,14 @@ subprojects {
         exclude "**/copy/com/google/**"
         exclude "org/apache/**"
     }
+}
+
+allprojects {
+    task testLegacy{
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    testLegacy.finalizedBy test
 }
 
 def exportedProjects= [

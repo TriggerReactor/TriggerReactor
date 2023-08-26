@@ -18,6 +18,7 @@ on:
 jobs:
   test_graalvm:
     runs-on: ${{ matrix.os }}
+    if: event.pull_request.types != 'labeled' || contains(event.pull_request.labels.*.name, "build-pr-jar")
     permissions:
       checks: write
 
@@ -26,6 +27,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         java: [17]
+
     steps:
       - uses: actions/checkout@v3
       - name: GraalVM ${{ matrix.java }}
@@ -33,7 +35,9 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'graalvm'
-          components: 'native-image'
+          components: 'js'
+          cache: 'gradle'
+          check-for-updates: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Validate Gradle wrapper
@@ -42,22 +46,24 @@ jobs:
         uses: gradle/gradle-build-action@v2.7.1
 
       - name: Test on ${{ matrix.os }}
-        run: ./gradlew test --stacktrace
+        run: ./gradlew test -D polyglot.js.nashorn-compat=true -P java_version=${{ matrix.java }} --stacktrace
 
       - name: Report
         uses: mikepenz/action-junit-report@v3
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
+          check_name: 'Test Report'
 
   test_java:
     runs-on: ${{ matrix.os }}
+    if: event.pull_request.types != 'labeled' || contains(event.pull_request.labels.*.name, "build-pr-jar")
     permissions:
       checks: write
 
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest] # Should we test on [windows-latest, ubuntu-latest, macos-latest] especially?
+        os: [ubuntu-latest]
         java: [8, 17]
 
     steps:
@@ -67,11 +73,42 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'adopt' # See 'Supported distributions' for available options
+          cache: 'gradle'
 
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+      - name: Test on ${{ matrix.os }}
+        run: ./gradlew test -P java_version=${{ matrix.java }} --stacktrace
+
+      - name: Report
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          check_name: 'Test Report'
+
+  build:
+    needs: [test_graalvm, test_java]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      checks: write
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest] # Should we test on [windows-latest, ubuntu-latest, macos-latest] especially?
+        java: [17]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'adopt' # See 'Supported distributions' for available options
+          cache: 'gradle'
 
       - name: Configure Build
         uses: actions/github-script@v6
@@ -86,7 +123,7 @@ jobs:
             const result = {
               action: "none"
             };
-
+            
             if (event_name === "push" && ref_type === "branch") {
               const { data: pulls } = await github.rest.pulls.list({ owner, repo, head: `${owner}:${ref_name}`, state: "open" });
               const pull = pulls.find(pr => !!pr.labels.find(label => label.name === "build-pr-jar"));
@@ -102,35 +139,27 @@ jobs:
               core.notice(`This is a pull request action with a build label (${JSON.stringify(result)})`);
               return result;
             }
-
+            
             core.notice("This will not build a jar");
             return result;
 
-      - name: Test on ${{ matrix.os }}
-        if: ${{ matrix.java }} != '8' # Temporal workaround (inline) - see below task
-        run: ./gradlew test
-
-      # Temporal workaround start
-      - name: Test on ${{ matrix.os }}
-        if: ${{ matrix.java }} == '8'
-        run: ./gradlew testLegacy -P Legacy
-      # Temporal workaround end
-
-      - name: Report
-        uses: mikepenz/action-junit-report@v3
-        with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       - name: Build Jars
         if: fromJSON(steps.determine.outputs.result).action == 'build'
-        run: ./gradlew build -x test -P version=pr-${{ fromJSON(steps.determine.outputs.result).pr }} --stacktrace
+        run: ./gradlew build -x test -P java_version=${{ matrix.java }} -P version=pr-${{ fromJSON(steps.determine.outputs.result).pr }} --stacktrace
 
       - name: Upload Jars
-        if: fromJSON(steps.determine.outputs.result).action == 'build'
+        if: fromJSON(steps.determine.outputs.result).action == 'build' && success()
         uses: actions/upload-artifact@v3
         with:
           name: TriggerReactor-${{ fromJSON(steps.determine.outputs.result).pr }}
           path: |
-            build/libs/TriggerReactor-*-pr-*.jar
+            build/libs/*
+            !build/libs/TriggerReactor-pr-*.jar
             !build/libs/TriggerReactor-core-*.jar
+            !build/libs/TriggerReactor-bukkit-pr-*.jar
           retention-days: 7
