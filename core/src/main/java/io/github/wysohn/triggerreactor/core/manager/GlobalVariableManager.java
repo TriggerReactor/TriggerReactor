@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.trigger.StatefulObject;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 import javax.inject.Inject;
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 @Singleton
-public class GlobalVariableManager extends Manager implements IMigratable, IGlobalVariableManager {
+public class GlobalVariableManager extends Manager implements IMigratable, IGlobalVariableManager, StatefulObject {
     @Inject
     private Logger logger;
     @Inject
@@ -70,6 +71,11 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     @Override
     public void shutdown() {
         configSource.disable();
+    }
+
+    @Override
+    public void saveAll() {
+        configSource.saveAll();
     }
 
     @Override

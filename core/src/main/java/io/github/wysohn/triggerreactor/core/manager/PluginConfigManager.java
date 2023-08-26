@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.trigger.StatefulObject;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,7 +31,7 @@ import javax.inject.Singleton;
 import java.io.File;
 
 @Singleton
-public class PluginConfigManager extends Manager implements IMigratable {
+public class PluginConfigManager extends Manager implements IMigratable, StatefulObject {
     @Inject
     @Named("DataFolder")
     private File dataFolder;
@@ -61,6 +62,11 @@ public class PluginConfigManager extends Manager implements IMigratable {
     @Override
     public void shutdown() {
         configSource.disable();
+    }
+
+    @Override
+    public void saveAll() {
+        configSource.saveAll();
     }
 
     @Override

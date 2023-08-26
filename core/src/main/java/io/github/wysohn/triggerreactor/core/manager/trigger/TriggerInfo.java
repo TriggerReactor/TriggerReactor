@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class TriggerInfo implements IMigratable, IPluginLifecycle {
+public abstract class TriggerInfo implements IMigratable, IPluginLifecycle, StatefulObject {
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
