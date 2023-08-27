@@ -116,6 +116,8 @@ abstract class Evaluable<R> implements IEvaluable {
                 throw new ValidationException(result.getError());
             }
             bindings.put("overload", overload);
+        } else {
+            bindings.put("overload", null);
         }
 
         Object jsObject = bindings.get(functionName);
