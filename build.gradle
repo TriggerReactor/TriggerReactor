@@ -79,6 +79,7 @@ subprojects {
 //        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
         if (javaVersionFromCli.java11Compatible) {
+            logger.quiet "Native Nashorn is not available on Java 11+. Using Nashorn from Maven Central."
             testImplementation("org.openjdk.nashorn:nashorn-core:15.4")
         }
     }
