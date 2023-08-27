@@ -3675,6 +3675,91 @@ public class TestInterpreter {
         assertEquals(25, test.getScriptVar("testLambdaFnResult"));
     }
 
+    @Test
+    public void testTypeCasting() throws Exception {
+        // arrange
+        final String text = "IMPORT " + List.class.getName() + ";" +
+                "#TEST target.innerInstance@List.size();";
+
+        // this would throw InaccessibleObjectException if directly using the method of the
+        //   Collections$UnmodifiableCollection#size(), which is not public and not open for modules
+        List unmodifiableList = Collections.unmodifiableList(new ArrayList<>());
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("target", new NestedTest(unmodifiableList))
+                .build();
+
+        test.test();
+
+        // assert
+        verify(executor).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTypeCasting_array() throws Exception {
+        // arrange
+        final String text = "IMPORT " + List.class.getName() + ";" +
+                "#TEST target[0].innerInstance@List.size();";
+
+        // this would throw InaccessibleObjectException if directly using the method of the
+        //   Collections$UnmodifiableCollection#size(), which is not public and not open for modules
+        List unmodifiableList = Collections.unmodifiableList(new ArrayList<>());
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("target", new NestedTest[]{new NestedTest(unmodifiableList)})
+                .build();
+
+        test.test();
+
+        // assert
+        verify(executor).evaluate(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTypeCasting_multipleCast() throws Exception {
+        // arrange
+        final String text = "" +
+                "IMPORT " + Object.class.getName() + ";" +
+                "IMPORT " + List.class.getName() + ";" +
+                "#TEST target@Object.innerInstance.innerInstance@List.size();";
+
+        // this would throw InaccessibleObjectException if directly using the method of the
+        //   Collections$UnmodifiableCollection#size(), which is not public and not open for modules
+        List unmodifiableList = Collections.unmodifiableList(new ArrayList<>());
+
+        Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST", executor)
+                .addScriptVariable("target", new NestedTest(new NestedTest(unmodifiableList)))
+                .build();
+
+        test.test();
+
+        // assert
+        verify(executor).evaluate(any(), anyMap(), any(), any());
+    }
+
+    public static class NestedTest {
+        public Object innerInstance;
+
+        public NestedTest(Object innerInstance) {
+            this.innerInstance = innerInstance;
+        }
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 

@@ -752,6 +752,10 @@ public class Interpreter {
     }
 
     private void callFunction(Token right, Token left, Object[] args, InterpreterLocalContext localContext) throws InterpreterException {
+        callFunction(left.value.getClass(), right, left, args, localContext);
+    }
+
+    private void callFunction(Class<?> type, Token right, Token left, Object[] args, InterpreterLocalContext localContext) throws InterpreterException {
         Object result;
 
         if (localContext.hasImport((String) right.value)) {
@@ -785,7 +789,7 @@ public class Interpreter {
                 if (obj instanceof LambdaFunction) {
                     result = ReflectionUtil.invokeMethod(obj, "invoke", null, null, args);
                 } else {
-                    result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+                    result = ReflectionUtil.invokeMethod(type, left.value, (String) right.value, args);
                 }
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
@@ -1396,6 +1400,24 @@ public class Interpreter {
             } else if (node.getToken().type == Type.OPERATOR) {
                 Token right, left;
                 switch ((String) node.getToken().value) {
+                    case "@":
+                        // id
+                        right = localContext.popToken();
+                        // type to cast to
+                        left = localContext.popToken();
+
+                        if (isVariable(left)) {
+                            left = unwrapVariable(left, localContext);
+                        }
+
+                        if (left.value == null)
+                            throw new InterpreterException("Cannot cast to null type. Make sure it's IMPORTed. " + right);
+
+                        if (!(left.value instanceof Class))
+                            throw new InterpreterException("Cannot cast to non-class/interface type." + left);
+
+                        localContext.pushToken(new Token(Type.ID, right.value, right).castTo((Class<?>) left.value));
+                        break;
                     case "=":
                         right = localContext.popToken();
                         left = localContext.popToken();
@@ -1437,9 +1459,9 @@ public class Interpreter {
                                 }
 
                                 if (left.isObject()) { // method call for target object
-                                    callFunction(right, left, args, localContext);
+                                    callFunction(temp.getCastTo(), right, left, args, localContext);
                                 } else if (left.isBoxedPrimitive()) { // special case: numeric class access
-                                    callFunction(right, left, args, localContext);
+                                    callFunction(temp.getCastTo(), right, left, args, localContext);
                                 } else if (left.value instanceof Accessor) {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -1452,7 +1474,7 @@ public class Interpreter {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
 
-                                    callFunction(right, new Token(Type.EPS, var, node.getToken()), args, localContext);
+                                    callFunction(temp.getCastTo(), right, new Token(Type.EPS, var, node.getToken()), args, localContext);
                                 } else {
                                     throw new InterpreterException(
                                             "Unexpected value " + left + " for target of " + right
@@ -1482,7 +1504,7 @@ public class Interpreter {
                                 if (left.isObject() || left.isArray()) {
                                     localContext.pushToken(new Token(Type.ACCESS,
                                             new Accessor(left.value, (String) right.value),
-                                            node.getToken()));
+                                            node.getToken()).castTo(right.getCastTo()));
                                 } else {
                                     Accessor accessor = (Accessor) left.value;
 

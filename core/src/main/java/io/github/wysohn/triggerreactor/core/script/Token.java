@@ -25,6 +25,8 @@ public class Token {
     public final int row;
     public final int col;
 
+    private Class<?> castTo;
+
     public Token(final Type type, final Object value, final int row, final int col) {
         this.type = type;
         this.value = value;
@@ -102,6 +104,15 @@ public class Token {
 
     public Type getType() {
         return type;
+    }
+
+    public Token castTo(Class<?> clazz) {
+        this.castTo = clazz;
+        return this;
+    }
+
+    public Class<?> getCastTo() {
+        return castTo;
     }
 
     @Override
