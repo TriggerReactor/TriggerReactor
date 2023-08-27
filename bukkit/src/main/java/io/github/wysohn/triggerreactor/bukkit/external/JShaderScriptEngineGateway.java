@@ -1,16 +1,18 @@
 package io.github.wysohn.triggerreactor.bukkit.external;
 
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
+import javax.script.*;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
+import java.util.Set;
 
 @Singleton
 public class JShaderScriptEngineGateway implements IScriptEngineGateway {
@@ -19,9 +21,14 @@ public class JShaderScriptEngineGateway implements IScriptEngineGateway {
     private Server server;
     @Inject
     private IExceptionHandle exceptionHandle;
+    @Inject
+    private IPluginManagement pluginManagement;
+    @Inject
+    private Set<ScriptEngineInitializer> scriptEngineInitializers;
 
     private boolean initialized = false;
     private ScriptEngineFactory factory;
+    private Bindings globalScope = new SimpleBindings();
 
     @Inject
     private JShaderScriptEngineGateway() {
@@ -40,6 +47,16 @@ public class JShaderScriptEngineGateway implements IScriptEngineGateway {
                 Constructor<?> constructor = clazz.getConstructor();
                 Object factoryObj = constructor.newInstance();
                 factory = (ScriptEngineFactory) factoryObj;
+
+                try {
+                    for (ScriptEngineInitializer initializer : scriptEngineInitializers) {
+                        initializer.initialize(globalScope);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (pluginManagement.isEnabled())
+                        pluginManagement.disablePlugin();
+                }
             } catch (Exception e) {
                 exceptionHandle.handleException(null, e);
                 return null;
@@ -50,6 +67,10 @@ public class JShaderScriptEngineGateway implements IScriptEngineGateway {
 
         return Optional.ofNullable(factory)
                 .map(ScriptEngineFactory::getScriptEngine)
+                .map(engine -> {
+                    engine.setBindings(globalScope, ScriptContext.GLOBAL_SCOPE);
+                    return engine;
+                })
                 .orElse(null);
     }
 

@@ -26,6 +26,7 @@ import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
 import org.mockito.Mockito;
 
+import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -43,7 +44,9 @@ public abstract class AbstractTestJavaScripts {
     @Before
     public void init() throws Exception {
         sem = new ScriptEngineManager();
-        ScriptEngineInitializer.DEFAULT.initialize(sem);
+        Bindings bindings = sem.getBindings();
+        ScriptEngineInitializer.DEFAULT.initialize(bindings);
+        sem.setBindings(bindings);
         engine = sem.getEngineByExtension("js");
 
         mockMain = mock(TriggerReactorCore.class);

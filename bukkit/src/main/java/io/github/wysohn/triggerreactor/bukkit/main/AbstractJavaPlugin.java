@@ -63,7 +63,6 @@ import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.inject.Named;
-import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -88,7 +87,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     private AreaTriggerListener areaTriggerListener;
     private AreaSelectionListener areaSelectionListener;
 
-    private ScriptEngineManager scriptEngineManager;
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
 
@@ -325,20 +323,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         if (listener != null)
             Bukkit.getPluginManager().registerEvents(listener, this);
     }
-
-
-    public ScriptEngineManager getScriptEngineManager() {
-        if (scriptEngineManager == null) {
-            scriptEngineManager = Bukkit.getServicesManager().load(ScriptEngineManager.class);
-        }
-
-        if (scriptEngineManager == null) {
-            scriptEngineManager = new ScriptEngineManager(null);
-        }
-
-        return scriptEngineManager;
-    }
-
 
     public class MysqlSupport {
         private final String KEY = "dbkey";

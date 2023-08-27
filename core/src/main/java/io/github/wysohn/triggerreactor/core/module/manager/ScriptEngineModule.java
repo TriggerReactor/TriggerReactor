@@ -20,56 +20,24 @@ package io.github.wysohn.triggerreactor.core.module.manager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.multibindings.ProvidesIntoSet;
+import io.github.wysohn.triggerreactor.core.manager.DefaultScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEngineManagerProxy;
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 
 import javax.inject.Named;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import java.util.logging.Logger;
 
 public class ScriptEngineModule extends AbstractModule {
-    private ScriptEngineManager sem;
-
     @Override
     protected void configure() {
-
+        bind(ScriptEngineManagerProxy.class);
     }
 
     @ProvidesIntoSet
-    public IScriptEngineGateway provideScriptEngineGateway(@Named("PluginClassLoader") ClassLoader classLoader,
+    public IScriptEngineGateway provideScriptEngineGateway(ScriptEngineManagerProxy proxy,
                                                            @Named("PluginLogger") Logger logger) {
-        return new IScriptEngineGateway() {
-            @Override
-            public ScriptEngine getEngine() {
-                // later binding matters as BukkitClassLoader hasn't finished loading the required classes
-                if (sem == null)
-                    sem = new ScriptEngineManager(classLoader);
-
-                ScriptEngine engine = sem.getEngineByName("graal.js");
-                if (engine != null) {
-                    Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-                    bindings.put("polyglot.js.allowAllAccess", true);
-                    logger.info("Using ScriptEngine: " + engine.getFactory().getEngineName());
-                    return engine;
-                }
-
-                engine = sem.getEngineByExtension("js");
-                if (engine != null) {
-                    logger.info("Using ScriptEngine: " + engine.getFactory().getEngineName());
-                    return engine;
-                }
-
-                return null;
-            }
-
-            @Override
-            public String getEngineName() {
-                return "From ClassLoader: Graal.js or Nashorn";
-            }
-        };
+        return new DefaultScriptEngineGateway(proxy, logger);
     }
 
     @ProvidesIntoSet
@@ -81,4 +49,5 @@ public class ScriptEngineModule extends AbstractModule {
     public ScriptEngineInitializer provideInjectorToJavaScriptInitializer(Injector injector) {
         return (sem) -> sem.put("injector", injector);
     }
+
 }
