@@ -758,6 +758,10 @@ public class Interpreter {
     private void callFunction(Class<?> type, Token right, Token left, Object[] args, InterpreterLocalContext localContext) throws InterpreterException {
         Object result;
 
+        if (type == null) {
+            type = left.value.getClass();
+        }
+
         if (localContext.hasImport((String) right.value)) {
             Class<?> clazz = localContext.getImport((String) right.value);
 
