@@ -5,9 +5,12 @@ plugins {
 }
 
 repositories {
-    jcenter()
     mavenCentral()
 }
+
+def javaVersionFromCli = providers.gradleProperty("java_version")
+        .map { JavaVersion.toVersion(it) }
+        .getOrElse(JavaVersion.VERSION_17)
 
 subprojects {
     apply plugin: 'java'
@@ -55,13 +58,10 @@ subprojects {
     }
 
     repositories {
-        jcenter()
         mavenCentral()
     }
 
     dependencies {
-        // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-        api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
         api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
         // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
@@ -78,11 +78,13 @@ subprojects {
 //        testImplementation 'org.powermock:powermock-module-junit4:2.+'
 //        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
+        if (javaVersionFromCli.java11Compatible) {
+            testImplementation("org.openjdk.nashorn:nashorn-core:15.4")
+        }
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_16
-        targetCompatibility = JavaVersion.VERSION_16
+        sourceCompatibility = targetCompatibility = javaVersionFromCli
     }
 
     archivesBaseName = parent.archivesBaseName + "-" + archivesBaseName
@@ -95,7 +97,7 @@ subprojects {
             exceptionFormat "full"
         }
 
-        if (!project.hasProperty("Legacy")) {
+        if (javaVersionFromCli.java11Compatible) {
             jvmArgs = [
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
@@ -129,12 +131,6 @@ subprojects {
 }
 
 allprojects {
-    task testLegacy {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    testLegacy.finalizedBy test
-
     test {
         beforeTest {
             logger.quiet "Executing test ${it.name} [${it.className}]"
@@ -145,7 +141,7 @@ allprojects {
     }
 }
 
-def exportedProjects = [
+def exportedProjects= [
         ":core",
         /*":sponge",*/
         ":bukkit",
