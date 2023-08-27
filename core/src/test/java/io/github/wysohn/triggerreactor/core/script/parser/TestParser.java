@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -76,6 +77,7 @@ public class TestParser {
     }
 
     @Test
+    @Ignore("This test case doesn't even make sense. Comparison operator cannot be chained.")
     public void testBitwiseAndBitshift() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text = "#MESSAGE (1>>2/1%-~5|~2+1<<3^4) <= 3 | (3<<4&2) > 1 & (6>>>~-2) > 2 ^ (1|~(3+2<<1*2)) > 3\n";

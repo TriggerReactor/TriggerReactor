@@ -1,0 +1,87 @@
+<statement>          ::= <assignment>
+                     | <expression>
+                     | <import>
+                     | <try-catch-finally>
+                     | <if-else>
+                     | <while>
+                     | <for>
+                     | <switch-case>
+                     | <invoke>
+
+<assignment>         ::= <logic> '=' <logic>
+                     | <logic> '+=' <logic>
+                     | <logic> '-=' <logic>
+                     | <logic> '*=' <logic>
+                     | <logic> '/=' <logic>
+                     | <logic> '%=' <logic>
+                     | <logic> '<<=' <logic>
+                     | <logic> '>>=' <logic>
+                     | <logic> '>>>=' <logic>
+                     | <logic> '&=' <logic>
+                     | <logic> '^=' <logic>
+                     | <logic> '|=' <logic>
+                     | <logic>
+
+<logic>              ::= <comparison> '||' <logic>
+                     | <comparison> '&&' <logic>
+                     | <comparison>
+
+<comparison>         ::= <expression> '==' <expression>
+                     | <expression> '!=' <expression>
+                     | <expression> '<' <expression>
+                     | <expression> '>' <expression>
+                     | <expression> '<=' <expression>
+                     | <expression> '>=' <expression>
+                     | <expression> 'IS' <expression>
+                     | <expression>
+
+<expression>         ::= <term> '+' <expression>
+                     | <term> '-' <expression>
+                     | <term>
+
+<term>               ::= <biter> '*' <term>
+                     | <biter> '/' <term>
+                     | <biter>
+
+<biter>              ::= <factor> '&' <biter>
+                     | <factor> '^' <biter>
+                     | <factor> '|' <biter>
+                     | <factor> '<<' <biter>
+                     | <factor> '>>' <biter>
+                     | <factor> '>>>' <biter>
+                     | <factor>
+
+<factor>             ::= '(' <logic> ')'
+                     | <number>
+                     | <string>
+                     | <boolean>
+                     | <end-line>
+                     | <lambda>
+                     | '!' <factor>
+                     | <id>
+
+<id>                 ::= <0>*'_' <letter> <0>*<letter> <0>*<digit> | <id> '.' <id>
+
+<try-catch-finally>  ::= 'TRY' <statement> [ 'CATCH' <statement> ] [ 'FINALLY' <statement> ] 'ENDTRY'
+
+<if-else>            ::= 'IF' <logic> <statement> <0>*('ELSEIF' <logic> <statement>) [ 'ELSE' <statement> ] 'ENDIF'
+
+<while>              ::= 'WHILE' <logic> <end-line> <statement> 'ENDWHILE'
+
+<for>                ::= 'FOR' <assignment> <logic> <assignment> <end-line> <statement> 'ENDFOR'
+
+<switch-case>        ::= 'SWITCH' <logic> <end-line> <0>*('CASE' <logic> <end-line> <statement>) [ 'DEFAULT' <end-line> <statement> ] 'ENDSWITCH'
+
+<import>             ::= 'IMPORT' <string>
+
+<lambda>             ::= 'LAMBDA' [ <id> ]<0>*(<id> ',') <end-line> <statement> 'ENDLAMBDA'
+
+<invoke>             ::= <id> '(' <0>*(<logic> ',') ')'
+
+<number>             ::= <digit> <0>*('.' <digit>)
+<letter>             ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+
+<end-line>           ::= '\n' | ';'
+<digit>              ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<string>             ::= '"' { <any> } '"'
+<boolean>            ::= 'true' | 'false'
