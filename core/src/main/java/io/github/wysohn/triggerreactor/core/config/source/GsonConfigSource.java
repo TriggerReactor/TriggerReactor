@@ -289,7 +289,6 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public String toString() {
-        //TODO this would print everything in the cache, which is not desired
-        return cache.toString();
+        return "GsonConfigSource{ file=" + file.getName() + " }";
     }
 }
