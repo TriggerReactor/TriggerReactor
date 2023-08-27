@@ -1366,6 +1366,20 @@ public class Parser {
                         deque.addLast(arrAccess);
                     }
                 }
+                //id@Type
+                else if (token != null && token.type == Type.OPERATOR && token.value.equals("@")) { // type cast
+                    nextToken();
+
+                    if (token == null || token.type != Type.ID)
+                        throw new ParserException("Expected a type but found " + token);
+                    Token type = token;
+                    nextToken();
+
+                    Node cast = new Node(new Token(Type.OPERATOR, "@"));
+                    cast.getChildren().add(new Node(type));
+                    cast.getChildren().add(new Node(idToken));
+                    deque.addLast(cast);
+                }
                 //id
                 else {
                     if (idToken.type != Type.ID)

@@ -698,18 +698,26 @@ public class TestParser {
         // arrange
         final String text = String.join(
                 "\n",
-                "con@HttpsURLConnection.abc()",
-                "temp2 = temp as ITest",
-                "temp2.Test()"
+                "con@HttpsURLConnection.abc()"
         );
 
         final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
         final Parser parser = new Parser(lexer);
 
+        final Queue<Node> queue = new LinkedList<>();
+
         // act
         final Node root = parser.parse();
 
+        serializeNode(queue, root);
+
         // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "HttpsURLConnection")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "con")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "@")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "abc")), queue.poll());
     }
 
     private void serializeNode(Queue<Node> queue, Node node) {
