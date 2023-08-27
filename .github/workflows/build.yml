@@ -17,7 +17,7 @@ on:
 jobs:
   test_graalvm:
     runs-on: ${{ matrix.os }}
-    if: (github.event_name == 'pull_request' && github.event.pull_request.types != 'labeled') || github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, "build-pr-jar") || github.repository != github.event.pull_request.head.repo.full_name
+    if: (github.event_name == 'pull_request' && github.event.pull_request.types != 'labeled') || github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-pr-jar') || github.repository != github.event.pull_request.head.repo.full_name
     permissions:
       checks: write
 
@@ -55,7 +55,7 @@ jobs:
 
   test_java:
     runs-on: ${{ matrix.os }}
-    if: (github.event_name == 'pull_request' && github.event.pull_request.types != 'labeled') || github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, "build-pr-jar") || github.repository != github.event.pull_request.head.repo.full_name
+    if: (github.event_name == 'pull_request' && github.event.pull_request.types != 'labeled') || github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-pr-jar') || github.repository != github.event.pull_request.head.repo.full_name
     permissions:
       checks: write
 
