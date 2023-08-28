@@ -937,6 +937,36 @@ public class TriggerReactorCoreTest {
     }
 
     @Test
+    public void command_invTrigger_canPickupItem() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "create", "54", "#MESSAGE \"Hello World\""});
+
+        // assert
+        assertNotNull(inventoryTriggerManager.get("MyInventory"));
+        assertEquals(54, inventoryTriggerManager.get("MyInventory").getItems().length);
+        assertEquals("#MESSAGE \"Hello World\"", inventoryTriggerManager.get("MyInventory").getScript());
+        assertEquals(false, inventoryTriggerManager.get("MyInventory").canPickup());
+
+        // act 2
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "pickup"});
+
+        // assert 2
+        assertEquals(true, inventoryTriggerManager.get("MyInventory").canPickup());
+    }
+
+    @Test
     public void command_invTrigger_open() throws Exception {
         // arrange
         UUID uuid = UUID.randomUUID();
