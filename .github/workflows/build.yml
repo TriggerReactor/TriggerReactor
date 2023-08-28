@@ -71,7 +71,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'corretto' # See 'Supported distributions' for available options
+          distribution: 'oracle' # See 'Supported distributions' for available options
           cache: 'gradle'
 
       - name: Validate Gradle wrapper
@@ -106,7 +106,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'corretto' # See 'Supported distributions' for available options
+          distribution: 'oracle' # See 'Supported distributions' for available options
           cache: 'gradle'
 
       - name: Configure Build
