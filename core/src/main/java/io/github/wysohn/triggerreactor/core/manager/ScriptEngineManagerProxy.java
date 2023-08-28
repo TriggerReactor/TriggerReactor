@@ -31,6 +31,7 @@ public class ScriptEngineManagerProxy extends Manager {
         ServiceLoader<ScriptEngineFactory> loader = ServiceLoader.load(ScriptEngineFactory.class, classLoader);
         loader.forEach(factory -> {
             logger.info("ScriptEngineFactory found: " + factory.getEngineName());
+            logger.info("Loaded from location: " + factory.getClass().getProtectionDomain().getCodeSource().getLocation());
         });
 
         sem = new ScriptEngineManager(classLoader);
