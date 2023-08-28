@@ -103,6 +103,11 @@ subprojects {
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
         }
+
+        if (javaVersionFromCli <= JavaVersion.VERSION_1_8) {
+            // Don't include nashorn whatsoever for version 1.8 (Java 8) and below
+            exclude '**/nashorn/**'
+        }
     }
 
     task copyResources(type: Copy) {
