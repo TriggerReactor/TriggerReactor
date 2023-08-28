@@ -6,11 +6,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.script.Bindings;
+import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
+import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.logging.Logger;
 
 @Singleton
 public class ScriptEngineManagerProxy extends Manager {
+    @Inject
+    Logger logger;
     @Inject
     @Named("PluginClassLoader")
     ClassLoader classLoader;
@@ -23,6 +28,11 @@ public class ScriptEngineManagerProxy extends Manager {
 
     @Override
     public void initialize() {
+        ServiceLoader<ScriptEngineFactory> loader = ServiceLoader.load(ScriptEngineFactory.class, classLoader);
+        loader.forEach(factory -> {
+            logger.info("ScriptEngineFactory found: " + factory.getEngineName());
+        });
+
         sem = new ScriptEngineManager(classLoader);
 
         try {
