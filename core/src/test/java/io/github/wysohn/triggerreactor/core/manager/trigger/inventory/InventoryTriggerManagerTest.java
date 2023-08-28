@@ -172,6 +172,34 @@ public class InventoryTriggerManagerTest {
     }
 
     @Test
+    public void onPickupClick() throws InvalidTrgConfigurationException {
+        mockReload();
+
+        IInventory mockInventory = mock(IInventory.class);
+        Object eventInstance = mock(Object.class);
+        IPlayer player = mock(IPlayer.class);
+        Consumer<Boolean> callback = mock(Consumer.class);
+        IItemStack item = mock(IItemStack.class);
+
+        when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
+        when(item.clone()).thenReturn(item);
+        when(item.get()).thenReturn(new ItemStack());
+
+        IInventory inv = manager.openGUI(player, "test");
+        manager.onClick(eventInstance,
+                inv,
+                item,
+                0,
+                "left",
+                0,
+                callback);
+
+        verify(mockTrigger).activate(any(), any());
+        verify(mockTrigger).canPickup();
+        assertFalse(mockTrigger.canPickup());
+    }
+
+    @Test
     public void onInventoryClose() throws InvalidTrgConfigurationException {
         mockReload();
 
