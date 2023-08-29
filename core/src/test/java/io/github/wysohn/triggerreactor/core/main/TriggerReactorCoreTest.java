@@ -937,7 +937,7 @@ public class TriggerReactorCoreTest {
     }
 
     @Test
-    public void command_invTrigger_cantPickupItem() throws Exception {
+    public void command_invTrigger_createPickup() throws Exception {
         // arrange
         UUID uuid = UUID.randomUUID();
         IPlayer sender = mock(IPlayer.class);
