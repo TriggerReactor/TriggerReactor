@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.StatefulObject;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
@@ -30,7 +31,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -46,6 +49,8 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     private IExceptionHandle exceptionHandle;
     @Inject
     private IConfigSourceFactory factory;
+    @Inject
+    private IPluginManagement pluginManagement;
 
     private IConfigSource configSource;
 
@@ -57,8 +62,8 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     @Override
     public void initialize() {
         configSource = factory.create(new SaveWorker(30, (ex) -> exceptionHandle.handleException(null, ex)),
-            dataFolder,
-            "var");
+                dataFolder,
+                "var");
     }
 
     @Override
@@ -105,6 +110,13 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      */
     public void remove(String key) {
         configSource.put(key, null);
+
+        if (pluginManagement.isDebugging()) {
+            Arrays.stream(Thread.currentThread().getStackTrace()).forEach(stackTraceElement ->
+                    logger.info(Objects.toString(stackTraceElement)));
+            logger.info("Removing global variable " + key + " by setting it to null.");
+            logger.info("Above stack trace is for debugging purpose. It is not an error.");
+        }
     }
 
     /**
@@ -126,6 +138,15 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      */
     public void put(String key, Object value) {
         configSource.put(key, value);
+
+        if (pluginManagement.isDebugging()) {
+            if (value == null) {
+                Arrays.stream(Thread.currentThread().getStackTrace()).forEach(stackTraceElement ->
+                        logger.info(Objects.toString(stackTraceElement)));
+                logger.info("Removing global variable " + key + " by setting it to null.");
+                logger.info("Above stack trace is for debugging purpose. It is not an error.");
+            }
+        }
     }
 
     /**
@@ -211,20 +232,20 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     };
 
     private static final Pattern pattern = Pattern.compile(
-        "# Match a valid Windows filename (unspecified file system).          \n" +
-            "^                                # Anchor to start of string.        \n" +
-            "(?!                              # Assert filename is not: CON, PRN, \n" +
-            "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n" +
-            "    CON|PRN|AUX|NUL|             # COM5, COM6, COM7, COM8, COM9,     \n" +
-            "    COM[1-9]|LPT[1-9]            # LPT1, LPT2, LPT3, LPT4, LPT5,     \n" +
-            "  )                              # LPT6, LPT7, LPT8, and LPT9...     \n" +
-            "  (?:\\.[^.]*)?                  # followed by optional extension    \n" +
-            "  $                              # and end of string                 \n" +
-            ")                                # End negative lookahead assertion. \n" +
-            "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n" +
-            "[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]  # Last char is not a space or dot.  \n" +
-            "$                                # Anchor to end of string.            ",
-        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
+            "# Match a valid Windows filename (unspecified file system).          \n" +
+                    "^                                # Anchor to start of string.        \n" +
+                    "(?!                              # Assert filename is not: CON, PRN, \n" +
+                    "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n" +
+                    "    CON|PRN|AUX|NUL|             # COM5, COM6, COM7, COM8, COM9,     \n" +
+                    "    COM[1-9]|LPT[1-9]            # LPT1, LPT2, LPT3, LPT4, LPT5,     \n" +
+                    "  )                              # LPT6, LPT7, LPT8, and LPT9...     \n" +
+                    "  (?:\\.[^.]*)?                  # followed by optional extension    \n" +
+                    "  $                              # and end of string                 \n" +
+                    ")                                # End negative lookahead assertion. \n" +
+                    "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n" +
+                    "[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]  # Last char is not a space or dot.  \n" +
+                    "$                                # Anchor to end of string.            ",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
 
     /**
      * Check if the string is valid as key.
