@@ -31,9 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -112,10 +110,7 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
         configSource.put(key, null);
 
         if (pluginManagement.isDebugging()) {
-            Arrays.stream(Thread.currentThread().getStackTrace()).forEach(stackTraceElement ->
-                    logger.info(Objects.toString(stackTraceElement)));
             logger.info("Removing global variable " + key + " by setting it to null.");
-            logger.info("Above stack trace is for debugging purpose. It is not an error.");
         }
     }
 
@@ -141,10 +136,7 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
 
         if (pluginManagement.isDebugging()) {
             if (value == null) {
-                Arrays.stream(Thread.currentThread().getStackTrace()).forEach(stackTraceElement ->
-                        logger.info(Objects.toString(stackTraceElement)));
                 logger.info("Removing global variable " + key + " by setting it to null.");
-                logger.info("Above stack trace is for debugging purpose. It is not an error.");
             }
         }
     }
