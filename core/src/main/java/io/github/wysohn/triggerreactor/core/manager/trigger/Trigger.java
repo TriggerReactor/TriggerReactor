@@ -20,7 +20,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.*;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -60,9 +59,6 @@ public abstract class Trigger implements Cloneable, IObservable {
 
     protected String script;
     protected Node root;
-    protected Map<String, Executor> executorMap;
-    protected Map<String, Placeholder> placeholderMap;
-    protected Map<Object, Object> gvarMap;
 
     private Interpreter interpreter;
     private ExecutingTrigger lastExecution;
@@ -124,10 +120,6 @@ public abstract class Trigger implements Cloneable, IObservable {
             Parser parser = new Parser(lexer);
 
             root = parser.parse(true);
-
-            executorMap = triggerDependencyFacade.getExecutorMap();
-            placeholderMap = triggerDependencyFacade.getPlaceholderMap();
-            gvarMap = triggerDependencyFacade.getGlobalVariableAdapter(this);
 
             // This allows us to re-use the same AST for multiple threads,
             //   though, we need to absolutely make sure

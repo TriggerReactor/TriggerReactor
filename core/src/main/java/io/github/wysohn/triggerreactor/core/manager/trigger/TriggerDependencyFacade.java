@@ -42,24 +42,6 @@ public class TriggerDependencyFacade implements ITriggerDependencyFacade {
     }
 
     @Override
-    public Map<String, Executor> getExecutorMap() {
-        return executorManager.getBackedMap();
-    }
-
-    @Override
-    public Map<String, Placeholder> getPlaceholderMap() {
-        return placeholderManager.getBackedMap();
-    }
-
-    @Override
-    public Map<Object, Object> getGlobalVariableAdapter(Trigger usingTrigger) {
-        return new GlobalVariableAccessLoggingProxy(globalVariableManager.getGlobalVariableAdapter(),
-                pluginManagement,
-                usingTrigger,
-                logger);
-    }
-
-    @Override
     public Map<String, Object> getExtraVariables(Object e) {
         Map<String, Object> extraVars = new HashMap<>();
         Optional.of(sharedVariableManager)
