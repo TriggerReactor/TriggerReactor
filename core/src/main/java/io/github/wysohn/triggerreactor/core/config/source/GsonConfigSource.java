@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 
@@ -115,7 +116,7 @@ public class GsonConfigSource implements IConfigSource {
         return file.exists() && file.length() > 0;
     }
 
-    private void ensureFile() {
+    private void ensureFile(File file) {
         if (!file.exists()) {
             if (!file.getParentFile().exists())
                 file.getParentFile().mkdirs();
@@ -131,7 +132,7 @@ public class GsonConfigSource implements IConfigSource {
     @Override
     public void reload() {
         synchronized (file) {
-            ensureFile();
+            ensureFile(file);
             try (Reader fr = this.readerFactory.apply(file);
                  BufferedReader br = new BufferedReader(fr)) {
                 Map<String, Object> loaded = null;
@@ -165,9 +166,11 @@ public class GsonConfigSource implements IConfigSource {
      * Blocking operation
      */
     void cacheToFile() {
-        ensureFile();
+        String timestamp = DATE_FORMAT.format(new Date());
+        File tempFile = new File(file.getParentFile(), file.getName() + ".tmp." + timestamp);
+        ensureFile(tempFile);
 
-        try (Writer fw = this.writerFactory.apply(file);
+        try (Writer fw = this.writerFactory.apply(tempFile);
              BufferedWriter bw = new BufferedWriter(fw)) {
             String ser;
 
@@ -178,6 +181,10 @@ public class GsonConfigSource implements IConfigSource {
             bw.write(ser);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        if (!tempFile.renameTo(file)) {
+            System.err.println("Failed to rename temp file to " + file.getName());
         }
     }
 
@@ -297,4 +304,7 @@ public class GsonConfigSource implements IConfigSource {
     public String toString() {
         return "GsonConfigSource{ file=" + file.getName() + " }";
     }
+
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+
 }
