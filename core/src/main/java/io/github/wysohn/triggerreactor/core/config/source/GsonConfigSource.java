@@ -155,7 +155,9 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void saveAll() {
-        cacheToFile();
+        synchronized (file) {
+            cacheToFile();
+        }
     }
 
     /**
@@ -274,7 +276,9 @@ public class GsonConfigSource implements IConfigSource {
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
     public void shutdown() {
-        cacheToFile();
+        synchronized (file) {
+            cacheToFile();
+        }
     }
 
     @Override
