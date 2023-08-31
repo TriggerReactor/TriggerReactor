@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.StatefulObject;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 import javax.inject.Inject;
@@ -109,6 +110,11 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      */
     public void remove(String key) {
         configSource.put(key, null);
+
+        if (pluginManagement.isDebugging()) {
+            logger.info("Removing global variable " + key + " by setting it to null.");
+            logger.info("Current Trigger: " + Trigger.ExecutingTrigger.getExecutingTriggerSummary());
+        }
     }
 
     /**
@@ -130,6 +136,11 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      */
     public void put(String key, Object value) {
         configSource.put(key, value);
+
+        if (pluginManagement.isDebugging()) {
+            logger.info("Setting global variable " + key + " to " + value);
+            logger.info("Current Trigger: " + Trigger.ExecutingTrigger.getExecutingTriggerSummary());
+        }
     }
 
     /**

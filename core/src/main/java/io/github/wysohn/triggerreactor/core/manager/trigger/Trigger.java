@@ -343,18 +343,27 @@ public abstract class Trigger implements Cloneable, IObservable {
             if (isDone) throw new IllegalStateException("Cannot reuse this object!");
 
             try (Timings.Timing t = Timings.getTiming(timingId).begin(sync)) {
+                EXECUTING_TRIGGER.set(info.toString());
                 interpreter.start(e, localContext);
             } catch (Exception ex) {
                 exceptionHandle.handleException(e, new Exception(
                         "Trigger [" + info + "] produced an error!", ex));
             } finally {
                 isDone = true;
+                EXECUTING_TRIGGER.remove();
             }
             return null;
         }
 
         public InterpreterLocalContext getLocalContext() {
             return localContext;
+        }
+
+        // This might not be perfectly reliable, but it should do the job for most cases.
+        private static final ThreadLocal<String> EXECUTING_TRIGGER = new ThreadLocal<>();
+
+        public static String getExecutingTriggerSummary() {
+            return EXECUTING_TRIGGER.get();
         }
     }
 }
