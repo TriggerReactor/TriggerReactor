@@ -132,10 +132,11 @@ public class GsonConfigSource implements IConfigSource {
     public void reload() {
         synchronized (file) {
             ensureFile();
-            try (Reader fr = this.readerFactory.apply(file)) {
+            try (Reader fr = this.readerFactory.apply(file);
+                 BufferedReader br = new BufferedReader(fr)) {
                 Map<String, Object> loaded = null;
                 if (file.exists() && file.length() > 0L)
-                    loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+                    loaded = GsonHelper.readJson(new JsonReader(br), gson);
 
                 synchronized (cache) {
                     cache.clear();
@@ -166,14 +167,15 @@ public class GsonConfigSource implements IConfigSource {
     void cacheToFile() {
         ensureFile();
 
-        try (Writer fw = this.writerFactory.apply(file)) {
+        try (Writer fw = this.writerFactory.apply(file);
+             BufferedWriter bw = new BufferedWriter(fw)) {
             String ser;
 
             synchronized (cache) {
                 ser = gson.toJson(cache);
             }
 
-            fw.write(ser);
+            bw.write(ser);
         } catch (Exception e) {
             e.printStackTrace();
         }
