@@ -272,7 +272,9 @@ public abstract class Trigger implements Cloneable, IObservable {
                 } catch (InterruptedException e1) {
                     // ignore
                 } catch (ExecutionException e1) {
-                    exceptionHandle.handleException(e, e1);
+                    exceptionHandle.handleException(e, new RuntimeException(
+                            "Failed to process Trigger [" + info + "]!",
+                            e1.getCause()));
                 } catch (TimeoutException e1) {
                     exceptionHandle.handleException(e, new RuntimeException(
                             "Took too long to process Trigger [" + info + "]! Is the server lagging?",
