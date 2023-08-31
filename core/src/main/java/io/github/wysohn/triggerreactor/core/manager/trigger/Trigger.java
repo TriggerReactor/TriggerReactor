@@ -127,7 +127,7 @@ public abstract class Trigger implements Cloneable, IObservable {
 
             executorMap = triggerDependencyFacade.getExecutorMap();
             placeholderMap = triggerDependencyFacade.getPlaceholderMap();
-            gvarMap = triggerDependencyFacade.getGlobalVariableAdapter();
+            gvarMap = triggerDependencyFacade.getGlobalVariableAdapter(this);
 
             // This allows us to re-use the same AST for multiple threads,
             //   though, we need to absolutely make sure

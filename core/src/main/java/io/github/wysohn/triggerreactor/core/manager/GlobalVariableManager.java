@@ -108,10 +108,6 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      */
     public void remove(String key) {
         configSource.put(key, null);
-
-        if (pluginManagement.isDebugging()) {
-            logger.info("Removing global variable " + key + " by setting it to null.");
-        }
     }
 
     /**
@@ -133,12 +129,6 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      */
     public void put(String key, Object value) {
         configSource.put(key, value);
-
-        if (pluginManagement.isDebugging()) {
-            if (value == null) {
-                logger.info("Removing global variable " + key + " by setting it to null.");
-            }
-        }
     }
 
     /**

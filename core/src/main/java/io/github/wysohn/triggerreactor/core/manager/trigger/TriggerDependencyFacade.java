@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 @Singleton
 public class TriggerDependencyFacade implements ITriggerDependencyFacade {
@@ -29,6 +30,9 @@ public class TriggerDependencyFacade implements ITriggerDependencyFacade {
     private IGlobalVariableManager globalVariableManager;
     @Inject
     private IPluginManagement pluginManagement;
+    @Inject
+    private Logger logger;
+
     @Inject
     private Injector injector;
 
@@ -48,8 +52,11 @@ public class TriggerDependencyFacade implements ITriggerDependencyFacade {
     }
 
     @Override
-    public Map<Object, Object> getGlobalVariableAdapter() {
-        return globalVariableManager.getGlobalVariableAdapter();
+    public Map<Object, Object> getGlobalVariableAdapter(Trigger usingTrigger) {
+        return new GlobalVariableAccessLoggingProxy(globalVariableManager.getGlobalVariableAdapter(),
+                pluginManagement,
+                usingTrigger,
+                logger);
     }
 
     @Override

@@ -13,7 +13,7 @@ public interface ITriggerDependencyFacade {
 
     Map<String, Placeholder> getPlaceholderMap();
 
-    Map<Object, Object> getGlobalVariableAdapter();
+    Map<Object, Object> getGlobalVariableAdapter(Trigger usingTrigger);
 
     Map<String, Object> getExtraVariables(Object e);
 
