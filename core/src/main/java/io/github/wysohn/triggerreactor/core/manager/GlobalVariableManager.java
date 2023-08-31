@@ -62,6 +62,7 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
         configSource = factory.create(new SaveWorker(30, (ex) -> exceptionHandle.handleException(null, ex)),
                 dataFolder,
                 "var");
+        configSource.reload();
     }
 
     @Override

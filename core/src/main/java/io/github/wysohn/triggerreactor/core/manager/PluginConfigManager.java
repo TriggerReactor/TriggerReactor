@@ -52,6 +52,7 @@ public class PluginConfigManager extends Manager implements IMigratable, Statefu
         configSource = factory.create(new SaveWorker(5, (ex) -> exceptionHandle.handleException(null, ex)),
                 dataFolder,
                 "config");
+        configSource.reload();
     }
 
     @Override
