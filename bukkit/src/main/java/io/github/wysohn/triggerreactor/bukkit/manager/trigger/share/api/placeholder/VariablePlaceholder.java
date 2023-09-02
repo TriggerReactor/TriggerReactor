@@ -18,11 +18,15 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,10 +34,14 @@ import java.util.UUID;
 public class VariablePlaceholder implements IVariablePlaceholder {
     private final PluginDescriptionFile description;
     private final GlobalVariableManager globalVariableManager;
+    private final CommandTriggerManager commandTriggerManager;
 
-    public VariablePlaceholder(PluginDescriptionFile description, GlobalVariableManager globalVariableManager) {
+    public VariablePlaceholder(PluginDescriptionFile description,
+                               GlobalVariableManager globalVariableManager,
+                               CommandTriggerManager commandTriggerManager) {
         this.description = description;
         this.globalVariableManager = globalVariableManager;
+        this.commandTriggerManager = commandTriggerManager;
     }
 
     /**
@@ -54,6 +62,31 @@ public class VariablePlaceholder implements IVariablePlaceholder {
 
         if (identifier.toLowerCase().equals("version")) {
             return description.getVersion();
+        }
+
+        if (identifier.toLowerCase().startsWith("run")) {
+            String[] args = identifier.split("_", 2);
+            if (args.length < 2)
+                return "";
+
+            String expression = args[1];
+            try {
+                // prepare a temporary trigger
+                CommandTrigger tempTrigger = commandTriggerManager.createTempCommandTrigger(expression);
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("player", player);
+
+                // evaluate the expression
+                tempTrigger.activate(new Object(), variables, true);
+
+                // return the result
+                return Optional.of(tempTrigger)
+                        .map(CommandTrigger::getResult)
+                        .map(Object::toString)
+                        .orElse("");
+            } catch (AbstractTriggerManager.TriggerInitFailedException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         Map<Object, Object> adapter = globalVariableManager.getGlobalVariableAdapter();

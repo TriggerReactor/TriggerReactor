@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -32,9 +33,10 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      * plugin.
      */
     public PlaceholderExpansionSupport(PluginDescriptionFile description,
-                                       GlobalVariableManager globalVariableManager) {
+                                       GlobalVariableManager globalVariableManager,
+                                       CommandTriggerManager commandTriggerManager) {
         this.description = description;
-        this.variablePlaceholder = new VariablePlaceholder(description, globalVariableManager);
+        this.variablePlaceholder = new VariablePlaceholder(description, globalVariableManager, commandTriggerManager);
     }
 
     /**
