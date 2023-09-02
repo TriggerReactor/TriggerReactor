@@ -1366,6 +1366,20 @@ public class Parser {
                         deque.addLast(arrAccess);
                     }
                 }
+                //id@Type
+                else if (token != null && token.type == Type.OPERATOR && token.value.equals("@")) { // type cast
+                    nextToken();
+
+                    if (token == null || token.type != Type.ID)
+                        throw new ParserException("Expected a type but found " + token);
+                    Token type = token;
+                    nextToken();
+
+                    Node cast = new Node(new Token(Type.OPERATOR, "@"));
+                    cast.getChildren().add(new Node(type));
+                    cast.getChildren().add(new Node(idToken));
+                    deque.addLast(cast);
+                }
                 //id
                 else {
                     if (idToken.type != Type.ID)
@@ -1432,15 +1446,7 @@ public class Parser {
     public static void main(String[] ar) throws IOException, LexerException, ParserException {
         final Charset charset = StandardCharsets.UTF_8;
         final String[] texts = new String[]{
-                ""
-                        + "arr = array(6)\n"
-                        + "arr[0] = true\n"
-                        + "arr[1] = !true\n"
-                        + "arr[2] = !true || false\n"
-                        + "arr[3] = true && !false\n"
-                        + "arr[4] = true && 1 < 2 && 5 > 4 && 1 != 2 && 2 == 2 && (false || 2*2 > 3)\n"
-                        + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)\n" +
-                        "#TEST arr"
+                "target.innerInstance@List.size()"
         };
         final StringJoiner joiner = new StringJoiner("\n");
 

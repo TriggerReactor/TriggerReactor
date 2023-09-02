@@ -25,11 +25,18 @@ public class Token {
     public final int row;
     public final int col;
 
-    public Token(final Type type, final Object value, final int row, final int col) {
+    private final Class<?> castTo;
+
+    public Token(final Type type, final Object value, final int row, final int col, final Class<?> castTo) {
         this.type = type;
         this.value = value;
         this.row = row;
         this.col = col;
+        this.castTo = castTo;
+    }
+
+    public Token(final Type type, final Object value, final int row, final int col) {
+        this(type, value, row, col, null);
     }
 
     public Token(final Type type, final Object value, final Token other) {
@@ -102,6 +109,14 @@ public class Token {
 
     public Type getType() {
         return type;
+    }
+
+    public Token castTo(Class<?> clazz) {
+        return new Token(type, value, row, col, clazz);
+    }
+
+    public Class<?> getCastTo() {
+        return castTo;
     }
 
     @Override

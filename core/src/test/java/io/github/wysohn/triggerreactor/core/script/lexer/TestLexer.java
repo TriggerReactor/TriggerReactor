@@ -867,4 +867,26 @@ public class TestLexer {
         lexer = new Lexer(text, charset);
         assertEquals(new Token(Type.IMPORT, "net.md_5.bungee.api.chat.ComponentBuilder"), lexer.getToken());
     }
+
+    @Test
+    public void testInterfaceCasting() throws Exception {
+        // arrange
+        String text;
+        Lexer lexer;
+
+        text = "con@HttpsURLConnection.abc()";
+        lexer = new Lexer(text, charset);
+
+        // act
+
+        // assert
+        testToken(lexer, Type.ID, "con");
+        testToken(lexer, Type.OPERATOR, "@");
+        testToken(lexer, Type.ID, "HttpsURLConnection");
+        testToken(lexer, Type.OPERATOR, ".");
+        testToken(lexer, Type.ID, "abc");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR, ")");
+        testEnd(lexer);
+    }
 }
