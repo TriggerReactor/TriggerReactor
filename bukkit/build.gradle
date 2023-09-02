@@ -56,10 +56,6 @@ subprojects {
         testImplementation(project(':bukkit').sourceSets.test.output)
     }
 
-    test {
-        classpath += sourceSets.test.runtimeClasspath
-    }
-
     tasks.register('copyTestResources', Copy) {
         from project(":bukkit").sourceSets.main.output.resourcesDir
         into "${buildDir}/classes/test"

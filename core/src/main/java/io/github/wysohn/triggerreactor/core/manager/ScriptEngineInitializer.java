@@ -17,8 +17,8 @@
 
 package io.github.wysohn.triggerreactor.core.manager;
 
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -30,7 +30,7 @@ import java.util.function.Function;
  */
 public interface ScriptEngineInitializer {
 
-    void initialize(ScriptEngineManager manager) throws ScriptException;
+    void initialize(Map<String, Object> bindings) throws ScriptException;
 
     ScriptEngineInitializer DEFAULT = sem -> sem.put("Char", (Function<String, Character>) t -> t.charAt(0));
 }

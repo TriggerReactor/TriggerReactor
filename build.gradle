@@ -79,6 +79,7 @@ subprojects {
 //        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
         if (javaVersionFromCli.java11Compatible) {
+            logger.quiet "Native Nashorn is not available on Java 11+. Using Nashorn from Maven Central."
             testImplementation("org.openjdk.nashorn:nashorn-core:15.4")
         }
     }
@@ -95,12 +96,18 @@ subprojects {
         testLogging {
             events "failed"
             exceptionFormat "full"
+            showStandardStreams = true
         }
 
         if (javaVersionFromCli.java11Compatible) {
             jvmArgs = [
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
+        }
+
+        if (javaVersionFromCli <= JavaVersion.VERSION_1_8) {
+            // Don't include nashorn whatsoever for version 1.8 (Java 8) and below
+            exclude '**/nashorn/**'
         }
     }
 

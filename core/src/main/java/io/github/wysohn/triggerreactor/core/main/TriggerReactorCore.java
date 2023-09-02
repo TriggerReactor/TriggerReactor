@@ -19,15 +19,13 @@ package io.github.wysohn.triggerreactor.core.main;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
-import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEngineManagerProxy;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.Lag;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -47,7 +45,7 @@ public class TriggerReactorCore implements IPluginLifecycle {
     @Named("PluginClassLoader")
     private ClassLoader pluginClassLoader;
     @Inject
-    private Set<ScriptEngineInitializer> scriptEngineInitializers;
+    private ScriptEngineManagerProxy scriptEngineManagerProxy;
 
     @Inject
     @Named("PluginLogger")
@@ -63,8 +61,6 @@ public class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     private IGlobalVariableManager IGlobalVariableManager;
     @Inject
-    private ScriptEngineManager scriptEngineManager;
-    @Inject
     private Lag lag;
 
     @Inject
@@ -73,15 +69,6 @@ public class TriggerReactorCore implements IPluginLifecycle {
     @Override
     public void initialize() {
         Thread.currentThread().setContextClassLoader(pluginClassLoader);
-
-        try {
-            for (ScriptEngineInitializer initializer : scriptEngineInitializers) {
-                initializer.initialize(scriptEngineManager);
-            }
-        } catch (ScriptException e) {
-            initFailed(e);
-            return;
-        }
 
         try {
             managers.forEach(Manager::initialize);
