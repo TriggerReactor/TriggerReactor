@@ -35,7 +35,7 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: 'graalvm'
           components: 'js'
-#          cache: 'gradle'
+          cache: 'gradle'
           check-for-updates: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,7 +72,7 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'corretto' # See 'Supported distributions' for available options
-      #          cache: 'gradle'
+          cache: 'gradle'
 
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
@@ -107,7 +107,7 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'corretto' # See 'Supported distributions' for available options
-      #          cache: 'gradle'
+          cache: 'gradle'
 
       - name: Configure Build
         uses: actions/github-script@v6
