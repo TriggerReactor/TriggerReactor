@@ -723,6 +723,19 @@ public class TRGCommandHandler {
                         sender.sendMessage("Successfully changed title");
 
                         return true;
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("pickup")) {
+                        String name = args[1];
+                        InventoryTrigger trigger = inventoryTriggerManager.get(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        TriggerInfo info = trigger.getInfo();
+                        info.put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_PICKUP, !trigger.canPickup());
+
+                        sender.sendMessage(
+                                "Successfully changed pickup : " + (trigger.canPickup() ? "&a" : "&c") + trigger.canPickup());
                     } else {
                         sendCommandDesc(sender,
                                 "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]",
@@ -757,6 +770,9 @@ public class TRGCommandHandler {
                         sendCommandDesc(sender,
                                 "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>",
                                 "set title of inventory");
+                        sendCommandDesc(sender,
+                                "/triggerreactor[trg] inventory[i] <inventory name> pickup",
+                                "set pickupable of inventory");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("item")) {
@@ -1607,7 +1623,8 @@ public class TRGCommandHandler {
                                 "item",
                                 "open",
                                 "row",
-                                "settitle"), args[2]);
+                                "settitle",
+                                "pickup"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);

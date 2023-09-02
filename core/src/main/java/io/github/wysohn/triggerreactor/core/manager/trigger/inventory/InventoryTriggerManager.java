@@ -169,9 +169,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         if (!hasInventoryOpen(inventory))
             return;
         InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
-
-        // just always cancel if it's GUI
-        eventCancelled.accept(true);
+        eventCancelled.accept(!trigger.canPickup());
 
         Map<String, Object> varMap = getSharedVarsForInventory(inventory);
         varMap.put("item", clickedItem.clone().get());

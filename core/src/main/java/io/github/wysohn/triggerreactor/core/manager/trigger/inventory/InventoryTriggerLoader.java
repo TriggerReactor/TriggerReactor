@@ -84,8 +84,10 @@ public class InventoryTriggerLoader implements ITriggerLoader<InventoryTrigger> 
 
             IItemStack[] items = trigger.getItems();
             int size = items.length;
+            boolean canPickup = trigger.canPickup();
 
             trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, size);
+            trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_PICKUP, canPickup);
             trigger.getInfo()
                     .put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, trigger.getInfo().getTriggerName());
             for (int i = 0; i < items.length; i++) {

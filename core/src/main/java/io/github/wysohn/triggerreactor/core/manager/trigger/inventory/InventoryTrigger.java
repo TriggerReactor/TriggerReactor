@@ -82,6 +82,11 @@ public class InventoryTrigger extends Trigger {
         return items;
     }
 
+    public boolean canPickup() {
+        return getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_PICKUP, Boolean.class)
+                .orElse(false);
+    }
+
     public String getTitle() {
         return getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class)
                 .orElse(null);

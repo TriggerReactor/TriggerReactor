@@ -15,6 +15,7 @@ public enum TriggerConfigKey {
     KEY_TRIGGER_INVENTORY_TITLE("title", "Title"),
     KEY_TRIGGER_INVENTORY_SIZE("size", "Size"),
     KEY_TRIGGER_INVENTORY_ITEMS("items", "Items"),
+    KEY_TRIGGER_INVENTORY_PICKUP("pickup"),
 
     KEY_TRIGGER_AREA_SMALLEST("smallest", "Smallest"),
     KEY_TRIGGER_AREA_LARGEST("largest", "Largest"),
