@@ -586,19 +586,27 @@ public class Interpreter {
             }
         } else if (node.getToken().getType() == Type.SYNC) {
             try {
-                globalContext.task.submitSync(new Callable<Void>() {
+                try (Timings.Timing t = localContext.getTiming()
+                        .getTiming("SYNC (WAITING)")
+                        .begin(globalContext.task.isServerThread())) {
+                    globalContext.task.submitSync(new Callable<Void>() {
 
-                    @Override
-                    public Void call() throws Exception {
-                        for (Node node : node.getChildren()) {
-                            //ignore whatever returns as it's impossible
-                            //to handle it from the caller
-                            start(node, localContext);
+                        @Override
+                        public Void call() throws Exception {
+                            try (Timings.Timing t = localContext.getTiming()
+                                    .getTiming("SYNC (RUNNING)")
+                                    .begin(globalContext.task.isServerThread())) {
+                                for (Node node : node.getChildren()) {
+                                    //ignore whatever returns as it's impossible
+                                    //to handle it from the caller
+                                    start(node, localContext);
+                                }
+                            }
+                            return null;
                         }
-                        return null;
-                    }
 
-                }).get();
+                    }).get();
+                }
                 return;
             } catch (InterruptedException | ExecutionException ex) {
                 throw new InterpreterException("Synchronous task error.", ex);
