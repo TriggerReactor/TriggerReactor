@@ -51,6 +51,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private RepeatingTrigger(@Assisted TriggerInfo info,
                              @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
+        setIgnoreSyncIfNotServerThread(true);
     }
 
     /**

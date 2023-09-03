@@ -62,6 +62,7 @@ public abstract class Trigger implements Cloneable, IObservable {
 
     private Interpreter interpreter;
     private ExecutingTrigger lastExecution;
+    private boolean ignoreSyncIfNotServerThread = false;
 
     /**
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
@@ -257,6 +258,15 @@ public abstract class Trigger implements Cloneable, IObservable {
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
+            }
+            // if task is initiated from non-server thread, and this flag is set to true, then simply execute the task
+            //   from the current thread.
+            else if (ignoreSyncIfNotServerThread) {
+                try {
+                    task.call();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
             } else {
                 Future<Void> future = taskSupervisor.submitSync(task);
                 try {
@@ -309,6 +319,31 @@ public abstract class Trigger implements Cloneable, IObservable {
                 .orElse(null);
     }
 
+    public boolean isIgnoreSyncIfNotServerThread() {
+        return ignoreSyncIfNotServerThread;
+    }
+
+    /**
+     * Set whether to ignore the sync flag if the current thread is not the server thread.
+     * The original behavior is that if the current thread is not the server thread, then
+     * the task is scheduled to run in the server thread, hence, no matter what thread the
+     * task is initiated from, it will always run in the server thread. And of course, if the
+     * current thread is the server thread, then the task will run in the current thread as it
+     * is already synchronous.
+     * <p>
+     * However, this is not always desirable. For example, RepeatingTriggers are activated
+     * from a non-server thread, yet we don't want it to run in the server thread too, but setting
+     * it async would spawn another thread under current implementation, which would cause timing issues
+     * (eg. the task is scheduled to run every 1 second, but it takes 2 seconds to finish, then the next task
+     * would be scheduled to run 1 second after the previous task, which then is executed before
+     * the previous task is done, making both of them running at the same time).
+     *
+     * @param ignoreSyncIfNotServerThread true to ignore the sync flag if the current thread is not the server thread.
+     */
+    public void setIgnoreSyncIfNotServerThread(boolean ignoreSyncIfNotServerThread) {
+        this.ignoreSyncIfNotServerThread = ignoreSyncIfNotServerThread;
+    }
+
     @Override
     public abstract Trigger clone();
 
@@ -335,14 +370,12 @@ public abstract class Trigger implements Cloneable, IObservable {
                                 Object e,
                                 Interpreter interpreter,
                                 Map<String, Object> initialVars,
-                                boolean sync,
                                 ProcessInterrupter interrupter,
                                 String timingId) {
             this.exceptionHandle = exceptionHandle;
             this.info = info;
             this.e = e;
             this.interpreter = interpreter;
-            this.sync = sync;
             this.timingId = timingId;
 
             this.localContext = new InterpreterLocalContext(Timings.getTiming(timingId))
