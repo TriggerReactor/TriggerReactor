@@ -315,7 +315,7 @@ public class Parser {
                     return parseAssignment();
                 }
             } else {
-                return parseLogic();
+                return parseAssignment();
             }
         } else {
             return null;
