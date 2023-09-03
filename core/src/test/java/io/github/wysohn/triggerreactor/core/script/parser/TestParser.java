@@ -720,6 +720,30 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.CALL, "abc")), queue.poll());
     }
 
+    @Test
+    public void testSingleNode() throws Exception {
+        // arrange
+        final String text = String.join(
+                "\n",
+                "{\"abc\"}"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.STRING, "abc")), queue.poll());
+        assertEquals(new Node(new Token(Type.GID, "<GVAR>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+    }
+
     private void serializeNode(Queue<Node> queue, Node node) {
         for (Node child : node.getChildren()) {
             serializeNode(queue, child);
