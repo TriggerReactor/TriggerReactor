@@ -296,6 +296,19 @@ public abstract class Trigger implements Cloneable, IObservable {
                 .orElse(null);
     }
 
+    public synchronized Object getResult() {
+        return Optional.ofNullable(lastExecution)
+                .map(ExecutingTrigger::getInterpreter)
+                .map(i -> {
+                    try {
+                        return i.result(lastExecution.localContext);
+                    } catch (InterpreterException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElse(null);
+    }
+
     @Override
     public abstract Trigger clone();
 
@@ -357,6 +370,10 @@ public abstract class Trigger implements Cloneable, IObservable {
 
         public InterpreterLocalContext getLocalContext() {
             return localContext;
+        }
+
+        public Interpreter getInterpreter() {
+            return interpreter;
         }
 
         // This might not be perfectly reliable, but it should do the job for most cases.

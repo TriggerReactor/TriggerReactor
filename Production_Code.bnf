@@ -7,6 +7,7 @@
                      | <for>
                      | <switch-case>
                      | <invoke>
+                     | '#' <string> [':' <string>] [<logic> [',' <logic>]]
 
 <assignment>         ::= <logic> '=' <logic>
                      | <logic> '+=' <logic>
@@ -52,6 +53,8 @@
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
+                     |  '{' <factor> '}'
+                     | '$' <string> [':' <logic>]
                      | <number>
                      | <string>
                      | <boolean>
