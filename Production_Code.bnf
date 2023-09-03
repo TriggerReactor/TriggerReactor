@@ -52,6 +52,7 @@
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
+                     |  '{' <factor> '}'
                      | <number>
                      | <string>
                      | <boolean>
