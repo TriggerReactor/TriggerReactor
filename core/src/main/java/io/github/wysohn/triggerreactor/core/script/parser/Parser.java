@@ -314,28 +314,6 @@ public class Parser {
                 } else {
                     return parseAssignment();
                 }
-            } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
-                Token temp = token;
-                nextToken();
-
-                Node left;
-                if (token.type == Type.OPERATOR && "?".equals(token.value)) {
-                    nextToken();
-                    left = new Node(new Token(Type.GID_TEMP, "<GVAR_TEMP>", temp));
-                } else {
-                    left = new Node(new Token(Type.GID, "<GVAR>", temp));
-                }
-                Node keyString = parseLogic();
-
-                left.getChildren().add(keyString);
-
-                if (token == null || token.type != Type.OPERATOR || !"}".equals(token.value)) {
-                    throw new ParserException("Expected '}' but found " + token);
-                }
-                nextToken();
-                ///////////////////////////////////////////////////////////////
-
-                return parseLogicAndAssignment(left);
             } else {
                 return parseLogic();
             }
