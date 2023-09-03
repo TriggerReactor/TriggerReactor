@@ -235,26 +235,14 @@ public abstract class Trigger implements Cloneable, IObservable {
                 e,
                 interpreter,
                 scriptVars,
-                sync,
                 createInterrupter(),
                 getTimingId()
         );
 
-        final Callable<Void> task = () -> {
-            try {
-                executingTrigger.call();
-            } catch (Exception ex) {
-                exceptionHandle.handleException(e, ex);
-            } finally {
-                Trigger.this.lastExecution = executingTrigger;
-            }
-            return null;
-        };
-
         if (sync) {
             if (taskSupervisor.isServerThread()) {
                 try {
-                    task.call();
+                    new TaskWrapper(e, executingTrigger, true).call();
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -263,12 +251,12 @@ public abstract class Trigger implements Cloneable, IObservable {
             //   from the current thread.
             else if (ignoreSyncIfNotServerThread) {
                 try {
-                    task.call();
+                    new TaskWrapper(e, executingTrigger, false).call();
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
             } else {
-                Future<Void> future = taskSupervisor.submitSync(task);
+                Future<Void> future = taskSupervisor.submitSync(new TaskWrapper(e, executingTrigger, true));
                 try {
                     future.get(3, TimeUnit.SECONDS);
                 } catch (InterruptedException e1) {
@@ -286,7 +274,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         } else {
             taskSupervisor.submitAsync(() -> {
                 try {
-                    task.call();
+                    new TaskWrapper(e, executingTrigger, false).call();
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -352,18 +340,44 @@ public abstract class Trigger implements Cloneable, IObservable {
         return "[" + getClass().getSimpleName() + "=" + info + "]";
     }
 
+    private class TaskWrapper implements Callable<Void> {
+        private final Object e;
+        private final ExecutingTrigger executingTrigger;
+        private final boolean sync;
+
+        private TaskWrapper(Object e, ExecutingTrigger executingTrigger, boolean sync) {
+            this.e = e;
+            this.executingTrigger = executingTrigger;
+            this.sync = sync;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            try {
+                executingTrigger.sync = sync;
+                executingTrigger.call();
+            } catch (Exception ex) {
+                exceptionHandle.handleException(e, ex);
+            } finally {
+                Trigger.this.lastExecution = executingTrigger;
+            }
+            return null;
+        }
+    }
+
     public static class ExecutingTrigger implements Callable<Void> {
         private final IExceptionHandle exceptionHandle;
         private final TriggerInfo info;
 
         private final Object e;
         private final Interpreter interpreter;
-        private final boolean sync;
+
         private final String timingId;
 
         private final InterpreterLocalContext localContext;
 
         private boolean isDone = false;
+        private boolean sync;
 
         public ExecutingTrigger(IExceptionHandle exceptionHandle,
                                 TriggerInfo info,
