@@ -14,6 +14,12 @@ on:
     types: [ opened, reopened, synchronize, labeled ]
     paths: ['core/**', 'bukkit/**', 'sponge/**']
 
+# We only ever need one of these running on a single PR.
+# Just let the newest one complete if there are multiple running.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test_graalvm:
     runs-on: ${{ matrix.os }}
