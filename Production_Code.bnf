@@ -6,7 +6,6 @@
                      | <while>
                      | <for>
                      | <switch-case>
-                     | <invoke>
                      | '#' <string> [':' <string>] [<logic> [',' <logic>]]
 
 <assignment>         ::= <logic> '=' <logic>
@@ -44,12 +43,17 @@
                      | <biter> '/' <term>
                      | <biter>
 
-<biter>              ::= <factor> '&' <biter>
-                     | <factor> '^' <biter>
-                     | <factor> '|' <biter>
-                     | <factor> '<<' <biter>
-                     | <factor> '>>' <biter>
-                     | <factor> '>>>' <biter>
+<biter>              ::= <instance_ops> '&' <biter>
+                     | <instance_ops> '^' <biter>
+                     | <instance_ops> '|' <biter>
+                     | <instance_ops> '<<' <biter>
+                     | <instance_ops> '>>' <biter>
+                     | <instance_ops> '>>>' <biter>
+                     | <instance_ops>
+
+<instance_ops>       ::= <factor> '@' <instance_ops> // type cast
+                     | <factor> '.' <instance_ops>  // member access
+                     | <factor> '[' <expression> ']' <instance_ops> // data access
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
@@ -63,7 +67,8 @@
                      | '!' <factor>
                      | <id>
 
-<id>                 ::= <0>*'_' <letter> <0>*<letter> <0>*<digit> | <id> '.' <id>
+<id>                 ::=  <id> '(' <0>*(<logic> ',') ')' // function call
+                     | <0>*'_' <letter> <0>*<letter> <0>*<digit> // variable name
 
 <try-catch-finally>  ::= 'TRY' <statement> [ 'CATCH' <statement> ] [ 'FINALLY' <statement> ] 'ENDTRY'
 
@@ -78,8 +83,6 @@
 <import>             ::= 'IMPORT' <string>
 
 <lambda>             ::= 'LAMBDA' [ <id> ]<0>*(<id> ',') <end-line> <statement> 'ENDLAMBDA'
-
-<invoke>             ::= <id> '(' <0>*(<logic> ',') ')'
 
 <number>             ::= <digit> <0>*('.' <digit>)
 <letter>             ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
