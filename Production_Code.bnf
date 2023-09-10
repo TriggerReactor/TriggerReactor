@@ -53,7 +53,7 @@
 
 <instance_ops>       ::= <factor> '@' <instance_ops> // type cast
                      | <factor> '.' <instance_ops>  // member access
-                     | <factor> '[' <expression> ']' <instance_ops> // data access
+                     | <instance_ops> '[' <expression> ']'  // data access
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
