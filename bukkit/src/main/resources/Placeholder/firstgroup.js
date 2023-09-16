@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn (idea provided by League_Lugas, authored by Pro_Snape)
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,15 +15,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function firstgroup(args) {
-    if(player == null)
-        return null;
 
-    var groups = vault.permission().getPlayerGroups(null, player);
-    if(groups.length < 1) {
-        var firstGroup = "null";
-    } else {
-        var firstGroup = groups[0];
-    }
-    return firstGroup;
+function firstgroup(args) {
+  if (!player)
+    throw new Error('Player is null.');
+
+  if (!vault)
+    throw new Error('Server has no Vault plugin.')
+
+  var groups = vault.permission().getPlayerGroups(null, player);
+  var firstGroup = 'None';
+
+  if (groups.length > 0)
+    firstGroup = groups[0];
+
+  return firstGroup;
 }

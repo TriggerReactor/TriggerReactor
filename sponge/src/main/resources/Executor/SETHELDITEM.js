@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,23 +15,21 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.spongepowered.api.item.inventory.ItemStack')
+var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes')
+var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
+
 validation = {
-    "overloads": [
-        [{"name":"item", "type": itemStackType.class}]
-    ]
-
+  overloads: [[{ name: 'item', type: ItemStack.class }]]
 }
-function SETHELDITEM(args){
-    if(player == null)
-        return null;
 
-    var item = args[0];
-    if(item == null)
-        return null;
+function SETHELDITEM(args) {
+  if (overload === 0) {
+    if (player == null) return null
 
+    var item = args[0]
+    if (item == null) return null
 
-    var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
-    player.setItemInHand(HandTypes.MAIN_HAND, item);
-    return null;
+    player.setItemInHand(HandTypes.MAIN_HAND, item)
+    return null
+  }
 }

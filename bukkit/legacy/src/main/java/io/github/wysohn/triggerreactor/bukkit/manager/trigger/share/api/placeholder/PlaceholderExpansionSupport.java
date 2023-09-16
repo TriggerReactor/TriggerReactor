@@ -1,12 +1,31 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion implements IVariablePlaceholder {
-    private final TriggerReactorCore plugin;
     private final IVariablePlaceholder variablePlaceholder;
+    private final PluginDescriptionFile description;
 
     /**
      * Since we register the expansion inside our own plugin, we
@@ -15,9 +34,11 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion implements
      *
      * @param plugin The instance of our plugin.
      */
-    public PlaceholderExpansionSupport(TriggerReactorCore plugin) {
-        this.plugin = plugin;
-        this.variablePlaceholder = new VariablePlaceholder(plugin);
+    public PlaceholderExpansionSupport(PluginDescriptionFile pluginDesc,
+                                       GlobalVariableManager globalVariableManager,
+                                       CommandTriggerManager commandTriggerManager) {
+        this.variablePlaceholder = new VariablePlaceholder(pluginDesc, globalVariableManager, commandTriggerManager);
+        this.description = pluginDesc;
     }
 
     /**
@@ -39,7 +60,9 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion implements
      */
     @Override
     public String getAuthor() {
-        return plugin.getAuthor();
+        return description.getAuthors().stream()
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
     }
 
     /**
@@ -71,7 +94,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion implements
      */
     @Override
     public String getVersion() {
-        return plugin.getVersion();
+        return description.getVersion();
     }
 
     @Override

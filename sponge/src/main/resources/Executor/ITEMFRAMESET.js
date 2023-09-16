@@ -14,36 +14,43 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function ITEMFRAMESET(args) {
-	if (args.length == 2 || args.length == 4) {
-		var itemID = args[0].toUpperCase();
-		var location;
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var EntityTypes = Java.type('org.spongepowered.api.entity.EntityTypes')
+var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
+var ItemTypes = Java.type('org.spongepowered.api.item.ItemTypes')
+var Location = Java.type('org.spongepowered.api.world.Location')
+var ReflectionUtil = Java.type('io.github.wysohn.triggerreactor.tools.ReflectionUtil')
 
-		if(args.length == 2){
-			location = args[1];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
-		}
+function ITEMFRAMESET(args) {
+  if (args.length == 2 || args.length == 4) {
+    var itemID = args[0].toUpperCase()
+    var location
 
-		var itemType = ReflectionUtil.getField(ItemTypes.class, null, itemID);
-		var builder = ItemStack.builder().itemType(itemType).quantity(1);
-		
-		var entities = location.getExtent().getEntities();
-		for(var i = 0; i < entities.size(); i++){
-			var entity = entities[i];
-			if(entity.getType() != EntityTypes.ITEM_FRAME)
-				continue;
-			
-			var dist = entity.getLocation().getPosition().distance(location.getPosition());
-			if(dist <= 1){
-				entity.offer(Keys.REPRESENTED_ITEM, builder.build().createSnapshot());
-				break;
-			}
-		}
-	} else {
-		throw new Error(
-			'Invalid parameters. Need [Item<string>, Location<location or number number number>]');
-	}
-	return null;
+    if (args.length == 2) {
+      location = args[1]
+    } else {
+      var world = player.getWorld()
+      location = new Location(world, args[1], args[2], args[3])
+    }
+
+    var itemType = ReflectionUtil.getField(ItemTypes.class, null, itemID)
+    var builder = ItemStack.builder().itemType(itemType).quantity(1)
+
+    var entities = location.getExtent().getEntities()
+    for (var i = 0; i < entities.size(); i++) {
+      var entity = entities[i]
+      if (entity.getType() != EntityTypes.ITEM_FRAME) continue
+
+      var dist = entity.getLocation().getPosition().distance(location.getPosition())
+      if (dist <= 1) {
+        entity.offer(Keys.REPRESENTED_ITEM, builder.build().createSnapshot())
+        break
+      }
+    }
+  } else {
+    throw new Error(
+      'Invalid parameters. Need [Item<string>, Location<location or number number number>]'
+    )
+  }
+  return null
 }

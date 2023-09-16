@@ -1,24 +1,23 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -87,7 +86,7 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
         BukkitPlayer playerWrapped = new BukkitPlayer(player);
 
         T trigger = manager.getTriggerForLocation(locationWrapped);
-        IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap(player);
+        IPlayer bukkitPlayer = new BukkitPlayer(player);
 
         if (IS != null && !e.isCancelled() && player.hasPermission("triggerreactor.admin")) {
 
@@ -130,7 +129,7 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
                         }
                     } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
                         if (trigger != null && manager.copyTrigger(playerWrapped,
-                                                                   locationWrapped)) {
+                                locationWrapped)) {
                             player.sendMessage(ChatColor.GREEN + "Copy Complete!");
                             player.sendMessage(ChatColor.GREEN + "Now you can paste it by left click on any block!");
                             e.setCancelled(true);
@@ -153,9 +152,9 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
 
         Block block = e.getBlock();
         SimpleLocation sloc = new SimpleLocation(block.getWorld().getName(),
-                                                 block.getX(),
-                                                 block.getY(),
-                                                 block.getZ());
+                block.getX(),
+                block.getY(),
+                block.getZ());
         for (SimpleLocation surrounding : manager.getSurroundingBlocks(sloc, this::isWallSign)) {
             World world = block.getWorld();
             Block target = world.getBlockAt(surrounding.getX(), surrounding.getY(), surrounding.getZ());
@@ -217,8 +216,8 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
 
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
         SimpleChunkLocation scLoc = new SimpleChunkLocation(chunk.getWorld().getName(),
-                                                            chunk.getX(),
-                                                            chunk.getZ());
+                chunk.getX(),
+                chunk.getZ());
         return manager.getTriggersInChunk(scLoc);
     }
 

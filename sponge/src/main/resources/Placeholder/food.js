@@ -14,9 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function food(args) {
-    if(player == null)
-        return null;
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
 
-    return player.get(Keys.FOOD_LEVEL).orElse(-1);
+function food(args) {
+  if (player == null) return null
+
+  return player.get(Keys.FOOD_LEVEL).orElse(-1)
 }

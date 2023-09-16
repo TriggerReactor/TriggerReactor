@@ -1,37 +1,47 @@
 /*
- *     Copyright (C) 2021 Dr_Romantic and contributors
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public class VariablePlaceholder implements IVariablePlaceholder {
-    private final TriggerReactorCore plugin;
+    private final PluginDescriptionFile description;
+    private final GlobalVariableManager globalVariableManager;
+    private final CommandTriggerManager commandTriggerManager;
 
-    public VariablePlaceholder(TriggerReactorCore plugin) {
-        this.plugin = plugin;
+    public VariablePlaceholder(PluginDescriptionFile description,
+                               GlobalVariableManager globalVariableManager,
+                               CommandTriggerManager commandTriggerManager) {
+        this.description = description;
+        this.globalVariableManager = globalVariableManager;
+        this.commandTriggerManager = commandTriggerManager;
     }
 
     /**
@@ -51,10 +61,35 @@ public class VariablePlaceholder implements IVariablePlaceholder {
             return "";
 
         if (identifier.toLowerCase().equals("version")) {
-            return plugin.getVersion();
+            return description.getVersion();
         }
 
-        Map<Object, Object> adapter = plugin.getVariableManager().getGlobalVariableAdapter();
+        if (identifier.toLowerCase().startsWith("run")) {
+            String[] args = identifier.split("_", 2);
+            if (args.length < 2)
+                return "";
+
+            String expression = args[1];
+            try {
+                // prepare a temporary trigger
+                CommandTrigger tempTrigger = commandTriggerManager.createTempCommandTrigger(expression);
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("player", player);
+
+                // evaluate the expression
+                tempTrigger.activate(new Object(), variables, true);
+
+                // return the result
+                return Optional.of(tempTrigger)
+                        .map(CommandTrigger::getResult)
+                        .map(Object::toString)
+                        .orElse("");
+            } catch (AbstractTriggerManager.TriggerInitFailedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Map<Object, Object> adapter = globalVariableManager.getGlobalVariableAdapter();
 
         Object value = null;
 
@@ -73,8 +108,7 @@ public class VariablePlaceholder implements IVariablePlaceholder {
             // %tr_<variable name>%
             //if(identifier.contains("")){return "";}
             variableName = variableName.replace('_', '.');
-            GlobalVariableManager vm = plugin.getVariableManager();
-            value = vm.get(variableName);
+            value = globalVariableManager.get(variableName);
         }
 
 //        if (value == null) {

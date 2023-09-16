@@ -1,23 +1,16 @@
 package js.executor;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import js.ExecutorTest;
 import js.JsTest;
 import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Stairs;
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -30,140 +23,164 @@ import static org.mockito.Mockito.*;
  * write the individual test in this class so that the test can be individually
  * performed.
  */
+
 public class TestExecutors extends AbstractTestExecutors {
     protected void before() throws Exception {
         register(sem, engine, BukkitUtil.class);
     }
 
+    @Ignore("Simple test to make sure that tests ran in legacy environment")
     @Test
-    public void testMoney() throws Exception {
-        VaultSupport vVault = Mockito.mock(VaultSupport.class);
-        Player vp = Mockito.mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "MONEY")
-                .addVariable("vault", vVault)
-                .addVariable("player", vp);
+    public void testLegacy() {
 
-        test.withArgs(30).test();
-        Mockito.verify(vVault).give(vp, 30);
-
-        test.withArgs(-30).test();
-        Mockito.verify(vVault).take(vp, 30);
-
-        assertJSError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
-        assertJSError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");
     }
 
-    @Override
-    public void testRotateBlock() throws Exception {
-        Location location = mock(Location.class);
-        Block block = mock(Block.class);
-        BlockState state = mock(BlockState.class);
-        Stairs data = mock(Stairs.class);
-
-        when(location.getBlock()).thenReturn(block);
-        when(block.getState()).thenReturn(state);
-        when(state.getData()).thenReturn(data);
-
-        new ExecutorTest(engine, "ROTATEBLOCK")
-                .withArgs(BlockFace.NORTH.name(), location)
-                .test();
-
-        verify(data).setFacingDirection(BlockFace.NORTH);
-        verify(state).setData(data);
-    }
-
-    @Override
-    public void testSignEdit() throws Exception {
+    @Test
+    public void testSound1() throws Exception {
         Player player = mock(Player.class);
         Location location = mock(Location.class);
-        Block block = mock(Block.class);
-        Sign sign = mock(Sign.class);
+        String sound = "FUSE";
 
-        when(location.getBlock()).thenReturn(block);
-        when(block.getType()).thenReturn(Material.SIGN_POST);
-        when(block.getState()).thenReturn(sign);
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
 
-        new ExecutorTest(engine, "SIGNEDIT")
-                .withArgs(0, "line1", location)
-                .addVariable("player", player)
-                .test();
+        test.withArgs(location, sound).test();
 
-        verify(sign).setLine(0, "line1");
-        verify(sign).update();
-    }
+        verify(player).playSound(location, Sound.valueOf(sound), 1F, 1F);
 
-    public void testSetBlockSetData() throws Exception {
-        World mockWorld = Mockito.mock(World.class);
-        Block mockBlock = mock(Block.class);
-
-        JsTest test = new ExecutorTest(engine, "SETBLOCK");
-        test.addVariable("block", mockBlock);
-
-        when(server.getWorld("world")).thenReturn(mockWorld);
-
-        test.withArgs(1).test();
-
-        verify(mockBlock).setType(eq(Material.STONE));
-        verify(mockBlock).setData(eq((byte) 0));
+        Assert.assertEquals(0, test.getOverload(location, sound));
     }
 
     @Test
-    public void testSetBlockSetData1_1() throws Exception {
-        // {block id} {x} {y} {z}
-        World mockWorld = Mockito.mock(World.class);
-        Player player = Mockito.mock(Player.class);
-        Block block = mock(Block.class);
+    public void testSound2() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        String sound = "FUSE";
+        float volume = 0.5F;
+        float pitch = -0.5F;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs(1, 33, 96, -15)
-                .test();
+        test.withArgs(location, sound, volume, pitch).test();
 
-        verify(block).setType(eq(Material.STONE));
-        verify(block).setData(eq((byte) 0));
+        verify(player).playSound(location, Sound.valueOf(sound), volume, pitch);
+
+        Assert.assertEquals(2, test.getOverload(location, sound, volume, pitch));
     }
 
     @Test
-    public void testSetBlockSetData1_2() throws Exception {
-        // {block id} {block data} {x} {y} {z}
-        World mockWorld = Mockito.mock(World.class);
-        Player player = Mockito.mock(Player.class);
-        Block block = mock(Block.class);
+    public void testSound3() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        Sound sound = Sound.FUSE;
+        float volume = 0.5F;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs(4, 3, 33, 96, -15)
-                .test();
+        test.withArgs(location, sound, volume).test();
 
-        verify(block).setType(eq(Material.COBBLESTONE));
-        verify(block).setData(eq((byte) 3));
+        verify(player).playSound(location, sound, volume, 1F);
+
+        Assert.assertEquals(4, test.getOverload(location, sound, volume));
     }
 
     @Test
-    public void testSetBlockSetData2() throws Exception {
-        // {block id} {block data} {Location instance}
-        World mockWorld = Mockito.mock(World.class);
-        Player player = Mockito.mock(Player.class);
-        Block block = mock(Block.class);
+    public void testSound4() throws Exception {
+        Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+        Sound sound = Sound.FUSE;
+        float volume = 0.5F;
+        float pitch = -0.5F;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        Location location = mock(Location.class);
+        World world = mock(World.class);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs(3, 2, new Location(mockWorld, 33, 96, -15))
-                .test();
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
 
-        verify(block).setType(eq(Material.DIRT));
-        verify(block).setData(eq((byte) 2));
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z, sound, volume, pitch).test();
+
+        verify(player).playSound(any(Location.class), eq(sound), eq(volume), eq(pitch));
+
+        Assert.assertEquals(11, test.getOverload(x, y, z, sound, volume, pitch));
+    }
+
+    @Test
+    public void testSoundAll1() throws Exception {
+        Location location = mock(Location.class);
+        String sound = "FUSE";
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUNDALL");
+
+        test.withArgs(location, sound).test();
+
+        verify(world).playSound(location, Sound.valueOf(sound), 1F, 1F);
+
+        Assert.assertEquals(0, test.getOverload(location, sound));
+    }
+
+    @Test
+    public void testSoundAll2() throws Exception {
+        Location location = mock(Location.class);
+        String sound = "FUSE";
+        float volume = 0.5F;
+        float pitch = -0.5F;
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUNDALL");
+
+        test.withArgs(location, sound, volume, pitch).test();
+
+        verify(world).playSound(location, Sound.valueOf(sound), volume, pitch);
+
+        Assert.assertEquals(2, test.getOverload(location, sound, volume, pitch));
+    }
+
+    @Test
+    public void testSoundAll3() throws Exception {
+        Location location = mock(Location.class);
+        Sound sound = Sound.FUSE;
+        float volume = 0.5F;
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUNDALL");
+
+        test.withArgs(location, sound, volume).test();
+
+        verify(world).playSound(location, sound, volume, 1F);
+
+        Assert.assertEquals(4, test.getOverload(location, sound, volume));
+    }
+
+    @Test
+    public void testSoundAll_string() throws Exception {
+        // Spigot API 1.8.8 does not have World#playSound(Location, String, float, float)
+    }
+
+    @Test
+    public void testSetOffHand1() throws Exception {
+        // Spigot API 1.8.8 does not have PlayerInventory#setItemInOffHand(ItemStack)
+    }
+
+    @Test
+    public void testSetOffHand2() throws Exception {
+        // Spigot API 1.8.8 does not have PlayerInventory#setItemInOffHand(ItemStack)
     }
 }

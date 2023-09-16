@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,40 +15,40 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function BURN(args){
-	if(args.length === 1) {
-		if (typeof args[0] !== "number") {
-			throw new Error("Invalid number for seconds to burn: " + args[0])
-		}
-		if (args[0] < 0) {
-			throw new Error("The number of seconds to burn should be positive")
-		}
-		var seconds = args[0] * 20;
-		
-		player.offer(Keys.FIRE_TICKS, Math.round(seconds));
-	}else if(args.length === 2){ 
-		var entity = args[0];
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var Sponge = Java.type('org.spongepowered.api.Sponge')
+var Integer = Java.type('java.lang.Integer')
 
-		if (entity !== null) {
-			throw new Error("player to burn should not be null");
-		}
-		if(typeof entity === "string"){
-			entity = Sponge.getServer().getPlayer(entity);
-		}
-		if (entity === null) {
-			throw new Error("player to burn does not exist");
-		}
-		if (typeof args[1] !== "number") {
-			throw new Error("Invalid number for seconds to burn: " + args[0])
-		}
-		if (args[1] < 0) {
-			throw new Error("The number of seconds to burn should be positive")
-		}
+function BURN(args) {
+  var target, seconds
 
-		entity.offer(Keys.FIRE_TICKS, Math.round(seconds));
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Number] or [Entity<entity or string>, Number]');
-	}
-	return null;
+  if (args.length === 1) {
+    if (typeof args[0] !== 'number') {
+      throw new Error('Invalid number for seconds to burn: ' + args[0])
+    } else if (args[0] < 0) {
+      throw new Error('The number of seconds to burn should be positive')
+    }
+
+    target = player
+    seconds = Math.min(args[0] * 20, Integer.MAX_VALUE)
+  } else if (args.length === 2) {
+    target = args[0]
+
+    if (typeof args[0] === 'string') {
+      target = Sponge.getServer().getPlayer(target).orElse(null)
+    }
+
+    if (target === null) {
+      throw new Error('Player to burn does not exist.')
+    } else if (typeof args[1] !== 'number') {
+      throw new Error('Invalid number for seconds to burn: ' + target.getName())
+    } else if (args[1] < 0) {
+      throw new Error('The number of seconds to burn should be positive.')
+    }
+  } else {
+    throw new Error('Invalid parameters. Need [Number] or [Entity or String, Number]')
+  }
+
+  target.offer(Keys.FIRE_TICKS, Math.round(seconds))
+  return null
 }

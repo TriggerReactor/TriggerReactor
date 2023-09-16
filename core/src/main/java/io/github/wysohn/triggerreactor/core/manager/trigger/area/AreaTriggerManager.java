@@ -1,69 +1,89 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.IGameStateSupervisor;
+import io.github.wysohn.triggerreactor.core.main.IGameManagement;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
-    TaskSupervisor task;
-    IGameStateSupervisor gameState;
+@Singleton
+public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+    @Inject
+    private IAreaTriggerFactory factory;
+    @Inject
+    private TaskSupervisor task;
+    @Inject
+    private IGameManagement gameState;
+    @Inject
+    private IPluginManagement pluginManagement;
 
-    protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
+    private Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
 
     /**
      * The child class should update this map with its own way. Though, the entity which garbage-corrected will
      * be also deleted from this map automatically.
      * <b>Adding or removing from this map also has to be reflected in entityTrackMap as well</b>
      */
-    protected final Map<UUID, SimpleLocation> entityLocationMap = new ConcurrentHashMap<>();
+    private final Map<UUID, SimpleLocation> entityLocationMap = new ConcurrentHashMap<>();
     /**
      * The actual entity map.
      * <b>Adding or removing from this map also has to be reflected in entityLocationMap as well</b>
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AreaTriggerManager(TriggerReactorCore plugin,
-                              TaskSupervisor task,
-                              IGameStateSupervisor gameState,
-                              ITriggerLoader<AreaTrigger> loader) {
-        super(plugin, concatPath(plugin.getDataFolder(), FOLDER_NAME), loader);
+    @Inject
+    private AreaTriggerManager(@Named("DataFolder") File dataFolder,
+                               @Named("AreaTriggerManagerFolder") String folderName) {
+        super(new File(dataFolder, folderName));
+    }
 
-        this.task = task;
-        this.gameState = gameState;
+    protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
+        getAreaForLocation(from).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(entity));
+    }
 
+    @Override
+    public void initialize() {
         Thread entityTrackingThread = new Thread(new Runnable() {
 
             private Collection<WeakReference<IEntity>> getEntitiesSync(IWorld w) {
@@ -83,7 +103,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
 
             @Override
             public void run() {
-                while (plugin.isEnabled() && !Thread.interrupted()) {
+                while (pluginManagement.isEnabled() && !Thread.interrupted()) {
                     try {
                         //track entity locations
                         for (IWorld w : gameState.getWorlds()) {
@@ -97,17 +117,10 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
 
                                 UUID uuid = e.getUniqueId();
 
-                                if (!plugin.isEnabled())
+                                if (!pluginManagement.isEnabled())
                                     break;
 
-                                Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
-
-                                    @Override
-                                    public Boolean call() throws Exception {
-                                        return !e.isDead() && e.isValid();
-                                    }
-
-                                });
+                                Future<Boolean> future = task.submitSync(() -> !e.isDead() && e.isValid());
 
                                 boolean valid = false;
                                 try {
@@ -157,7 +170,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
 
             @Override
             public void run() {
-                while (plugin.isEnabled() && !Thread.interrupted()) {
+                while (pluginManagement.isEnabled() && !Thread.interrupted()) {
                     //clean up the reference map
                     Set<UUID> deletes = new HashSet<>();
                     for (Entry<UUID, WeakReference<IEntity>> entry : entityTrackMap.entrySet()) {
@@ -184,21 +197,6 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
         referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
         referenceCleaningThread.setDaemon(true);
         referenceCleaningThread.start();
-    }
-
-    public AreaTriggerManager(TriggerReactorCore plugin,
-                              TaskSupervisor task,
-                              IGameStateSupervisor gameState){
-        this(plugin, task, gameState, new AreaTriggerLoader(plugin));
-    }
-
-    protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
-        getAreaForLocation(from).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
-        getAreaForLocation(current).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(entity));
     }
 
     @Override
@@ -314,8 +312,8 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
             return false;
 
         File areaFolder = concatPath(folder, name);
-        IConfigSource config = configSourceFactory.create(folder, name);
-        AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
+        IConfigSource config = getConfigSource(folder, name);
+        AreaTrigger trigger = factory.create(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);
 
         setupArea(trigger);

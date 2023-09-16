@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,34 +15,58 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var Bukkit = Java.type('org.bukkit.Bukkit');
 var BlockFace = Java.type('org.bukkit.block.BlockFace');
+var Rotatable = Java.type('org.bukkit.block.data.Rotatable');
+var Location = Java.type('org.bukkit.Location');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'direction' },
+      { type: Location.class, name: 'location' }
+    ],
+    [
+      { type: 'string', name: 'direction' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
+    ]
+  ]
+};
 
 function ROTATEBLOCK(args) {
-    if(typeof(block) !== 'undefined' && args.length == 1){
-        var face = BlockFace.valueOf(args[0]);
+  var blockFace, location;
 
-        var blockData = block.getBlockData();
-        blockData.setFacing(face);
-        block.setBlockData(blockData);
-    } else if(args.length == 2 || args.length == 4){
-        var face = BlockFace.valueOf(args[0]);
-        var location;
+  if (overload === 0) {
+    blockFace = args[0];
+    location = args[1];
+  } else if (overload === 1) {
+    blockFace = args[0];
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[1],
+      args[2],
+      args[3]
+    );
+  }
 
-        if(args.length == 4){
-            location = new Location(player.getWorld(), args[1], args[2], args[3]);
-        }else{
-            location = args[1];
-        }
+  var facing = BlockFace.valueOf(blockFace.toUpperCase());
 
-        block = location.getBlock();
+  if (!facing) throw new Error(args[0] + ' is not valid BlockFacing.');
 
-        var blockData = block.getBlockData();
-        blockData.setFacing(face);
-        block.setBlockData(blockData);
-    } else {
-        throw new Error(
-            'Invalid parameters. Need [BlockFace<string>] or [BlockFace<string>, Location<location or number number number>]');
-    }
+  var block = location.getBlock();
+  var state = block.getState();
+  var data = state.getData();
 
-    return null;
+  if (!(data instanceof Rotatable))
+    throw new Error('This block is not rotatable.');
+
+  data.setFacingDirection(facing);
+
+  state.setData(data);
+  state.update();
+
+  return null;
 }

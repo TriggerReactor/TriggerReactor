@@ -29,9 +29,14 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class AreaTriggerListener implements BukkitTriggerManager {
     private final AreaTriggerManager manager;
 
+    @Inject
     public AreaTriggerListener(AreaTriggerManager manager) {
         this.manager = manager;
     }
@@ -39,15 +44,15 @@ public class AreaTriggerListener implements BukkitTriggerManager {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         manager.onJoin(LocationUtil.convertToSimpleLocation(e.getPlayer().getLocation()),
-                       new BukkitEntity(e.getPlayer()));
+                new BukkitEntity(e.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLocationChange(PlayerBlockLocationEvent e) {
         manager.onLocationChange(e,
-                                 e.getFrom(),
-                                 e.getTo(),
-                                 new BukkitPlayer(e.getPlayer()));
+                e.getFrom(),
+                e.getTo(),
+                new BukkitPlayer(e.getPlayer()));
     }
 
     @EventHandler

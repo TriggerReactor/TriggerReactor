@@ -1,64 +1,43 @@
-/*
- * Copyright (C) 2022. TriggerReactor Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package js.executor;
 
-//import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.Platform;
+import io.github.wysohn.triggerreactor.core.manager.PlatformManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
-import junit.framework.Assert;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFactory;
+import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.Door;
 import org.bukkit.material.Lever;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.Mockito.*;
 
 /**
@@ -67,866 +46,1654 @@ import static org.mockito.Mockito.*;
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @BeforeClass
-    public static void begin(){
+    public static void begin() {
         ExecutorTest.coverage.clear();
     }
 
     @AfterClass
-    public static void tearDown(){
+    public static void tearDown() {
         ExecutorTest.coverage.forEach((key, b) -> System.out.println(key));
         ExecutorTest.coverage.clear();
     }
 
     @Test
-    public void testPlayer_SetFlyMode() throws Exception {
-        Player mockPlayer = mock(Player.class);
-
-        JsTest test = new ExecutorTest(engine, "SETFLYMODE")
-                .addVariable("player", mockPlayer);
-
-        for (boolean b : new boolean[]{true, false}) {
-            test.withArgs(b).test();
-            verify(mockPlayer).setAllowFlight(eq(b));
-            verify(mockPlayer).setFlying(eq(b));
-        }
-
-        assertJSError(() -> test.withArgs(true, true).test(), "Incorrect number of arguments for executor SETFLYMODE");
-        assertJSError(() -> test.withArgs("merp").test(), "Invalid argument for executor SETFLYMODE: merp");
-    }
-
-    @Test
-    public void testPlayer_SetFlySpeed() throws Exception {
+    public void testBurn1() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETFLYSPEED")
+        int second = 5;
+
+        JsTest test = new ExecutorTest(engine, "BURN")
                 .addVariable("player", player);
 
-        //only case
-        test.withArgs(0.5).test();
-        verify(player).setFlySpeed(0.5F);
+        test.withArgs(second).test();
+        verify(player).setFireTicks(20 * second);
 
-        //Unexpected cases
-        assertJSError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETFLYSPEED");
-        assertJSError(() -> test.withArgs(0.5, 13).test(), "Incorrect Number of arguments for Executor SETFLYSPEED");
-        assertJSError(() -> test.withArgs("HI").test(), "Invalid argument for SETFLYSPEED: HI");
-        assertJSError(() -> test.withArgs(4).test(), "Argument for Executor SETFLYSPEED is outside of range -1..1");
-        assertJSError(() -> test.withArgs(-4).test(), "Argument for Executor SETFLYSPEED is outside of range -1..1");
+        Assert.assertEquals(0, test.getOverload(second));
     }
 
     @Test
-    public void testPlayer_SetFood() throws Exception {
+    public void testBurn2() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETFOOD")
+        int second = 5;
+
+        JsTest test = new ExecutorTest(engine, "BURN");
+
+        test.withArgs(player, second).test();
+        verify(player).setFireTicks(20 * second);
+
+        Assert.assertEquals(1, test.getOverload(player, second));
+    }
+
+    @Test
+    public void testClearChat1() throws Exception {
+        Player player = mock(Player.class);
+
+        JsTest test = new ExecutorTest(engine, "CLEARCHAT")
                 .addVariable("player", player);
 
+        test.test();
+        verify(player, times(64)).sendMessage("");
 
-        //case1
-        test.withArgs(3).test();
-        verify(player).setFoodLevel(3);
-
-        //case2
-        test.withArgs(4.0).test();
-        verify(player).setFoodLevel(4);
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETFOOD");
-        assertJSError(() -> test.withArgs("HI").test(), "Invalid argument for Executor SETFOOD: HI");
-        assertJSError(() -> test.withArgs(3.4).test(), "Argument for Executor SETFOOD should be a whole number");
-        assertJSError(() -> test.withArgs(-3.0).test(), "Argument for Executor SETFOOD should not be negative");
+        Assert.assertEquals(0, test.getOverload());
     }
 
     @Test
-    public void testPlayer_SetGameMode() throws Exception {
+    public void testClearChat2() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETGAMEMODE")
-                .addVariable("player", player);
 
-        //only case
-        test.withArgs("creative").test();
-        verify(player).setGameMode(GameMode.valueOf("CREATIVE"));
+        JsTest test = new ExecutorTest(engine, "CLEARCHAT");
 
-        //case2
-        test.withArgs(2).test();
-        verify(player).setGameMode(GameMode.valueOf("ADVENTURE"));
+        test.withArgs(player).test();
+        verify(player, times(64)).sendMessage("");
 
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs().test(), "Incorrect number of arguments for executor SETGAMEMODE");
-        assertJSError(() -> test.withArgs(34).test(), "Invalid argument for Executor SETGAMEMODE: 34");
-        assertJSError(() -> test.withArgs("hElLo").test(), "Unknown GAEMMODE value hElLo");
-    }
-
-    @Test
-    public void testPlayer_SetHealth() throws Exception {
-        Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETHEALTH")
-                .addVariable("player", player);
-        when(player.getMaxHealth()).thenReturn(20.0);
-
-        //case1
-        test.withArgs(2).test();
-        verify(player).setHealth(2.0);
-
-        //case2
-        test.withArgs(3.0).test();
-        verify(player).setHealth(3.0);
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs(1, 334).test(), "Incorrect Number of arguments for executor SETHEALTH");
-        assertJSError(() -> test.withArgs("yeah").test(), "Invalid argument for SETHEALTH: yeah");
-        assertJSError(() -> test.withArgs(-17).test(), "Argument for Exector SETHEALTH should not be negative");
-        assertJSError(() -> test.withArgs(50).test(), "Argument for Executor SETHEALTH is greater than the max health");
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testPlayer_SetMaxHealth() throws Exception {
-        Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
-                .addVariable("player", player);
-
-        //case1
-        test.withArgs(30).test();
-        verify(player).setMaxHealth(30.0);
-
-        //case2
-        test.withArgs(35.4).test();
-        verify(player).setMaxHealth(35.4);
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs(20, 33).test(), "Incorrect Number of arguments for Executor SETMAXHEALTH");
-        assertJSError(() -> test.withArgs("NONO").test(), "Invalid argument for SETMAXHEALTH: NONO");
-        assertJSError(() -> test.withArgs(-30).test(), "Argument for Executor SETMAXHEALTH should not be negative or zero");
-        assertJSError(() -> test.withArgs(2098).test(), "Maximum health cannot be greater than 2048");
-    }
-
-    @Test
-    public void testPlayer_SetSaturation() throws Exception {
-        Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETSATURATION")
-                .addVariable("player", player);
-
-        //case1
-        test.withArgs(25).test();
-        verify(player).setSaturation(25.0F);
-
-        //case2
-        test.withArgs(44.0).test();
-        verify(player).setSaturation(44.0F);
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETSATURATION");
-        assertJSError(() -> test.withArgs("Hi").test(), "Invalid argument for SETSATURATION: Hi");
-        assertJSError(() -> test.withArgs(-45).test(), "Argument for Executor SETSATURATION should not be negative");
-    }
-
-    @Test
-    public void testPlayer_SetWalkSpeed() throws Exception {
-        Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
-                .addVariable("player", player);
-        //case1
-        test.withArgs(1).test();
-        verify(player).setWalkSpeed(1.0F);
-
-        //case2
-        test.withArgs(0.7).test();
-        verify(player).setWalkSpeed(0.7F);
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETWALKSPEED");
-        assertJSError(() -> test.withArgs("NUU").test(), "Invalid argument for SETWALKSPEED: NUU");
-        assertJSError(() -> test.withArgs(-3).test(), "Argument for Executor SETWALKSPEED is outside of the allowable range -1..1");
-    }
-
-    @Test
-    public void testPlayer_SetXp() throws Exception {
-        Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETXP")
-                .addVariable("player", player);
-
-        //case1
-        test.withArgs(0.3).test();
-        verify(player).setExp(0.3F);
-
-        //case2
-        test.withArgs(1).test();
-        verify(player).setExp(1.0F);
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs().test(), "Incorrect number of arguments for executor SETXP");
-        assertJSError(() -> test.withArgs("lmao").test(), "Invalid argument for SETXP: lmao");
-        assertJSError(() -> test.withArgs(33).test(), "33 is outside of the allowable range of 0..1 for executor SETXP");
-
-    }
-
-    @Test
-    public void testActionBar() throws Exception {
-        //TODO
-    }
-
-    @Test
-    public void testBroadcast() throws Exception {
-        Collection<Player> players = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            players.add(mock(Player.class));
-        }
-
-        String message = "&cHey all";
-        String colored = ChatColor.translateAlternateColorCodes('&', message);
-
-        doReturn(players).when(server).getOnlinePlayers();
-
-        new ExecutorTest(engine, "BROADCAST")
-                .withArgs(message)
-                .test();
-        for (Player mockPlayer : players) {
-            verify(mockPlayer)
-                    .sendMessage(argThat((String s) -> colored.equals(s)));
-        }
-    }
-
-    @Test
-    public void testBurn() throws Exception {
-        //happy cases
-
-        Player mockPlayer = mock(Player.class);
-        Entity mockEntity = mock(Entity.class);
-        JsTest test = new ExecutorTest(engine, "BURN").addVariable("player", mockPlayer);
-
-        test.withArgs(3).test();
-        verify(mockPlayer).setFireTicks(60);
-
-        test.withArgs(0.101).test();
-        verify(mockPlayer).setFireTicks(2);
-
-        test.withArgs(mockEntity, 1).test();
-        verify(mockEntity).setFireTicks(20);
-
-        when(server.getPlayer("merp")).thenReturn(mockPlayer);
-        test.withArgs("merp", 5).test();
-        verify(mockPlayer).setFireTicks(100);
-
-        //sad cases
-        when(server.getPlayer("merp")).thenReturn(null);
-        assertJSError(() -> test.withArgs(-1).test(), "The number of seconds to burn should be positive");
-        assertJSError(() -> test.withArgs().test(), "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
-        assertJSError(() -> test.withArgs(1, 1, 1).test(), "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
-        assertJSError(() -> test.withArgs(true).test(), "Invalid number for seconds to burn: true");
-        assertJSError(() -> test.withArgs(null, 4).test(), "player to burn should not be null");
-        assertJSError(() -> test.withArgs("merp", 3).test(), "player to burn does not exist");
-        assertJSError(() -> test.withArgs(3, 3).test(), "invalid entity to burn: 3");
-        assertJSError(() -> test.withArgs(mockEntity, "merp").test(), "The number of seconds to burn should be a number");
-        assertJSError(() -> test.withArgs(mockEntity, -1).test(), "The number of seconds to burn should be positive");
-    }
-
-    @Test
-    public void testClearChat() throws Exception {
-        Player player = mock(Player.class);
-        Player player2 = mock(Player.class);
-        Player nullP = null;
-        JsTest test = new ExecutorTest(engine, "CLEARCHAT").addVariable("player", player);
-
-        //case1
-        test.withArgs().test();
-        verify(player, times(30)).sendMessage("");
-
-        //case2
-        test.withArgs(player2).test();
-        verify(player2, times(30)).sendMessage("");
-
-        //Unexpected Cases
-        assertJSError(() -> test.withArgs(nullP).test(), "Found unexpected parameter - player: null");
-        assertJSError(() -> test.withArgs(1, 2).test(), "Too many parameters found! CLEARCHAT accept up to one parameter.");
+        Assert.assertEquals(1, test.getOverload(player));
     }
 
     @Test
     public void testClearEntity() throws Exception {
+        Collection<Entity> entities = new ArrayList<Entity>() {{
+            for (int i = 0; i < 5; i++)
+                add(mock(Entity.class));
+        }};
+
         Player player = mock(Player.class);
-        List<Entity> entities = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            entities.add(mock(Entity.class));
-        }
+        double radius = 5;
+
+        doReturn(entities).when(player).getNearbyEntities(anyDouble(), anyDouble(), anyDouble());
+
         JsTest test = new ExecutorTest(engine, "CLEARENTITY")
                 .addVariable("player", player);
-        when(player.getNearbyEntities(2d, 2d, 2d)).thenReturn(entities);
-        test.withArgs(2).test();
-        for (Entity ve : entities) {
-            verify(ve).remove();
-        }
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters! [Number]");
-        assertJSError(() -> test.withArgs("NO").test(), "Invalid parameters! [Number]");
+
+        test.withArgs(radius).test();
+        for (Entity entity : entities)
+            verify(entity).remove();
+
+        Assert.assertEquals(0, test.getOverload(radius));
     }
 
     @Test
     public void testClearPotion() throws Exception {
-        Player p = mock(Player.class);
-        ExecutorTest test = new ExecutorTest(engine, "CLEARPOTION");
-        test.addVariable("player", p);
+        Collection<PotionEffect> effects = new ArrayList<PotionEffect>() {{
+            for (int i = 0; i < 5; i++) {
+                PotionEffect effect = mock(PotionEffect.class);
+
+                add(effect);
+                when(effect.getType()).thenReturn(mock(PotionEffectType.class));
+            }
+        }};
+
+        Player player = mock(Player.class);
+
+        doReturn(effects).when(player).getActivePotionEffects();
+
+        JsTest test = new ExecutorTest(engine, "CLEARPOTION")
+                .addVariable("player", player);
+
         test.test();
 
-        Assert.assertEquals(0, test.getOverload());
-        Assert.assertEquals(1, test.getOverload("SPEED"));
+        verify(player, times(effects.size())).removePotionEffect(any(PotionEffectType.class));
 
-        Assert.assertFalse(test.isValid(0));
-        Assert.assertFalse(test.isValid("SPEED", "SPEED"));
+        Assert.assertEquals(0, test.getOverload());
     }
 
     @Test
-    public void testCloseGUI() throws Exception {
+    public void testCloseGui() throws Exception {
         Player player = mock(Player.class);
+
         JsTest test = new ExecutorTest(engine, "CLOSEGUI")
                 .addVariable("player", player);
 
-        //only happy case
-        test.withArgs().test();
+        test.test();
+
         verify(player).closeInventory();
     }
 
     @Test
     public void testCmd() throws Exception {
         Player player = mock(Player.class);
+        String command = "testCommand";
+
         when(player.getServer()).thenReturn(server);
 
         JsTest test = new ExecutorTest(engine, "CMD")
                 .addVariable("player", player);
 
-        //only happy case
-        test.withArgs("some command line").test();
-        verify(server).dispatchCommand(player, "some command line");
+        test.withArgs(command).test();
+
+        verify(server).dispatchCommand(player, command);
+
+        Assert.assertEquals(0, test.getOverload(command));
     }
 
     @Test
     public void testCmdCon() throws Exception {
         Player player = mock(Player.class);
+        String command = "testCommand";
+
         ConsoleCommandSender sender = mock(ConsoleCommandSender.class);
 
         when(player.getServer()).thenReturn(server);
         when(server.getConsoleSender()).thenReturn(sender);
 
-        new ExecutorTest(engine, "CMDCON")
-                .withArgs("some command line")
-                .test();
+        JsTest test = new ExecutorTest(engine, "CMDCON");
 
-        verify(server).dispatchCommand(sender, "some command line");
+        test.withArgs(command).test();
+
+        verify(server).dispatchCommand(sender, command);
+
+        Assert.assertEquals(0, test.getOverload(command));
     }
 
     @Test
     public void testDoorClose() throws Exception {
-        //TODO
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
+        JsTest test = new ExecutorTest(engine, "DOORCLOSE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(false);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
     public void testDoorOpen() throws Exception {
-        //TODO
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
+        JsTest test = new ExecutorTest(engine, "DOOROPEN");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(true);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
-    public void testDoorToggle() throws Exception {
-        //TODO
+    public void testDoorToggle1() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isOpen()).thenReturn(false);
+
+        JsTest test = new ExecutorTest(engine, "DOORTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(true);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testDoorToggle2() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isOpen()).thenReturn(true);
+
+        JsTest test = new ExecutorTest(engine, "DOORTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(false);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
     public void testDropItem() throws Exception {
-        ItemFactory factory = mock(ItemFactory.class);
-        Player player = mock(Player.class);
+        ItemStack itemStack = mock(ItemStack.class);
+        Location location = mock(Location.class);
         World world = mock(World.class);
 
-        when(server.getItemFactory()).thenReturn(factory);
-        when(player.getWorld()).thenReturn(world);
-        when(factory.equals(any(), any())).thenReturn(true);
+        when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "DROPITEM")
-                .addVariable("player", player)
-                .withArgs("STONE", 1, "None", -204, 82, 266)
-                .test();
+        JsTest test = new ExecutorTest(engine, "DROPITEM");
 
-        verify(world).dropItem(new Location(world, -204, 82, 266), new ItemStack(Material.STONE));
+        test.withArgs(itemStack, location).test();
+
+        verify(world).dropItem(location, itemStack);
+
+        Assert.assertEquals(0, test.getOverload(itemStack, location));
     }
 
     @Test
-    public void testExplosion() throws Exception {
+    public void testExplosion1() throws Exception {
+        Location location = mock(Location.class);
         World world = mock(World.class);
 
-        when(server.getWorld(anyString())).thenReturn(world);
+        when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "EXPLOSION")
-                .withArgs("world", 101.2, 33.4, 55, 2.9, false)
-                .test();
+        JsTest test = new ExecutorTest(engine, "EXPLOSION");
 
-        verify(world).createExplosion(new Location(world, 101.2, 33.4, 55), 2.9F, false);
+        test.withArgs(location).test();
+
+        verify(world).createExplosion(location, 4.0F, false);
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
-    public void testFallingBlock() throws Exception {
-        Player player = mock(Player.class);
+    public void testExplosion2() throws Exception {
+        Location location = mock(Location.class);
         World world = mock(World.class);
+        float power = 4;
+        boolean fire = true;
 
-        when(player.getWorld()).thenReturn(world);
+        when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "FALLINGBLOCK")
-                .addVariable("player", player)
-                .withArgs("STONE", 44.5, 6, 78.9)
-                .test();
+        JsTest test = new ExecutorTest(engine, "EXPLOSION");
 
-        verify(world).spawnFallingBlock(new Location(world, 44.5, 6, 78.9), Material.STONE, (byte)0);
+        test.withArgs(location, power, fire).test();
+
+        verify(world).createExplosion(location, power, fire);
+
+        Assert.assertEquals(2, test.getOverload(location, power, fire));
     }
 
     @Test
-    public void testGive() throws Exception {
+    public void testFallingBlock1() throws Exception {
+        Material material = Material.values()[0];
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "FALLINGBLOCK");
+
+        test.withArgs(material, location).test();
+
+        verify(world).spawnFallingBlock(location, material, (byte) 0);
+
+        Assert.assertEquals(0, test.getOverload(material, location));
+    }
+
+    @Test
+    public void testFallingBlock2() throws Exception {
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+        String material = "STONE";
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "FALLINGBLOCK");
+
+        test.withArgs(material, location).test();
+
+        verify(world).spawnFallingBlock(location, Material.valueOf(material), (byte) 0);
+
+        Assert.assertEquals(2, test.getOverload(material, location));
+    }
+
+    @Test
+    public void testGive1() throws Exception {
+        // arrange
         Player player = mock(Player.class);
-        PlayerInventory playerInv = mock(PlayerInventory.class);
-        ItemStack vItem = mock(ItemStack.class);
+        ItemStack itemStack = mock(ItemStack.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+
+        when(player.getInventory()).thenReturn(inventory);
+        when(inventory.getSize()).thenReturn(54);
+        when(inventory.getItem(anyInt())).thenReturn(null);
+        when(itemStack.getMaxStackSize()).thenReturn(64);
+
+        // act
         JsTest test = new ExecutorTest(engine, "GIVE")
                 .addVariable("player", player);
 
-        when(player.getInventory()).thenReturn(playerInv);
-        when(playerInv.firstEmpty()).thenReturn(4);
-        test.withArgs(vItem).test();
-        verify(playerInv).addItem(vItem);
+        test.withArgs(itemStack).test();
 
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [ItemStack]");
-        when(playerInv.firstEmpty()).thenReturn(-1);
-        assertJSError(() -> test.withArgs(vItem).test(), "Player has no empty slot.");
-        when(playerInv.firstEmpty()).thenReturn(7);
-        assertJSError(() -> test.withArgs("hi").test(), "Invalid ItemStack: hi");
+        // assert
+        verify(inventory).addItem(itemStack);
+
+        Assert.assertEquals(0, test.getOverload(itemStack));
     }
 
     @Test
-    public void testGUI() throws Exception {
-        Player vip = mock(Player.class);
-        TriggerReactorCore tr = mock(TriggerReactorCore.class);
-        InventoryTriggerManager invManager = mock(InventoryTriggerManager.class);
-        IInventory iInv = mock(IInventory.class);
+    public void testGive2() throws Exception {
+        // arrange
+        Player player = mock(Player.class);
+        ItemStack itemStack = mock(ItemStack.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+
+        when(player.getInventory()).thenReturn(inventory);
+        when(inventory.getSize()).thenReturn(54);
+        when(inventory.getItem(anyInt())).thenReturn(null);
+        when(itemStack.getMaxStackSize()).thenReturn(64);
+
+        // act
+        JsTest test = new ExecutorTest(engine, "GIVE")
+                .addVariable("player", player);
+
+        test.withArgs(itemStack).test();
+
+        // assert
+        verify(inventory).addItem(itemStack);
+
+        Assert.assertEquals(1, test.getOverload(player, itemStack));
+    }
+
+    @Test
+    public void testGui1() throws Exception {
+        Player player = mock(Player.class);
+        String playerName = "TestPlayer";
+        String guiName = "TESTGUI";
+
+        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
+        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+        IInventory inventory = mock(IInventory.class);
+        Injector injector = mock(Injector.class);
+
+        when(player.getName()).thenReturn(playerName);
+        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
+        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
+
         JsTest test = new ExecutorTest(engine, "GUI")
-                .addVariable("player", vip)
-                .addVariable("plugin", tr);
+                .addVariable("player", player)
+                .addVariable("plugin", mockPlugin)
+                .addVariable("injector", injector);
 
-        when(vip.getName()).thenReturn("vip");
-        when(tr.getInvManager()).thenReturn(invManager);
-        when(invManager.openGUI("vip", "Hi")).thenReturn(iInv);
+        test.withArgs(guiName).test();
 
-        test.withArgs("Hi").test();
+        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
 
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [String]");
-        when(invManager.openGUI("vip", "hello")).thenReturn(null);
-        assertJSError(() -> test.withArgs("hello").test(), "No such Inventory Trigger named hello");
-        verify(invManager).openGUI("vip", "Hi");
+        Assert.assertEquals(0, test.getOverload(guiName));
+    }
+
+    @Test
+    public void testGui2() throws Exception {
+        Player player = mock(Player.class);
+        String playerName = "TestPlayer";
+        String guiName = "TESTGUI";
+
+        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
+        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+        IInventory inventory = mock(IInventory.class);
+        Injector injector = mock(Injector.class);
+
+        when(player.getName()).thenReturn(playerName);
+        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
+        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
+
+        JsTest test = new ExecutorTest(engine, "GUI")
+                .addVariable("plugin", mockPlugin)
+                .addVariable("injector", injector);
+
+        test.withArgs(player, guiName).test();
+
+        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
+
+        Assert.assertEquals(1, test.getOverload(player, guiName));
     }
 
     @Test
     public void testItemFrameRotate() throws Exception {
-        Location vLoc = mock(Location.class);
-        Location vLoc2 = mock(Location.class);
-        Block vBlock = mock(Block.class);
-        World vWorld = mock(World.class);
-        List<Entity> vEntities = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            vEntities.add(mock(ItemFrame.class));
-        }
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        ItemFrame itemFrame = mock(ItemFrame.class);
+        EntityType entityType = EntityType.ITEM_FRAME;
+        Rotation rotation = Rotation.NONE;
+
+        Collection<Entity> entities = new ArrayList<Entity>() {{
+            add(itemFrame);
+            for (int i = 0; i < 4; i++) {
+                Entity entity = mock(Entity.class);
+                EntityType entityType1 = EntityType.PIG;
+
+                add(entity);
+                when(entity.getType()).thenReturn(entityType1);
+            }
+        }};
+
+        when(location.getWorld()).thenReturn(world);
+        when(world.getNearbyEntities(eq(location), anyDouble(), anyDouble(), anyDouble())).thenReturn(entities);
+        when(itemFrame.getType()).thenReturn(entityType);
+        when(itemFrame.getRotation()).thenReturn(rotation);
+
         JsTest test = new ExecutorTest(engine, "ITEMFRAMEROTATE");
 
-        when(vLoc.getBlock()).thenReturn(vBlock);
-        when(vBlock.getWorld()).thenReturn(vWorld);
-        when(vBlock.getLocation()).thenReturn(vLoc2);
-        when(vWorld.getNearbyEntities(vLoc2, 2.0, 2.0, 2.0)).thenReturn(vEntities);
+        test.withArgs(location).test();
 
-        test.withArgs("NOne", vLoc).test();
-        for (Entity entity : vEntities) {
-            verify((ItemFrame) entity).setRotation(Rotation.valueOf("NOne".toUpperCase()));
-        }
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Rotation<string>, Location<location or number number number>]");
+        verify(itemFrame).setRotation(any(Rotation.class));
 
-        //TODO - need test for the situation of args.length == 4
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
     public void testItemFrameSet() throws Exception {
-        //TODO
+        ItemStack itemStack = mock(ItemStack.class);
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        ItemFrame itemFrame = mock(ItemFrame.class);
+        EntityType entityType = EntityType.ITEM_FRAME;
+
+        Collection<Entity> entities = new ArrayList<Entity>() {{
+            add(itemFrame);
+            for (int i = 0; i < 4; i++) {
+                Entity entity = mock(Entity.class);
+                EntityType entityType1 = EntityType.PIG;
+
+                add(entity);
+                when(entity.getType()).thenReturn(entityType1);
+            }
+        }};
+
+        when(location.getWorld()).thenReturn(world);
+        when(world.getNearbyEntities(eq(location), anyDouble(), anyDouble(), anyDouble())).thenReturn(entities);
+        when(itemFrame.getType()).thenReturn(entityType);
+
+        JsTest test = new ExecutorTest(engine, "ITEMFRAMESET");
+
+        test.withArgs(itemStack, location).test();
+
+        verify(itemFrame).setItem(itemStack);
+
+        Assert.assertEquals(0, test.getOverload(itemStack, location));
     }
 
     @Test
-    public void testKill() throws Exception {
+    public void testKick1() throws Exception {
         Player player = mock(Player.class);
+        String reason = "&cReason";
+        String colorized = ChatColor.translateAlternateColorCodes('&', reason);
+
+        JsTest test = new ExecutorTest(engine, "KICK")
+                .addVariable("player", player);
+
+        test.withArgs(reason).test();
+
+        verify(player).kickPlayer(colorized);
+
+        Assert.assertEquals(0, test.getOverload(reason));
+    }
+
+    @Test
+    public void testKick2() throws Exception {
+        Player player = mock(Player.class);
+        String reason = "&c[TR] You've been kicked from the server.";
+        String colorized = ChatColor.translateAlternateColorCodes('&', reason);
+
+        JsTest test = new ExecutorTest(engine, "KICK");
+
+        test.withArgs(player).test();
+
+        verify(player).kickPlayer(colorized);
+
+        Assert.assertEquals(1, test.getOverload(player));
+    }
+
+    @Test
+    public void testKick3() throws Exception {
+        Player player = mock(Player.class);
+        String reason = "&cReason";
+        String colorized = ChatColor.translateAlternateColorCodes('&', reason);
+
+        JsTest test = new ExecutorTest(engine, "KICK");
+
+        test.withArgs(player, reason).test();
+
+        verify(player).kickPlayer(colorized);
+
+        Assert.assertEquals(2, test.getOverload(player, reason));
+    }
+
+    @Test
+    public void testKill1() throws Exception {
+        Player player = mock(Player.class);
+
         JsTest test = new ExecutorTest(engine, "KILL")
                 .addVariable("player", player);
 
-        test.withArgs().test();
-        verify(player).setHealth(0d);
+        test.test();
+
+        verify(player).setHealth(0);
+
+        Assert.assertEquals(0, test.getOverload());
+    }
+
+    @Test
+    public void testKill2() throws Exception {
+        Player player = mock(Player.class);
+
+        JsTest test = new ExecutorTest(engine, "KILL");
+
+        test.withArgs(player).test();
+
+        verify(player).setHealth(0);
+
+        Assert.assertEquals(1, test.getOverload(player));
     }
 
     @Test
     public void testLeverOff() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
 
-        Location vLoc = mock(Location.class);
-        Block vBlock = mock(Block.class);
-        BlockState vBS = mock(BlockState.class);
-        Lever vLever = mock(Lever.class);
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
         JsTest test = new ExecutorTest(engine, "LEVEROFF");
 
-        when(vLoc.getBlock()).thenReturn(vBlock);
-        when(vBlock.getState()).thenReturn(vBS);
-        when(vBS.getData()).thenReturn(vLever);
-        test.withArgs(vLoc).test();
-        verify(vLever).setPowered(false);
+        test.withArgs(location).test();
 
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
-        //TODO - need test for the situation of args.length == 3
+        verify(blockData).setPowered(false);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
     public void testLeverOn() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
 
-        Location vLoc = mock(Location.class);
-        Block vBlock = mock(Block.class);
-        BlockState vBS = mock(BlockState.class);
-        Lever vLever = mock(Lever.class);
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
         JsTest test = new ExecutorTest(engine, "LEVERON");
 
-        when(vLoc.getBlock()).thenReturn(vBlock);
-        when(vBlock.getState()).thenReturn(vBS);
-        when(vBS.getData()).thenReturn(vLever);
-        test.withArgs(vLoc).test();
-        verify(vLever).setPowered(true);
+        test.withArgs(location).test();
 
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
-        //TODO - need test for the situation of args.length == 3
+        verify(blockData).setPowered(true);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
-    public void testLeverToggle() throws Exception {
+    public void testLeverToggle1() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
 
-        Location vLoc = mock(Location.class);
-        Block vBlock = mock(Block.class);
-        BlockState vBS = mock(BlockState.class);
-        Lever vLever = mock(Lever.class);
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isPowered()).thenReturn(false);
+
         JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
 
-        when(vLoc.getBlock()).thenReturn(vBlock);
-        when(vBlock.getState()).thenReturn(vBS);
-        when(vBS.getData()).thenReturn(vLever);
+        test.withArgs(location).test();
 
-        //case1
-        when(vLever.isPowered()).thenReturn(false);
-        test.withArgs(vLoc).test();
-        verify(vLever).setPowered(true);
-        //case2
-        when(vLever.isPowered()).thenReturn(true);
-        test.withArgs(vLoc).test();
-        verify(vLever).setPowered(false);
+        verify(blockData).setPowered(true);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
 
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
-        //TODO - need test for the situation of args.length == 3
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testLeverToggle2() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isPowered()).thenReturn(true);
+
+        JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setPowered(false);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
     public void testLightning() throws Exception {
-        Location vLoc = mock(Location.class);
-        World vWorld = mock(World.class);
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
         JsTest test = new ExecutorTest(engine, "LIGHTNING");
 
-        when(vLoc.getWorld()).thenReturn(vWorld);
-        test.withArgs(vLoc).test();
-        verify(vWorld).strikeLightning(vLoc);
+        test.withArgs(location).test();
 
-        assertJSError(() -> test.withArgs().test(), "Invalid parameters! [String, Number, Number, Number] or [Location]");
-        assertJSError(() -> test.withArgs("hff").test(), "Invalid parameters! [String, Number, Number, Number] or [Location]");
-        //TODO - need test for the situation of args.length == 4
+        verify(world).strikeLightning(location);
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
-    public void testLog() throws Exception {
-        //no way to test window.print()
+    public void testBroadcast() throws Exception {
+        // arrange
+        class ExampleObject {
+            private final String message;
+
+            public ExampleObject(String message) {
+                this.message = message;
+            }
+
+            @Override
+            public String toString() {
+                return "ExampleObject(" + message + ")";
+            }
+        }
+
+        ExampleObject exampleObject = new ExampleObject("Message");
+        PlatformManager platformManager = mock(PlatformManager.class);
+        Platform platform = Platform.Unknown;
+        Injector injector = mock(Injector.class);
+
+        when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
+        when(platformManager.current()).thenReturn(platform);
+
+        // act
+        JsTest test = new ExecutorTest(engine, "BROADCAST")
+                .addVariable("injector", injector);
+
+        test.withArgs(exampleObject).test();
+
+        // assert
+        //TODO need to refactor javascript to test this
     }
 
     @Test
     public void testMessage() throws Exception {
-        Player mockPlayer = mock(Player.class);
+        // arrange
+        class ExampleObject {
+            private final String message;
 
-        new ExecutorTest(engine, "MESSAGE")
-                .addVariable("player", mockPlayer)
-                .withArgs("&cTest Message")
-                .test();
-
-        String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
-        verify(mockPlayer).sendMessage(argThat((String str) -> expected.equals(str)));
-    }
-
-    @Test
-    public void testMessageNull() throws Exception {
-        Player mockPlayer = mock(Player.class);
-
-        new ExecutorTest(engine, "MESSAGE")
-                .addVariable("player", mockPlayer)
-                .withArgs(new Object[]{null})
-                .test();
-
-        String expected = "null";
-        verify(mockPlayer).sendMessage(argThat((String str) -> expected.equals(str)));
-    }
-
-    @Test
-    public void testMessageMultiThreaded() throws Exception {
-        Player mockPlayer = mock(Player.class);
-        ExecutorService pool = Executors.newSingleThreadExecutor();
-
-        when(mockMain.isServerThread()).thenReturn(false);
-        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
-            Callable call = invocation.getArgument(0);
-            return pool.submit(call);
-        });
-
-        Runnable run = new Runnable() {
-            final JsTest test = new ExecutorTest(engine, "MESSAGE")
-                    .addVariable("player", mockPlayer)
-                    .withArgs("&cTest Message");
+            public ExampleObject(String message) {
+                this.message = message;
+            }
 
             @Override
-            public void run() {
-                for (int i = 0; i < 1000; i++) {
-                    try {
-                        test.test();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+            public String toString() {
+                return "ExampleObject(" + message + ")";
             }
-        };
+        }
 
-        Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
-
-        Thread thread1 = new Thread(run);
-        thread1.setUncaughtExceptionHandler(handler);
-        Thread thread2 = new Thread(run);
-        thread2.setUncaughtExceptionHandler(handler);
-
-        thread1.start();
-        thread2.start();
-
-        thread1.join();
-        thread2.join();
-
-        verify(handler, never()).uncaughtException(any(), any());
-
-        String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
-        verify(mockPlayer, times(2000)).sendMessage(argThat((ArgumentMatcher<String>) expected::equals));
-    }
-
-    @Test
-    public void testModifyHeldItem() throws Exception {
         Player player = mock(Player.class);
-        ItemStack held = mock(ItemStack.class);
-        ItemMeta meta = mock(ItemMeta.class);
+        ExampleObject exampleObject = new ExampleObject("Message");
+        PlatformManager platformManager = mock(PlatformManager.class);
+        Platform platform = Platform.Unknown;
+        Injector injector = mock(Injector.class);
 
-        when(player.getItemInHand()).thenReturn(held);
-        when(held.getType()).thenReturn(Material.STONE);
-        when(held.getItemMeta()).thenReturn(meta);
+        // when(Platform.Unknown.supports(eq(Dependency.MiniMessage))).thenReturn(false);
+        when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
+        when(platformManager.current()).thenReturn(platform);
 
-        new ExecutorTest(engine, "MODIFYHELDITEM")
+        // act
+        JsTest test = new ExecutorTest(engine, "MESSAGE")
                 .addVariable("player", player)
-                .withArgs("TITLE", "some title")
-                .test();
+                .addVariable("injector", injector);
 
-        verify(meta).setDisplayName("some title");
+        test.withArgs(exampleObject).test();
+
+        // assert
+        verify(player).sendMessage(exampleObject.toString());
+
+        Assert.assertEquals(0, test.getOverload(exampleObject));
     }
 
     @Test
-    public void testModifyPlayer() throws Exception {
-        //No longer supported
+    public void testLog() throws Exception {
+        // arrange
+        class ExampleObject {
+            private final String message;
+
+            public ExampleObject(String message) {
+                this.message = message;
+            }
+
+            @Override
+            public String toString() {
+                return "ExampleObject(" + message + ")";
+            }
+        }
+
+        ExampleObject exampleObject = new ExampleObject("Message");
+        PlatformManager platformManager = mock(PlatformManager.class);
+        Platform platform = Platform.Unknown;
+        Injector injector = mock(Injector.class);
+
+        when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
+        when(platformManager.current()).thenReturn(platform);
+
+        // act
+        JsTest test = new ExecutorTest(engine, "LOG")
+                .addVariable("injector", injector);
+
+        //TODO need to refactor javascript to test this
+//        test.withArgs(exampleObject).test();
+
+        // assert
+        //TODO need to refactor javascript to test this
     }
 
     @Test
-    public abstract void testMoney() throws Exception;
+    public void testMoney1() throws Exception {
+        class FakeVault {
+            public void give(Player player, int money) {
+            }
+
+            public void take(Player player, int money) {
+            }
+        }
+
+        Player player = mock(Player.class);
+        FakeVault vault = mock(FakeVault.class);
+        int money = 1000;
+
+        JsTest test = new ExecutorTest(engine, "MONEY")
+                .addVariable("player", player)
+                .addVariable("vault", vault);
+
+        test.withArgs(money).test();
+
+        verify(vault).give(player, money);
+
+        Assert.assertEquals(0, test.getOverload(money));
+    }
+
+    @Test
+    public void testMoney2() throws Exception {
+        class FakeVault {
+            public void give(Player player, int money) {
+            }
+
+            public void take(Player player, int money) {
+            }
+        }
+
+        Player player = mock(Player.class);
+        FakeVault vault = mock(FakeVault.class);
+        int money = -1000;
+
+        JsTest test = new ExecutorTest(engine, "MONEY")
+                .addVariable("vault", vault);
+
+        test.withArgs(player, money).test();
+
+        verify(vault).take(player, -money);
+
+        Assert.assertEquals(1, test.getOverload(player, money));
+    }
 
     @Test
     public void testMysql() throws Exception {
-        //TODO
+        class FakeMysqlHelper {
+            public void set(String key, Object value) {
+            }
+        }
+
+        class FakePlugin {
+            public FakeMysqlHelper getMysqlHelper() {
+                return null;
+            }
+        }
+
+        FakeMysqlHelper mysqlHelper = mock(FakeMysqlHelper.class);
+        FakePlugin plugin = mock(FakePlugin.class);
+
+        String key = "testKey";
+        Object value = 100D;
+
+        when(plugin.getMysqlHelper()).thenReturn(mysqlHelper);
+
+        JsTest test = new ExecutorTest(engine, "MYSQL")
+                .addVariable("plugin", plugin);
+
+        test.withArgs(key, value).test();
+
+        verify(mysqlHelper).set(key, value);
+
+        Assert.assertEquals(0, test.getOverload(key, value));
     }
 
     @Test
-    public void testPermission() throws Exception {
-        //TODO
-    }
+    public void testPermission1() throws Exception {
+        class FakeVault {
+            public void permit(Player player, String permission) {
+            }
 
-    @Test
-    public void testPotion() throws Exception {
-//        Player player = mock(Player.class);
-//
-//        new ExecutorTest(engine, "POTION")
-//                .addVariable("player", player)
-//                .withArgs("LUCK", 100, 1)
-//                .test();
-//
-//        verify(player).addPotionEffect(new PotionEffect(PotionEffectType.LUCK,
-//                100, 1), true);
-    }
+            public void revoke(Player player, String permission) {
+            }
+        }
 
-    @Test
-    public void testPush() throws Exception {
-        //TODO
-    }
-
-    @Test
-    public abstract void testRotateBlock() throws Exception;
-
-    @Test
-    public void testScoreboard() throws Exception {
         Player player = mock(Player.class);
-        Scoreboard scoreboard = mock(Scoreboard.class);
-        Team team = mock(Team.class);
+        FakeVault vault = mock(FakeVault.class);
+        String permission = "triggerreactor.test";
 
-        when(player.getScoreboard()).thenReturn(scoreboard);
-        when(scoreboard.getTeam(anyString())).thenReturn(team);
-
-        new ExecutorTest(engine, "SCOREBOARD")
-                .withArgs("TEAM", "someteam", "ADD", "wysohn")
+        JsTest test = new ExecutorTest(engine, "PERMISSION")
                 .addVariable("player", player)
-                .test();
+                .addVariable("vault", vault);
 
-        verify(team).addEntry("wysohn");
+        test.withArgs(permission).test();
+
+        verify(vault).permit(player, permission);
+
+        Assert.assertEquals(0, test.getOverload(permission));
     }
 
     @Test
-    public void testServer() throws Exception {
-        BukkitTriggerReactorCore plugin = mock(BukkitTriggerReactorCore.class);
-        AbstractJavaPlugin.BungeeCordHelper helper = mock(AbstractJavaPlugin.BungeeCordHelper.class);
+    public void testPermission2() throws Exception {
+        class FakeVault {
+            public void permit(Player player, String permission) {
+            }
+
+            public void revoke(Player player, String permission) {
+            }
+        }
+
         Player player = mock(Player.class);
+        FakeVault vault = mock(FakeVault.class);
+        String permission = "-triggerreactor.test";
 
-        when(plugin.getBungeeHelper()).thenReturn(helper);
+        JsTest test = new ExecutorTest(engine, "PERMISSION")
+                .addVariable("vault", vault);
 
-        new ExecutorTest(engine, "SERVER")
-                .addVariable("player", player)
+        test.withArgs(player, permission).test();
+
+        verify(vault).revoke(player, permission.substring(1));
+
+        Assert.assertEquals(1, test.getOverload(player, permission));
+    }
+
+    @Test
+    public void testPush1() throws Exception {
+        Player player = mock(Player.class);
+        int x = 10;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "PUSH")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z).test();
+
+        verify(player).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(0, test.getOverload(x, y, z));
+    }
+
+    @Test
+    public void testPush2() throws Exception {
+        Entity entity = mock(Entity.class);
+        int x = 10;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "PUSH");
+
+        test.withArgs(entity, x, y, z).test();
+
+        verify(entity).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(1, test.getOverload(entity, x, y, z));
+    }
+
+    @Test
+    public void testServer1() throws Exception {
+        class FakeBungeeHelper {
+            public void sendToServer(Player player, String server) {
+            }
+        }
+
+        class FakePlugin {
+            public FakeBungeeHelper getBungeeHelper() {
+                return null;
+            }
+        }
+
+        FakeBungeeHelper bungeeHelper = mock(FakeBungeeHelper.class);
+        FakePlugin plugin = mock(FakePlugin.class);
+
+        Player player = mock(Player.class);
+        String server = "SecondServer";
+
+        when(plugin.getBungeeHelper()).thenReturn(bungeeHelper);
+
+        JsTest test = new ExecutorTest(engine, "SERVER")
                 .addVariable("plugin", plugin)
-                .withArgs("someServer")
-                .test();
+                .addVariable("player", player);
 
-        verify(helper).sendToServer(player, "someServer");
+        test.withArgs(server).test();
+
+        verify(bungeeHelper).sendToServer(player, server);
+
+        Assert.assertEquals(0, test.getOverload(server));
+    }
+
+    @Test
+    public void testServer2() throws Exception {
+        class FakeBungeeHelper {
+            public void sendToServer(Player player, String server) {
+            }
+        }
+
+        class FakePlugin {
+            public FakeBungeeHelper getBungeeHelper() {
+                return null;
+            }
+        }
+
+        FakeBungeeHelper bungeeHelper = mock(FakeBungeeHelper.class);
+        FakePlugin plugin = mock(FakePlugin.class);
+
+        Player player = mock(Player.class);
+        String server = "SecondServer";
+
+        when(plugin.getBungeeHelper()).thenReturn(bungeeHelper);
+
+        JsTest test = new ExecutorTest(engine, "SERVER")
+                .addVariable("plugin", plugin);
+
+        test.withArgs(player, server).test();
+
+        verify(bungeeHelper).sendToServer(player, server);
+
+        Assert.assertEquals(1, test.getOverload(player, server));
     }
 
     @Test
     public void testSetBlock() throws Exception {
-        // {block id} and is used in Block related event
-        World mockWorld = mock(World.class);
-        Block mockBlock = mock(Block.class);
+        String materialName = "STONE";
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+
+        when(location.getBlock()).thenReturn(block);
 
         JsTest test = new ExecutorTest(engine, "SETBLOCK");
-        test.addVariable("block", mockBlock);
 
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        test.withArgs(materialName, location).test();
 
-        test.withArgs("STONE").test();
+        verify(block).setType(Material.valueOf(materialName));
 
-        verify(mockBlock).setType(eq(Material.STONE));
+        Assert.assertEquals(0, test.getOverload(materialName, location));
     }
 
     @Test
-    public void testSetBlock1() throws Exception {
-        // {block id} {x} {y} {z}
-        World mockWorld = mock(World.class);
-        Player player = mock(Player.class);
+    public void testSetCount() throws Exception {
+        ItemStack itemStack = mock(ItemStack.class);
+        int amount = 32;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SETCOUNT");
 
-        assertJSError(() -> new ExecutorTest(engine, "SETBLOCK")
-                .withArgs("STONE", 22, 80, 33)
-                .test(), "cannot use #SETBLOCK in non-player related event. Or use Location instance.");
+        test.withArgs(amount, itemStack).test();
+
+        verify(itemStack).setAmount(amount);
+
+        Assert.assertEquals(0, test.getOverload(amount, itemStack));
     }
 
     @Test
-    public void testSetBlock1_1() throws Exception {
-        // {block id} {x} {y} {z}
-        World mockWorld = mock(World.class);
+    public void testSetFlyMode1() throws Exception {
         Player player = mock(Player.class);
-        Block block = mock(Block.class);
+        boolean isFly = true;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SETFLYMODE")
+                .addVariable("player", player);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs("GLASS", 33, 96, -15)
-                .test();
+        test.withArgs(isFly).test();
 
-        verify(block).setType(eq(Material.GLASS));
+        verify(player).setAllowFlight(isFly);
+        verify(player).setFlying(isFly);
+
+        Assert.assertEquals(0, test.getOverload(isFly));
     }
 
     @Test
-    public void testSetBlock1_2() throws Exception {
-        // {block id} {block data} {x} {y} {z}
-        World mockWorld = mock(World.class);
+    public void testSetFlyMode2() throws Exception {
         Player player = mock(Player.class);
-        Block block = mock(Block.class);
+        boolean isFly = false;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SETFLYMODE");
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs("GLASS", 3, 33, 96, -15)
-                .test();
+        test.withArgs(player, isFly).test();
 
-        verify(block).setType(eq(Material.GLASS));
+        verify(player).setAllowFlight(isFly);
+        verify(player).setFlying(isFly);
+
+        Assert.assertEquals(1, test.getOverload(player, isFly));
     }
 
     @Test
-    public void testSetBlock2() throws Exception {
-        // {block id} {Location instance}
-        World mockWorld = mock(World.class);
+    public void testSetFlySpeed1() throws Exception {
         Player player = mock(Player.class);
-        Block block = mock(Block.class);
+        float speed = 2.5F;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SETFLYSPEED")
+                .addVariable("player", player);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs("GLASS", new Location(mockWorld, 33, 96, -15))
-                .test();
+        test.withArgs(speed).test();
 
-        verify(block).setType(eq(Material.GLASS));
+        verify(player).setFlySpeed(speed);
+
+        Assert.assertEquals(0, test.getOverload(speed));
     }
 
     @Test
-    public void testSetBlock2_1() throws Exception {
-        // {block id} {block data} {Location instance}
-        World mockWorld = mock(World.class);
+    public void testSetFlySpeed2() throws Exception {
         Player player = mock(Player.class);
-        Block block = mock(Block.class);
+        float speed = 2.5F;
 
-        when(player.getWorld()).thenReturn(mockWorld);
-        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        when(server.getWorld("world")).thenReturn(mockWorld);
+        JsTest test = new ExecutorTest(engine, "SETFLYSPEED");
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs("GLASS", 2, new Location(mockWorld, 33, 96, -15))
-                .test();
+        test.withArgs(player, speed).test();
 
-        verify(block).setType(eq(Material.GLASS));
+        verify(player).setFlySpeed(speed);
+
+        Assert.assertEquals(1, test.getOverload(player, speed));
     }
 
     @Test
-    public abstract void testSignEdit() throws Exception;
+    public void testSetFood1() throws Exception {
+        Player player = mock(Player.class);
+        int food = 5;
+
+        JsTest test = new ExecutorTest(engine, "SETFOOD")
+                .addVariable("player", player);
+
+        test.withArgs(food).test();
+
+        verify(player).setFoodLevel(food);
+
+        Assert.assertEquals(0, test.getOverload(food));
+    }
 
     @Test
-    public void testSound() throws Exception {
+    public void testSetFood2() throws Exception {
         Player player = mock(Player.class);
+        int food = 5;
+
+        JsTest test = new ExecutorTest(engine, "SETFOOD");
+
+        test.withArgs(player, food).test();
+
+        verify(player).setFoodLevel(food);
+
+        Assert.assertEquals(1, test.getOverload(player, food));
+    }
+
+    @Test
+    public void testSetGameMode1() throws Exception {
+        Player player = mock(Player.class);
+        int modeNum = 1;
+
+        JsTest test = new ExecutorTest(engine, "SETGAMEMODE")
+                .addVariable("player", player);
+
+        test.withArgs(modeNum).test();
+
+        verify(player).setGameMode(GameMode.CREATIVE);
+
+        Assert.assertEquals(1, test.getOverload(modeNum));
+    }
+
+    @Test
+    public void testSetGameMode2() throws Exception {
+        Player player = mock(Player.class);
+        String modeStr = "SURVIVAL";
+
+        JsTest test = new ExecutorTest(engine, "SETGAMEMODE");
+
+        test.withArgs(player, modeStr).test();
+
+        verify(player).setGameMode(GameMode.valueOf(modeStr));
+
+        Assert.assertEquals(2, test.getOverload(player, modeStr));
+    }
+
+    @Test
+    public void testSetHealth1() throws Exception {
+        Player player = mock(Player.class);
+        double health = 10.5D;
+
+        when(player.getMaxHealth()).thenReturn(20D);
+
+        JsTest test = new ExecutorTest(engine, "SETHEALTH")
+                .addVariable("player", player);
+
+        test.withArgs(health).test();
+
+        verify(player).setHealth(health);
+
+        Assert.assertEquals(0, test.getOverload(health));
+    }
+
+    @Test
+    public void testSetHealth2() throws Exception {
+        Player player = mock(Player.class);
+        double health = 10.5D;
+
+        when(player.getMaxHealth()).thenReturn(20D);
+
+        JsTest test = new ExecutorTest(engine, "SETHEALTH");
+
+        test.withArgs(player, health).test();
+
+        verify(player).setHealth(health);
+
+        Assert.assertEquals(1, test.getOverload(player, health));
+    }
+
+    @Test
+    public void testSetHeldItem1() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETHELDITEM")
+                .addVariable("player", player);
+
+        test.withArgs(item).test();
+
+        verify(inventory).setItemInHand(item);
+
+        Assert.assertEquals(0, test.getOverload(item));
+    }
+
+    @Test
+    public void testSetHeldItem2() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETHELDITEM");
+
+        test.withArgs(player, item).test();
+
+        verify(inventory).setItemInHand(item);
+
+        Assert.assertEquals(1, test.getOverload(player, item));
+    }
+
+    @Test
+    public void testSetItemLore() throws Exception {
+        ItemStack item = mock(ItemStack.class);
+        ItemMeta itemMeta = mock(ItemMeta.class);
+        String lore = "&aFirst Line\n&bSecond Line\n\n\n&f5th Line";
+        String colorized = ChatColor.translateAlternateColorCodes('&', lore);
+        String[] lores = colorized.split("\n");
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(item.getItemMeta()).thenReturn(itemMeta);
+
+        JsTest test = new ExecutorTest(engine, "SETITEMLORE");
+
+        test.withArgs(lore, item).test();
+
+        verify(itemMeta).setLore(Arrays.asList(lores));
+
+        Assert.assertEquals(0, test.getOverload(lore, item));
+    }
+
+    @Test
+    public void testSetItemName() throws Exception {
+        ItemStack item = mock(ItemStack.class);
+        ItemMeta itemMeta = mock(ItemMeta.class);
+        String title = "&aCustom Title";
+        String colorized = ChatColor.translateAlternateColorCodes('&', title);
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(item.getItemMeta()).thenReturn(itemMeta);
+
+        JsTest test = new ExecutorTest(engine, "SETITEMNAME");
+
+        test.withArgs(title, item).test();
+
+        verify(itemMeta).setDisplayName(colorized);
+
+        Assert.assertEquals(0, test.getOverload(title, item));
+    }
+
+    @Test
+    public void testSetMaxHealth1() throws Exception {
+        Player player = mock(Player.class);
+        double health = 100D;
+
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
+                .addVariable("player", player);
+
+        test.withArgs(health).test();
+
+        verify(player).setMaxHealth(health);
+
+        Assert.assertEquals(0, test.getOverload(health));
+    }
+
+    @Test
+    public void testSetMaxHealth2() throws Exception {
+        Player player = mock(Player.class);
+        double health = 100D;
+
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH");
+
+        test.withArgs(player, health).test();
+
+        verify(player).setMaxHealth(health);
+
+        Assert.assertEquals(1, test.getOverload(player, health));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetMaxHealth3() throws Exception {
+        Player player = mock(Player.class);
+        double health = 10000D;
+
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
+                .addVariable("player", player);
+
+        test.withArgs(health).test();
+    }
+
+    @Test
+    public void testSetPlayerInv1() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+        int slot = 10;
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETPLAYERINV")
+                .addVariable("player", player);
+
+        test.withArgs(slot, item).test();
+
+        verify(inventory).setItem(slot, item);
+
+        Assert.assertEquals(0, test.getOverload(slot, item));
+    }
+
+    @Test
+    public void testSetPlayerInv2() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+        int slot = 10;
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETPLAYERINV");
+
+        test.withArgs(player, slot, item).test();
+
+        verify(inventory).setItem(slot, item);
+
+        Assert.assertEquals(1, test.getOverload(player, slot, item));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetPlayerInv3() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+        int slot = 100;
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETPLAYERINV")
+                .addVariable("player", player);
+
+        test.withArgs(player, slot, item).test();
+    }
+
+    @Test
+    public void testSetSaturation1() throws Exception {
+        Player player = mock(Player.class);
+        float saturation = 20F;
+
+        JsTest test = new ExecutorTest(engine, "SETSATURATION")
+                .addVariable("player", player);
+
+        test.withArgs(saturation).test();
+
+        verify(player).setSaturation(saturation);
+
+        Assert.assertEquals(0, test.getOverload(saturation));
+    }
+
+    @Test
+    public void testSetSaturation2() throws Exception {
+        Player player = mock(Player.class);
+        float saturation = 20F;
+
+        JsTest test = new ExecutorTest(engine, "SETSATURATION");
+
+        test.withArgs(player, saturation).test();
+
+        verify(player).setSaturation(saturation);
+
+        Assert.assertEquals(1, test.getOverload(player, saturation));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetSaturation3() throws Exception {
+        Player player = mock(Player.class);
+        float saturation = -5F;
+
+        JsTest test = new ExecutorTest(engine, "SETSATURATION")
+                .addVariable("player", player);
+
+        test.withArgs(saturation).test();
+    }
+
+    @Test
+    public void testSetSlot() throws Exception {
+        InventoryClickEvent event = mock(InventoryClickEvent.class);
+        ItemStack item = mock(ItemStack.class);
+        DoubleChestInventory inventory = mock(DoubleChestInventory.class);
+        int index = 1;
+
+        when(event.getInventory()).thenReturn(inventory);
+        when(inventory.getSize()).thenReturn(36);
+
+        JsTest test = new ExecutorTest(engine, "SETSLOT")
+                .addVariable("event", event);
+
+        test.withArgs(index, item).test();
+
+        verify(inventory).setItem(index, item);
+
+        Assert.assertEquals(0, test.getOverload(index, item));
+    }
+
+    @Test
+    public void testSetType() throws Exception {
+        ItemStack item = mock(ItemStack.class);
+        String type = "STONE";
+        Material material = Material.valueOf(type);
+
+        when(item.getType()).thenReturn(material);
+
+        JsTest test = new ExecutorTest(engine, "SETTYPE");
+
+        test.withArgs(type, item).test();
+
+        verify(item).setType(material);
+
+        Assert.assertEquals(0, test.getOverload(type, item));
+    }
+
+    @Test
+    public void testSetWalkSpeed1() throws Exception {
+        Player player = mock(Player.class);
+        Float speed = 0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
+                .addVariable("player", player);
+
+        test.withArgs(speed).test();
+
+        verify(player).setWalkSpeed(speed);
+
+        Assert.assertEquals(0, test.getOverload(speed));
+    }
+
+    @Test
+    public void testSetWalkSpeed2() throws Exception {
+        Player player = mock(Player.class);
+        Float speed = -0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED");
+
+        test.withArgs(player, speed).test();
+
+        verify(player).setWalkSpeed(speed);
+
+        Assert.assertEquals(1, test.getOverload(player, speed));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetWalkSpeed3() throws Exception {
+        Player player = mock(Player.class);
+        Float speed = 10F;
+
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
+                .addVariable("player", player);
+
+        test.withArgs(player, speed).test();
+    }
+
+    @Test
+    public void testSetXp1() throws Exception {
+        Player player = mock(Player.class);
+        Float xp = 0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SETXP")
+                .addVariable("player", player);
+
+        test.withArgs(xp).test();
+
+        verify(player).setExp(xp);
+
+        Assert.assertEquals(0, test.getOverload(xp));
+    }
+
+    @Test
+    public void testSetXp2() throws Exception {
+        Player player = mock(Player.class);
+        Float xp = 1F;
+
+        JsTest test = new ExecutorTest(engine, "SETXP");
+
+        test.withArgs(player, xp).test();
+
+        verify(player).setExp(xp);
+
+        Assert.assertEquals(1, test.getOverload(player, xp));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetXp3() throws Exception {
+        Player player = mock(Player.class);
+        Float xp = 10F;
+
+        JsTest test = new ExecutorTest(engine, "SETXP")
+                .addVariable("player", player);
+
+        test.withArgs(player, xp).test();
+    }
+
+    @Test
+    public void testSignEdit1() throws Exception {
         Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        Sign sign = mock(Sign.class);
+        int line = 2;
+        String text = "&aSign Edit Executor";
+        String colorized = ChatColor.translateAlternateColorCodes('&', text);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(sign);
+
+        JsTest test = new ExecutorTest(engine, "SIGNEDIT");
+
+        test.withArgs(line, text, location).test();
+
+        verify(sign).setLine(line, colorized);
+        verify(sign).update();
+
+        Assert.assertEquals(0, test.getOverload(line, text, location));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSignEdit2() throws Exception {
+        Location location = mock(Location.class);
+        int line = 5;
+        String text = "&aSign Edit Executor";
+
+        JsTest test = new ExecutorTest(engine, "SIGNEDIT");
+
+        test.withArgs(line, text, location).test();
+    }
+
+    @Test
+    public void testSound_string() throws Exception {
+        // arrange
+        Location location = mock(Location.class);
+        String sound = "abc";
+        float volume = 0.5F;
+        float pitch = -0.5F;
+
+        Player player = mock(Player.class);
+
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player)
+                .withArgs(location, sound, volume, pitch);
+
+        // act
+        test.test();
+
+        // assert
+    }
+
+    @Test
+    public void testSpawn1() throws Exception {
+        Player player = mock(Player.class);
+        String entity = "pig";
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
 
         when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "SOUND")
-                .withArgs(location, "BOO", 1.0, 1.0)
-                .addVariable("player", player)
-                .test();
+        JsTest test = new ExecutorTest(engine, "SPAWN")
+                .addVariable("player", player);
 
-        verify(player).playSound(location, "BOO", 1.0f, 1.0f);
+        test.withArgs(entity).test();
+
+        verify(world).spawnEntity(location, EntityType.valueOf(entity.toUpperCase()));
+
+        Assert.assertEquals(0, test.getOverload(entity));
     }
 
     @Test
-    public void testSoundAll() throws Exception {
+    public void testSpawn2() throws Exception {
+        Location location = mock(Location.class);
+        EntityType entity = EntityType.PIG;
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SPAWN");
+
+        test.withArgs(location, entity).test();
+
+        verify(world).spawnEntity(location, entity);
+
+        Assert.assertEquals(3, test.getOverload(location, entity));
+    }
+
+    @Test
+    public void testTime1() throws Exception {
+        Player player = mock(Player.class);
+        int time = 1000 * 12;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TIME")
+                .addVariable("player", player);
+
+        test.withArgs(time).test();
+
+        verify(world).setTime(time);
+
+        Assert.assertEquals(0, test.getOverload(time));
+    }
+
+    @Test
+    public void testTime2() throws Exception {
+        World world = mock(World.class);
+        int time = 1000 * 12;
+
+        JsTest test = new ExecutorTest(engine, "TIME");
+
+        test.withArgs(world, time).test();
+
+        verify(world).setTime(time);
+
+        Assert.assertEquals(2, test.getOverload(world, time));
+    }
+
+    @Test
+    public void testTp1() throws Exception {
         Player player = mock(Player.class);
         Location location = mock(Location.class);
         World world = mock(World.class);
@@ -934,280 +1701,196 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getLocation()).thenReturn(location);
         when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "SOUNDALL")
-                .withArgs(location, "BOO", 1.0, 1.0)
-                .addVariable("player", player)
-                .test();
+        JsTest test = new ExecutorTest(engine, "TP")
+                .addVariable("player", player);
 
-        verify(world).playSound(location, "BOO", 1.0f, 1.0f);
+        test.withArgs(location).test();
+
+        verify(player).teleport(location);
+
+        Assert.assertEquals(0, test.getOverload(location));
     }
 
     @Test
-    public void testSpawn() throws Exception {
+    public void testTp2() throws Exception {
         Player player = mock(Player.class);
-        World world = mock(World.class);
-        Location location = new Location(world, 3, 4, 5);
+        int x = 100;
+        int y = 50;
+        int z = -100;
 
-        when(player.getWorld()).thenReturn(world);
-
-        new ExecutorTest(engine, "SPAWN")
-                .addVariable("player", player)
-                .withArgs(location, EntityType.CREEPER.name())
-                .test();
-
-        verify(world).spawnEntity(location, EntityType.CREEPER);
-    }
-
-    @Test
-    public void testTime() throws Exception {
+        Location location = mock(Location.class);
         World world = mock(World.class);
 
-        when(server.getWorld(anyString())).thenReturn(world);
-
-        new ExecutorTest(engine, "TIME")
-                .withArgs("world", 12000)
-                .test();
-
-        verify(world).setTime(12000L);
-    }
-
-    @Test
-    public void testTp() throws Exception {
-        Player player = mock(Player.class);
-        World world = mock(World.class);
-
-        when(player.getWorld()).thenReturn(world);
-
-        new ExecutorTest(engine, "TP")
-                .withArgs(1, 2.5, 3)
-                .addVariable("player", player)
-                .test();
-
-        verify(player).teleport(new Location(world, 1,2.5,3));
-    }
-
-    @Test
-    public void testTppos() throws Exception {
-        Player player = mock(Player.class);
-        World world = mock(World.class);
-        Location location = new Location(world, 1, 1, 1);
-
-        when(player.getWorld()).thenReturn(world);
         when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "TPPOS")
-                .withArgs("~33 ~-2 ~9")
-                .addVariable("player", player)
-                .test();
+        JsTest test = new ExecutorTest(engine, "TP")
+                .addVariable("player", player);
 
-        verify(player).teleport(new Location(world, 1 + 33,1 - 2,1 + 9));
+        test.withArgs(x, y, z).test();
+
+        verify(player).teleport(new Location(world, x, y, z));
+
+        Assert.assertEquals(2, test.getOverload(x, y, z));
     }
 
     @Test
-    public void testVelocity() throws Exception {
+    public void testTp3() throws Exception {
         Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+        float yaw = 10.5F;
+        float pitch = -30.0F;
 
-        new ExecutorTest(engine, "VELOCITY")
-                .withArgs(1, -2, 3)
-                .addVariable("player", player)
-                .test();
+        Location location = mock(Location.class);
+        World world = mock(World.class);
 
-        verify(player).setVelocity(new Vector(1, -2, 3));
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TP");
+
+        test.withArgs(x, y, z, yaw, pitch, player).test();
+
+        verify(player).teleport(new Location(world, x, y, z, yaw, pitch));
+
+        Assert.assertEquals(6, test.getOverload(x, y, z, yaw, pitch, player));
     }
 
     @Test
-    public void testWeather() throws Exception {
+    public void testTppos1() throws Exception {
+        Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TPPOS")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z).test();
+
+        verify(player).teleport(new Location(world, x, y, z));
+
+        Assert.assertEquals(0, test.getOverload(x, y, z));
+    }
+
+    @Test
+    public void testTppos2() throws Exception {
+        Player player = mock(Player.class);
+        double px = 100;
+        double py = 50;
+        double pz = -100;
+
+        String x = "~100";
+        String y = "20";
+        String z = "~-50";
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+        when(location.getX()).thenReturn(px);
+        when(location.getY()).thenReturn(py);
+        when(location.getZ()).thenReturn(pz);
+
+        JsTest test = new ExecutorTest(engine, "TPPOS");
+
+        test.withArgs(player, x, y, z).test();
+
+        verify(player).teleport(new Location(world, 200, 20, -150));
+
+        Assert.assertEquals(3, test.getOverload(player, x, y, z));
+    }
+
+    @Test
+    public void testVelocity1() throws Exception {
+        Player player = mock(Player.class);
+        int x = 10;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "VELOCITY")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z).test();
+
+        verify(player).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(0, test.getOverload(x, y, z));
+    }
+
+    @Test
+    public void testVelocity2() throws Exception {
+        Entity entity = mock(Entity.class);
+        int x = 10;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "VELOCITY");
+
+        test.withArgs(entity, x, y, z).test();
+
+        verify(entity).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(1, test.getOverload(entity, x, y, z));
+    }
+
+    @Test
+    public void testVelocity3() throws Exception {
+        Entity entity = mock(Entity.class);
+        double x = 10.5;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "VELOCITY");
+
+        test.withArgs(entity, x, y, z).test();
+
+        verify(entity).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(1, test.getOverload(entity, x, y, z));
+    }
+
+    @Test
+    public void testWeather1() throws Exception {
+        Player player = mock(Player.class);
+        boolean isStorm = true;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "WEATHER")
+                .addVariable("player", player);
+
+        test.withArgs(isStorm).test();
+
+        verify(world).setStorm(isStorm);
+
+        Assert.assertEquals(0, test.getOverload(isStorm));
+    }
+
+    @Test
+    public void testWeather2() throws Exception {
+        World world = mock(World.class);
+        boolean isStorm = true;
+
         JsTest test = new ExecutorTest(engine, "WEATHER");
-        World mockWorld = mock(World.class);
-        when(server.getWorld("merp")).thenReturn(mockWorld);
 
-        test.withArgs("merp", true).test();
-        verify(mockWorld).setStorm(true);
+        test.withArgs(world, isStorm).test();
 
-        when(server.getWorld("merp")).thenReturn(null);
-        assertJSError(() -> test.withArgs("merp", true, true).test(), "Invalid parameters! [String, Boolean]");
-        assertJSError(() -> test.withArgs("merp", 1).test(), "Invalid parameters! [String, Boolean]");
-        assertJSError(() -> test.withArgs(mockWorld, false).test(), "Invalid parameters! [String, Boolean]");
-        assertJSError(() -> test.withArgs("merp", true).test(), "Unknown world named merp");
-    }
+        verify(world).setStorm(isStorm);
 
-    @Test
-    public void testKick() throws Exception {
-
-        Player player = mock(Player.class);
-        Player player2 = mock(Player.class);
-        Player nullP = null;
-        String msg = ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server.");
-        String msg2 = ChatColor.translateAlternateColorCodes('&', "&cKICKED");
-
-        //case1
-        ExecutorTest test = new ExecutorTest(engine, "KICK");
-        test.addVariable("player", player);
-        test.withArgs().test();
-        verify(player).kickPlayer(msg);
-
-        //case2
-        test.withArgs(msg2).test();
-        verify(player).kickPlayer(msg2);
-
-        //case3
-        test.withArgs(player2).test();
-        verify(player2).kickPlayer(msg);
-
-        //case4
-        test.withArgs(player2, msg2).test();
-        verify(player2).kickPlayer(msg2);
-
-        //Unexpected Exception Cases
-        test.assertInvalid(1);
-        test.assertInvalid(player, 232);
-        test.assertInvalid(1, 2, 3);
-        test.addVariable("player", null);
-
-        test.assertInvalid(null, "msg");
-        test.assertInvalid(nullP);
-        assertJSError(() -> test.withArgs().test(), "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
-    }
-
-    @Test
-    public void testSetHeldItem() throws Exception {
-        Player player = mock(Player.class);
-        ItemStack vItem = mock(ItemStack.class);
-        PlayerInventory piv = mock(PlayerInventory.class);
-        ExecutorTest test = new ExecutorTest(engine, "SETHELDITEM");
-        test.addVariable("player", player);
-        when(player.getInventory()).thenReturn(piv);
-        test.withArgs(vItem).test();
-        verify(piv).setItemInHand(vItem);
-
-        Assert.assertEquals(0, test.getOverload(vItem));
-        test.assertInvalid(0);
-        test.assertInvalid("NUUP");
-        test.assertInvalid(true);
-    }
-
-    @Test
-    public void testSetOffHand() throws Exception {
-        Player player = mock(Player.class);
-        ItemStack vItem = mock(ItemStack.class);
-        PlayerInventory vInv = mock(PlayerInventory.class);
-        ExecutorTest test = new ExecutorTest(engine, "SETOFFHAND");
-        test.addVariable("player", player);
-        when(player.getInventory()).thenReturn(vInv);
-        test.withArgs(vItem).test();
-        verify(vInv).setItemInOffHand(vItem);
-
-        test.assertInvalid(0);
-        test.assertInvalid("HELLO");
-        test.assertInvalid(true);
-    }
-
-    @Test
-    public void testSetPlayerInv() throws Exception {
-        Player player = mock(Player.class);
-        ItemStack vItem = mock(ItemStack.class);
-        PlayerInventory vInv = mock(PlayerInventory.class);
-        when(player.getInventory()).thenReturn(vInv);
-        when(vInv.getSize()).thenReturn(36);
-        ExecutorTest test = new ExecutorTest(engine, "SETPLAYERINV");
-        test.addVariable("player", player);
-        test.withArgs(1, vItem).test();
-        verify(vInv).setItem(1, vItem);
-        test.assertInvalid(0);
-        test.assertInvalid("HELLO");
-        test.assertInvalid(0, "hu");
-        test.assertInvalid(true, 0);
-    }
-
-    @Test
-    public void testSetItemLore() throws Exception {
-        ItemStack vItem = mock(ItemStack.class);
-        ItemMeta vIM = mock(ItemMeta.class);
-        ExecutorTest test = new ExecutorTest(engine, "SETITEMLORE");
-        when(vItem.getItemMeta()).thenReturn(vIM);
-        test.withArgs("NO\nNO", vItem).test();
-        verify(vItem).setItemMeta(vIM);
-
-        test.assertValid("herllo", vItem);
-        test.assertInvalid(0);
-        test.assertInvalid("HELLO");
-        test.assertInvalid(0, "hu");
-        test.assertInvalid(true, 0);
-    }
-
-    @Test
-    public void testSetItemName() throws Exception {
-        ItemStack vItem = mock(ItemStack.class);
-        ItemMeta vIM = mock(ItemMeta.class);
-        Material stone = Material.valueOf("STONE");
-        ExecutorTest test = new ExecutorTest(engine, "SETITEMNAME");
-        when(vItem.getItemMeta()).thenReturn(vIM);
-        when(vItem.getType()).thenReturn(stone);
-        test.withArgs("NO--NO", vItem).test();
-        verify(vIM).setDisplayName("NO--NO");
-        verify(vItem).setItemMeta(vIM);
-
-        test.assertValid("herllo", vItem);
-        test.assertInvalid(0);
-        test.assertInvalid("HELLO");
-        test.assertInvalid(0, "hu");
-        test.assertInvalid(true, 0);
-    }
-
-    @Test
-    public void testSetSlot() throws Exception {
-        InventoryClickEvent vEvent = mock(InventoryClickEvent.class);
-        Inventory vInv = mock(Inventory.class);
-        ItemStack vItem = mock(ItemStack.class);
-        when(vEvent.getInventory()).thenReturn(vInv);
-        when(vInv.getSize()).thenReturn(36);
-        ExecutorTest test = new ExecutorTest(engine, "SETSLOT");
-        test.addVariable("event", vEvent);
-        test.withArgs(1, vItem).test();
-        verify(vInv).setItem(1, vItem);
-
-        test.assertValid(33, vItem);
-        test.assertInvalid("hi", vItem);
-        test.assertInvalid(0);
-        test.assertInvalid("NOPE");
-        test.assertInvalid(true, 0);
-    }
-
-    @Test
-    public void testSetType() throws Exception {
-        ItemStack vItem = mock(ItemStack.class);
-        Material stone = Material.valueOf("STONE");
-        Material newDirt = Material.valueOf("DIRT");
-        when(vItem.getType()).thenReturn(stone);
-
-        ExecutorTest test = new ExecutorTest(engine, "SETTYPE");
-
-        test.withArgs("DIRT", vItem).test();
-
-        verify(vItem).setType(newDirt);
-
-        test.assertValid("STONE", vItem);
-        test.assertInvalid(1, vItem);
-        test.assertInvalid(1, 3);
-        test.assertInvalid("h", "d");
-        test.assertInvalid(vItem, 2);
-    }
-
-    @Test
-    public void testSetCount() throws Exception {
-        ItemStack vItem = mock(ItemStack.class);
-        Material stone = Material.valueOf("STONE");
-        when(vItem.getType()).thenReturn(stone);
-
-        ExecutorTest test = new ExecutorTest(engine, "SETCOUNT");
-
-        test.withArgs(3, vItem).test();
-
-        verify(vItem).setAmount(3);
-
-        test.assertValid(1, vItem);
-        test.assertInvalid(1, 3);
-        test.assertInvalid("h", "d");
-        test.assertInvalid(vItem, 2);
+        Assert.assertEquals(2, test.getOverload(world, isStorm));
     }
 }

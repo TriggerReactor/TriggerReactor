@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.gsoncopy.Gson;
 import io.github.wysohn.gsoncopy.GsonBuilder;
 import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
@@ -17,14 +18,18 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
+import javax.inject.Inject;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
+import static io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory.assertFile;
 
 public class GsonConfigSource implements IConfigSource {
     private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
@@ -58,10 +63,8 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
-
     //Lock order: file -> cache
-    private final File file;
+    final File file;
     private final Function<File, Reader> readerFactory;
     private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
@@ -70,38 +73,41 @@ public class GsonConfigSource implements IConfigSource {
 
     private final ITypeValidator typeValidator;
 
-    GsonConfigSource(File file) {
-        this(file, f -> {
+    private final SaveWorker saveWorker;
+
+    private boolean deleted = false;
+
+    @Inject
+    GsonConfigSource(@Assisted SaveWorker saveWorker, @Assisted File folder, @Assisted String fileName) {
+        this(saveWorker, folder, fileName, (f) -> {
             try {
                 return new FileReader(f);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                return null;
             }
-        }, f -> {
+            return null;
+        }, (f) -> {
             try {
                 return new FileWriter(f);
             } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
+            return null;
         });
     }
 
-    /**
-     * @param file
-     * @param readerFactory
-     * @param writerFactory
-     * @deprecated for test. Do not use it directly unless necessary.
-     */
-    public GsonConfigSource(File file,
+    public GsonConfigSource(SaveWorker saveWorker, File folder, String fileName,
                             Function<File, Reader> readerFactory,
                             Function<File, Writer> writerFactory) {
-        ValidationUtil.notNull(file);
+        assertFile(folder, fileName);
+
+        ValidationUtil.notNull(saveWorker);
+        ValidationUtil.validate(saveWorker.isAlive(), "SaveWorker is not alive!");
         ValidationUtil.notNull(readerFactory);
         ValidationUtil.notNull(writerFactory);
 
-        this.file = file;
+        this.saveWorker = saveWorker;
+        this.file = new File(folder, fileName + ".json");
         this.readerFactory = readerFactory;
         this.writerFactory = writerFactory;
         this.typeValidator = VALIDATOR_BUILDER.build();
@@ -113,7 +119,7 @@ public class GsonConfigSource implements IConfigSource {
         return file.exists() && file.length() > 0;
     }
 
-    private void ensureFile() {
+    private void ensureFile(File file) {
         if (!file.exists()) {
             if (!file.getParentFile().exists())
                 file.getParentFile().mkdirs();
@@ -128,15 +134,15 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void reload() {
-        ensureFile();
-
         synchronized (file) {
-            try (Reader fr = this.readerFactory.apply(file)) {
-                synchronized (cache) {
-                    Map<String, Object> loaded = null;
-                    if (file.exists() && file.length() > 0L)
-                        loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+            ensureFile(file);
+            try (Reader fr = this.readerFactory.apply(file);
+                 BufferedReader br = new BufferedReader(fr)) {
+                Map<String, Object> loaded = null;
+                if (file.exists() && file.length() > 0L)
+                    loaded = GsonHelper.readJson(new JsonReader(br), gson);
 
+                synchronized (cache) {
                     cache.clear();
                     if (loaded != null)
                         cache.putAll(loaded);
@@ -154,8 +160,6 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void saveAll() {
-        ensureFile();
-
         synchronized (file) {
             cacheToFile();
         }
@@ -164,14 +168,28 @@ public class GsonConfigSource implements IConfigSource {
     /**
      * Blocking operation
      */
-    private void cacheToFile() {
-        try (Writer fw = this.writerFactory.apply(file)) {
+    void cacheToFile() {
+        String timestamp = DATE_FORMAT.format(new Date());
+        File tempFile = new File(file.getParentFile(), file.getName() + ".tmp." + timestamp);
+        ensureFile(tempFile);
+
+        try (Writer fw = this.writerFactory.apply(tempFile);
+             BufferedWriter bw = new BufferedWriter(fw)) {
+            String ser;
+
             synchronized (cache) {
-                String ser = gson.toJson(cache);
-                fw.write(ser);
+                ser = gson.toJson(cache);
             }
+
+            bw.write(ser);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        try {
+            Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to rename temp file to " + file.getName(), e);
         }
     }
 
@@ -222,6 +240,7 @@ public class GsonConfigSource implements IConfigSource {
 
                         l.add(elem);
                     }
+
                     map.put(key, l);
                 } else {
                     if (!typeValidator.isSerializable(value))
@@ -243,12 +262,9 @@ public class GsonConfigSource implements IConfigSource {
     public void put(String key, Object value) {
         synchronized (cache) {
             put(cache, IConfigSource.toPath(key), value);
-            exec.execute(() -> {
-                synchronized (file) {
-                    cacheToFile();
-                }
-            });
         }
+
+        saveWorker.flush(this);
     }
 
     @Override
@@ -274,24 +290,26 @@ public class GsonConfigSource implements IConfigSource {
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
     public void shutdown() {
-        exec.shutdownNow().forEach(Runnable::run);
-        try {
-            exec.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        synchronized (file) {
+            cacheToFile();
         }
     }
 
     @Override
-    public void delete() {
-        exec.shutdownNow();
+    public synchronized void delete() {
         file.delete();
+        this.deleted = true;
+    }
+
+    public synchronized boolean isDeleted() {
+        return deleted;
     }
 
     @Override
     public String toString() {
-        synchronized (cache){
-            return cache.toString();
-        }
+        return "GsonConfigSource{ file=" + file.getName() + " }";
     }
+
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+
 }

@@ -1,25 +1,24 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -32,13 +31,17 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Collection;
 
+@Singleton
 public class CommonFunctions extends AbstractCommonFunctions
         implements SelfReference {
 
-    public CommonFunctions(TriggerReactorCore plugin) {
-        super(plugin);
+    @Inject
+    private CommonFunctions() {
+
     }
 
     /**
@@ -257,12 +260,12 @@ public class CommonFunctions extends AbstractCommonFunctions
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
      * @return The SerializableLocation value
      */
-    public SerializableLocation serializeLocation(World world, double x, double y, double z){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z) {
         return new SerializableLocation(new Location(world, x, y, z));
     }
 
@@ -273,14 +276,14 @@ public class CommonFunctions extends AbstractCommonFunctions
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
-     * @param yaw The absolute rotation on the x-plane, in degrees
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
+     * @param yaw   The absolute rotation on the x-plane, in degrees
      * @param pitch The absolute rotation on the y-plane, in degrees
      * @return The SerializableLocation value
      */
-    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch) {
         return new SerializableLocation(new Location(world, x, y, z, toFloat(yaw), toFloat(pitch)));
     }
 
@@ -293,7 +296,7 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param loc The Location value
      * @return The SerializableLocation value
      */
-    public SerializableLocation serializeLocation(Location loc){
+    public SerializableLocation serializeLocation(Location loc) {
         return new SerializableLocation(loc);
     }
 

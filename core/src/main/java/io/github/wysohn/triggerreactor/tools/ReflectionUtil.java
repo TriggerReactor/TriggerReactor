@@ -328,12 +328,12 @@ public class ReflectionUtil {
 
     public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
-        if(arg instanceof String && parameterType.isEnum())
+        if (arg instanceof String && parameterType.isEnum())
             return true;
 
         // if InvocationHandler is provided for the interface parameter, skip it.
         // will try it later
-        if(arg instanceof InvocationHandler && parameterType.isInterface())
+        if (arg instanceof InvocationHandler && parameterType.isInterface())
             return true;
 
         return ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);

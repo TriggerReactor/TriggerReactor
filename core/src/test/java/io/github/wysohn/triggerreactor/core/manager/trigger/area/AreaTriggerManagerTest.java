@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,28 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.IGameStateSupervisor;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Field;
+import javax.inject.Named;
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.junit.Assert.assertNotNull;
@@ -41,27 +49,38 @@ public class AreaTriggerManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
     TaskSupervisor taskSupervisor;
-    IGameStateSupervisor gameStateSupervisor;
     ITriggerLoader<AreaTrigger> loader;
 
     AreaTriggerManager manager;
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
-
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
-
         taskSupervisor = mock(TaskSupervisor.class);
-        gameStateSupervisor = mock(IGameStateSupervisor.class);
         loader = mock(ITriggerLoader.class);
 
-        manager = new AreaTriggerManager(core, taskSupervisor, gameStateSupervisor, loader);
+        manager = Guice.createInjector(
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(IAreaTriggerFactory.class),
+                new FactoryModuleBuilder().build(IEnterTriggerFactory.class),
+                new FactoryModuleBuilder().build(IExitTriggerFactory.class),
+                new FactoryModuleBuilder()
+                        .implement(IConfigSource.class, GsonConfigSource.class)
+                        .build(IConfigSourceFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<AreaTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    @Named("AreaTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "AreaTrigger";
+                    }
+                }
+        ).getInstance(AreaTriggerManager.class);
     }
 
     @Test
@@ -71,23 +90,13 @@ public class AreaTriggerManagerTest {
 
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockTrigger.getArea()).thenReturn(new Area(new SimpleLocation("world", 0, 0, 0),
-                                                        new SimpleLocation("world", 0, 0, 0)));
-        when(loader.listTriggers(any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
+                new SimpleLocation("world", 0, 0, 0)));
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         manager.reload();
 
-        verify(mockInfo, times(1)).reloadConfig();
-    }
-
-    @Test
-    public void saveAll() throws InvalidTrgConfigurationException {
-        manager.createArea("test",
-                           new SimpleLocation("world", 0, 0, 0),
-                           new SimpleLocation("world", 10, 10, 10));
-        manager.saveAll();
-
-        verify(loader, times(1)).save(any());
+        verify(mockInfo, times(1)).reload();
     }
 
     @Test
@@ -97,8 +106,8 @@ public class AreaTriggerManagerTest {
 
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockTrigger.getArea()).thenReturn(new Area(new SimpleLocation("world", 0, 0, 0),
-                                                        new SimpleLocation("world", 0, 0, 0)));
-        when(loader.listTriggers(any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
+                new SimpleLocation("world", 0, 0, 0)));
+        when(loader.listTriggers(any(), any(), any())).thenReturn(new AreaTriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
 
         manager.reload();
@@ -122,9 +131,9 @@ public class AreaTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
 
         manager.onLocationChange(null,
-                                 new SimpleLocation("world", 0, 0, 0),
-                                 new SimpleLocation("world", 0, 0, 3),
-                                 player);
+                new SimpleLocation("world", 0, 0, 0),
+                new SimpleLocation("world", 0, 0, 3),
+                player);
     }
 
     @Test
@@ -135,12 +144,12 @@ public class AreaTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
 
         manager.createArea("test",
-                           new SimpleLocation("world", 16, 30, 16),
-                           new SimpleLocation("world", 25, 100, 25));
+                new SimpleLocation("world", 16, 30, 16),
+                new SimpleLocation("world", 25, 100, 25));
         manager.onLocationChange(null,
-                                 new SimpleLocation("world", 0, 50, 0),
-                                 new SimpleLocation("world", 16, 50, 16),
-                                 player);
+                new SimpleLocation("world", 0, 50, 0),
+                new SimpleLocation("world", 16, 50, 16),
+                player);
 
         AreaTrigger trigger = manager.get("test");
         assertNotNull(trigger);
@@ -155,12 +164,12 @@ public class AreaTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
 
         manager.createArea("test",
-                           new SimpleLocation("world", 16, 30, 16),
-                           new SimpleLocation("world", 25, 100, 25));
+                new SimpleLocation("world", 16, 30, 16),
+                new SimpleLocation("world", 25, 100, 25));
         manager.onLocationChange(null,
-                                 new SimpleLocation("world", 16, 50, 16),
-                                 new SimpleLocation("world", 15, 50, 15),
-                                 player);
+                new SimpleLocation("world", 16, 50, 16),
+                new SimpleLocation("world", 15, 50, 15),
+                player);
 
         AreaTrigger trigger = manager.get("test");
         assertNotNull(trigger);
@@ -175,8 +184,8 @@ public class AreaTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
 
         manager.createArea("test",
-                           new SimpleLocation("world", -25, 30, -25),
-                           new SimpleLocation("world", 25, 100, 25));
+                new SimpleLocation("world", -25, 30, -25),
+                new SimpleLocation("world", 25, 100, 25));
         manager.onSpawn(player, new SimpleLocation("world", 0, 50, 0));
 
         AreaTrigger trigger = manager.get("test");
@@ -192,8 +201,8 @@ public class AreaTriggerManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
 
         manager.createArea("test",
-                           new SimpleLocation("world", -25, 30, -25),
-                           new SimpleLocation("world", 25, 100, 25));
+                new SimpleLocation("world", -25, 30, -25),
+                new SimpleLocation("world", 25, 100, 25));
         manager.onSpawn(player, new SimpleLocation("world", 0, 50, 0));
         manager.onDeath(uuid, new SimpleLocation("world", 0, 50, 0));
 

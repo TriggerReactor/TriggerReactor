@@ -14,31 +14,31 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var Direction = Java.type('org.spongepowered.api.util.Direction')
+var Location = Java.type('org.spongepowered.api.world.Location')
+
 function ROTATEBLOCK(args) {
-    var Direction = Java.type('org.spongepowered.api.util.Direction');
-    var Keys = Java.type('org.spongepowered.api.data.key.Keys');
+  if (block != null && args.length == 1) {
+    var dir = Direction.valueOf(args[0])
 
-    if (block != null && args.length == 1) {
-        var dir = Direction.valueOf(args[0]);
+    //block is Location in sponge
+    block.set(Keys.DIRECTION, dir)
+  } else if (args.length == 2 || args.length == 4) {
+    var dir = Direction.valueOf(args[0])
+    var location
 
-        //block is Location in sponge
-        block.set(Keys.DIRECTION, dir);
-    } else if (args.length == 2 || args.length == 4) {
-        var face = Direction.valueOf(args[0]);
-        var location;
-
-        if (args.length == 4) {
-            location = new Location(player.getWorld(), args[1], args[2], args[3]);
-        } else {
-            location = args[1];
-        }
-
-        var dir = Direction.valueOf(args[0]);
-
-        location.set(Keys.DIRECTION, dir);
+    if (args.length == 4) {
+      location = new Location(player.getWorld(), args[1], args[2], args[3])
     } else {
-        throw new Error(
-            'Invalid parameters. Need [Direction<string>] or [Direction<string>, Location<location or number number number>]');
+      location = args[1]
     }
-    return null;
+
+    location.set(Keys.DIRECTION, dir)
+  } else {
+    throw new Error(
+      'Invalid parameters. Need [Direction<string>] or [Direction<string>, Location<location or number number number>]'
+    )
+  }
+  return null
 }

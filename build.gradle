@@ -73,12 +73,13 @@ subprojects {
         //implementation group: 'org.graalvm.js', name: 'js-scriptengine', version: '21.1.0'
 
         testImplementation 'junit:junit:4.11'
-        testImplementation 'org.mockito:mockito-core:3.11.2'
+        testImplementation 'org.mockito:mockito-core:3.12.4'
 //        testImplementation 'org.powermock:powermock-core:2.+'
 //        testImplementation 'org.powermock:powermock-module-junit4:2.+'
 //        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
         if (javaVersionFromCli.java11Compatible) {
+            logger.quiet "Native Nashorn is not available on Java 11+. Using Nashorn from Maven Central."
             testImplementation("org.openjdk.nashorn:nashorn-core:15.4")
         }
     }
@@ -92,16 +93,21 @@ subprojects {
     // TASKS
 
     test {
-        reports.html.enabled = false
         testLogging {
             events "failed"
             exceptionFormat "full"
+            showStandardStreams = true
         }
 
         if (javaVersionFromCli.java11Compatible) {
             jvmArgs = [
                     '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
             ]
+        }
+
+        if (javaVersionFromCli <= JavaVersion.VERSION_1_8) {
+            // Don't include nashorn whatsoever for version 1.8 (Java 8) and below
+            exclude '**/nashorn/**'
         }
     }
 
@@ -132,11 +138,14 @@ subprojects {
 }
 
 allprojects {
-    task testLegacy{
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+    test {
+        beforeTest {
+            logger.quiet "Executing test ${it.name} [${it.className}]"
+        }
+        afterTest { desc, result ->
+            logger.quiet "Done test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+        }
     }
-    testLegacy.finalizedBy test
 }
 
 def exportedProjects= [

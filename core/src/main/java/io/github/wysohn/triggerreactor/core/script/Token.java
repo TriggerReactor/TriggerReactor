@@ -25,26 +25,25 @@ public class Token {
     public final int row;
     public final int col;
 
-    public Token(Type type, Object value, int row, int col) {
+    private final Class<?> castTo;
+
+    public Token(final Type type, final Object value, final int row, final int col, final Class<?> castTo) {
         this.type = type;
         this.value = value;
         this.row = row;
         this.col = col;
+        this.castTo = castTo;
     }
 
-
-    public Token(Type type, Object value, Token tokenOrigin) {
-        this.type = type;
-        this.value = value;
-        this.row = tokenOrigin.row;
-        this.col = tokenOrigin.col;
+    public Token(final Type type, final Object value, final int row, final int col) {
+        this(type, value, row, col, null);
     }
 
-    /*    public Token(Type type, Object value, Lexer lexer) {
-            this(type, value, lexer.getRow(), lexer.getCol());
-        }
-    */
-    public Token(Type type, Object value) {
+    public Token(final Type type, final Object value, final Token other) {
+        this(type, value, other.row, other.col);
+    }
+
+    public Token(final Type type, final Object value) {
         this(type, value, -1, -1);
     }
 
@@ -80,11 +79,15 @@ public class Token {
         return value != null && (value.getClass().isArray() || value instanceof Iterable);
     }
 
+    public boolean isEnum() {
+        return value != null && value.getClass().isEnum();
+    }
+
     public boolean isObject() {
         return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
     }
 
-    public boolean isBoxedPrimitive(){
+    public boolean isBoxedPrimitive() {
         return value != null && BOXED_PRIMITIVES.contains(value.getClass());
     }
 
@@ -106,6 +109,14 @@ public class Token {
 
     public Type getType() {
         return type;
+    }
+
+    public Token castTo(Class<?> clazz) {
+        return new Token(type, value, row, col, clazz);
+    }
+
+    public Class<?> getCastTo() {
+        return castTo;
     }
 
     @Override
@@ -148,7 +159,7 @@ public class Token {
         ROOT, ENDL,
 
         //Literal
-        STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
+        STRING, INTEGER, DECIMAL, BOOLEAN,
 
         OBJECT,
         /**
@@ -172,38 +183,69 @@ public class Token {
          * Logical
          **/
         OPERATOR_L,
+        /**
+         * Represents `..` or `..=` operators. For example, `0..3` expression is equivalent to
+         * from 0 to 2 (exclusive; 0, 1), and `0..=2` expression is equivalent to from 0 to 3 (inclusive; 0, 1, 2).
+         *
+         * @implSpec The value must be kind of {@code <RANGE_INCLUSIVE>} or {@code <RANGE_EXCLUSIVE>}.
+         */
+        RANGE,
 
-        GID, GID_TEMP, ID, PLACEHOLDER, NULLVALUE,
+        GID, GID_TEMP, ID, PLACEHOLDER, EXECUTOR, NULLVALUE,
 
-        BODY, EXECUTOR,
+        BODY, PARAMETERS,
 
         SYNC, ASYNC,
 
-        LAMBDA, PARAMETERS, LAMBDABODY,
+        LAMBDA, LAMBDABODY,
+
+        SWITCH, CASE, CASEBODY,
 
         CATCHBODY, FINALLYBODY,
+
         /**
          * Temporary use only
          **/
-        EPS,
-        ;
-
-        private final boolean literal;
-
-        Type(boolean literal) {
-            this.literal = literal;
-        }
-
-        Type() {
-            this.literal = false;
-        }
+        EPS;
 
         public boolean isLiteral() {
-            return literal;
+            return this == STRING || this == INTEGER || this == DECIMAL || this == BOOLEAN;
+        }
+    }
+
+    /**
+     * Base of numeric literal encoding according to its prefix.
+     */
+    public enum Base {
+        /**
+         * Literal starts with <strong><code>0b</code></strong>.
+         */
+        Binary(2),
+
+        /**
+         * Literal starts with <strong><code>0o</code></strong>.
+         */
+        Octal(8),
+
+        /**
+         * Literal doesn't contains a prefix.
+         */
+        Decimal(10),
+
+        /**
+         * Literal starts with <strong><code>0x</code></strong>
+         */
+        Hexadecimal(16);
+
+        public final int radix;
+
+        Base(final int radix) {
+            this.radix = radix;
         }
     }
 
     private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
+
     static {
         BOXED_PRIMITIVES.add(Boolean.class);
         BOXED_PRIMITIVES.add(Character.class);

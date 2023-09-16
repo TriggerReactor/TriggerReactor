@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,25 +15,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-validation = {
-    "overloads": [
-       [{"name": "slot", "type": "int"}]
+
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var Material = Java.type('org.bukkit.Material');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'int', minimum: 0, maximum: 35, name: 'slot' }
     ]
+  ]
 }
+
 function playerinv(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(args[0] < 0 || args[0] >= player.getInventory().getSize())
-        throw new Error('Unexpected token: slot number should be at least 0, up to 35.');
-    else
-        var item = player.getInventory().getItem(args[0]);
+  var slot = args[0];
+  var item = player.getInventory().getItem(slot);
 
-    if(item == null) {
-        var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
-        var Material = Java.type('org.bukkit.Material');
-        return new ItemStack(Material.AIR);
-    } else {
-        return item;
-    }
+  if (!item)
+    item = new ItemStack(Material.AIR);
+
+  return item;
 }

@@ -14,27 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes')
+var ArrayList = Java.type('java.util.ArrayList')
+
 function helditemlore(args) {
-    if(player == null)
-        return null;
+  if (player == null) return null
 
-    var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
-    var inHand = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
-    if(inHand == null)
-        return "";
+  var inHand = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null)
+  if (inHand == null) return ''
 
-    if(args.length < 1)
-        throw new Error("Invalid parameter! Need [Number]");
+  if (args.length < 1) throw new Error('Invalid parameter! Need [Number]')
 
-    if(typeof args[0] !== "number")
-        throw new Error("Invalid parameter! helditemlore accepts 'number' as parameter.");
+  if (typeof args[0] !== 'number')
+    throw new Error("Invalid parameter! helditemlore accepts 'number' as parameter.")
 
-    var ArrayList = Java.type('java.util.ArrayList');
-    var lores = inHand.get(Keys.ITEM_LORE).orElse(new ArrayList());
-    
-    var index = args[0] | 0;
-    if(index < 0 || lores.size() <= index)
-        return "";
+  var lores = inHand.get(Keys.ITEM_LORE).orElse(new ArrayList())
 
-    return lores[index].toPlain();
+  var index = args[0] | 0
+  if (index < 0 || lores.size() <= index) return ''
+
+  return lores[index].toPlain()
 }

@@ -1,26 +1,24 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -28,47 +26,75 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@Singleton
 public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
+    @Inject
+    private TaskSupervisor task;
+    @Inject
+    private IRepeatingTriggerFactory factory;
+
+    private final ExecutorService threadPool = Executors.newCachedThreadPool((r) -> {
+        Thread thread = new Thread(r);
+        thread.setPriority(Thread.MIN_PRIORITY + 1);
+
+        Optional.of(r)
+                .filter(RepeatingTrigger.class::isInstance)
+                .map(RepeatingTrigger.class::cast)
+                .map(RepeatingTrigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .ifPresent((name) -> thread.setName("RepeatingTrigger-" + name));
+        return thread;
+    });
+
     protected static final String TRIGGER = "trigger";
 
-    protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    private final TaskSupervisor task;
-
-    public RepeatingTriggerManager(TriggerReactorCore plugin, ITriggerLoader<RepeatingTrigger> loader, TaskSupervisor task) {
-        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"), loader);
-        this.task = task;
+    @Inject
+    private RepeatingTriggerManager(@Named("DataFolder") File dataFolder,
+                                    @Named("RepeatingTriggerManagerFolder") String folderName) {
+        super(new File(dataFolder, folderName));
     }
 
-    public RepeatingTriggerManager(TriggerReactorCore plugin, TaskSupervisor task){
-        this(plugin, new RepeatingTriggerLoader(), task);
+    @Override
+    public void initialize() {
+
     }
 
     @Override
     public void reload() {
+        for (RepeatingTrigger trigger : getAllTriggers()) {
+            trigger.stop();
+        }
+
         super.reload();
 
-        for (Entry<String, Thread> entry : runningThreads.entrySet()) {
-            entry.getValue().interrupt();
-        }
-        runningThreads.clear();
-
         for (RepeatingTrigger trigger : getAllTriggers()) {
-            final RepeatingTrigger triggerCopy = trigger;
-            //start 1 tick later so other managers can be initialized.
-            plugin.runTask(() -> {
-                if (triggerCopy.isAutoStart()) {
-                    startTrigger(trigger.getInfo().getTriggerName());
-                }
-            });
+            if (trigger.isAutoStart()) {
+                startTrigger(trigger.getInfo().getTriggerName());
+            }
         }
+    }
+
+    @Override
+    public void shutdown() {
+        for (RepeatingTrigger trigger : getAllTriggers()) {
+            trigger.stop();
+        }
+
+        super.shutdown();
+
+        threadPool.shutdown();
     }
 
     /**
@@ -78,20 +104,21 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
      * @param script      the code.
      * @param interval    interval in milliseconds.
      * @return true on success; false if already exists.
-     * @throws IOException     See {@link Trigger#init()}
      * @throws LexerException  See {@link Trigger#init()}
      * @throws ParserException See {@link Trigger#init()}
      */
     public boolean createTrigger(String triggerName, File file, String script, long interval)
-            throws TriggerInitFailedException, IOException {
+            throws TriggerInitFailedException {
         if (get(triggerName) != null) {
             return false;
         }
 
         String name = TriggerInfo.extractName(file);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = getConfigSource(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger trigger = new RepeatingTrigger(info, script, interval);
+        RepeatingTrigger trigger = factory.create(info, script);
+        trigger.init();
+
         put(triggerName, trigger);
 
         return true;
@@ -118,9 +145,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         RepeatingTrigger remove = super.remove(name);
 
         // stop the thread if it's running
-        if (runningThreads.containsKey(remove.getInfo().getTriggerName())) {
-            this.stopTrigger(remove.getInfo().getTriggerName());
-        }
+        Optional.ofNullable(remove).ifPresent(RepeatingTrigger::stop);
 
         return remove;
     }
@@ -133,7 +158,10 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
      * @return
      */
     public boolean isRunning(String triggerName) {
-        return runningThreads.containsKey(triggerName);
+        RepeatingTrigger trigger = get(triggerName);
+        return Optional.ofNullable(trigger)
+                .map(RepeatingTrigger::isRunning)
+                .orElse(false);
     }
 
     /**
@@ -159,13 +187,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
             vars.put(TRIGGER, "init");
 
             trigger.activate(new Object(), vars, true);
-
-            Thread thread = task.newThread(trigger,
-                                           "RepeatingTrigger-" + triggerName,
-                                           Thread.MIN_PRIORITY + 1);
-            thread.start();
-
-            runningThreads.put(triggerName, thread);
+            trigger.start(threadPool);
         }
 
         return true;
@@ -178,12 +200,12 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
      * @return true on success; false if no such trigger found with name.
      */
     public boolean stopTrigger(String triggerName) {
-        Thread thread = runningThreads.remove(triggerName);
-        if (thread == null) {
+        RepeatingTrigger trigger = get(triggerName);
+        if (trigger == null) {
             return false;
         }
 
-        thread.interrupt();
+        trigger.stop();
         return true;
     }
 
@@ -204,5 +226,4 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
     protected interface ThrowableHandler {
         void onFail(Throwable throwable);
     }
-
 }

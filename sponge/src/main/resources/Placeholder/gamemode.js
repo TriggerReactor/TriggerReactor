@@ -14,13 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+
 function gamemode(args) {
-    if(player == null)
-        return null;
+  if (player == null) return null
 
-    var mode = player.get(Keys.GAME_MODE).orElse(null);
-    if(mode == null)
-       return null;
+  var mode = player.get(Keys.GAME_MODE).orElse(null)
+  if (mode == null) return null
 
-    return mode.getId();
+  return mode.getId()
 }

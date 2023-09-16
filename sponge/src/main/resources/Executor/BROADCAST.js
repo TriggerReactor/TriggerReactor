@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,23 +15,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function BROADCAST(args) {
-    var String = Java.type('java.lang.String')
-    var Text = Java.type('org.spongepowered.api.text.Text')
-    
-	for (var i = 0; i < args.length; i++){
-        var t;
-        if(args[i] instanceof Text)
-            t = args[i];
-        else
-            t = TextUtil.colorStringToText(String.valueOf(args[i]));
-            
-        var players = Sponge.getServer().getOnlinePlayers();
-        for (var iter = players.iterator(); iter.hasNext();) {
-            var p = iter.next();
-            p.sendMessage(t);
-        }
-	}
+var MessageChannel = Java.type('org.spongepowered.api.text.channel.MessageChannel')
+var Text = Java.type('org.spongepowered.api.text.Text')
+var Sponge = Java.type('org.spongepowered.api.Sponge')
+var TextUtil = Java.type('io.github.wysohn.triggerreactor.sponge.tools.TextUtil')
+var String = Java.type('java.lang.String')
 
-	return null;
+function BROADCAST(args) {
+  for (var i = 0; i < args.length; i++) {
+    var message;
+    if (args[i] instanceof Text) {
+      message = args[i];
+    } else {
+      message = TextUtil.colorStringToText(String.valueOf(args[i]));
+    }
+
+    MessageChannel.TO_PLAYERS.send(message);
+  }
+
+  return null;
 }

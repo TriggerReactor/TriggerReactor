@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -15,9 +16,8 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function x(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    var loc = player.getLocation();
-    return loc.getBlockX();
+  return player.getLocation().getBlockX();
 }

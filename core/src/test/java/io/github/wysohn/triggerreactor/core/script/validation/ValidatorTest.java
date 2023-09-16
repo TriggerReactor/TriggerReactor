@@ -11,9 +11,9 @@ import static org.junit.Assert.assertEquals;
 
 public class ValidatorTest {
     @Test
-    public void testJSRNashorn() throws Exception{
+    public void testJSRNashorn() throws Exception {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-        if(engine == null)
+        if (engine == null)
             return;
         System.out.println("Nashorn engine available");
 
@@ -55,9 +55,9 @@ public class ValidatorTest {
     }
 
     @Test
-    public void testJSR() throws Exception{
+    public void testJSR() throws Exception {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("graal.js");
-        if(engine == null)
+        if (engine == null)
             return;
         System.out.println("GraalJS available");
 

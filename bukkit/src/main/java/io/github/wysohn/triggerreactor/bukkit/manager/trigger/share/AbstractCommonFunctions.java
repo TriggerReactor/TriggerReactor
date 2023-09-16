@@ -1,8 +1,24 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
@@ -17,15 +33,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 
+import javax.inject.Inject;
 import java.text.NumberFormat;
 import java.util.*;
 
 public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
-    protected final TriggerReactorCore plugin;
-
-    public AbstractCommonFunctions(TriggerReactorCore plugin) {
-        this.plugin = plugin;
-    }
+    @Inject
+    private AreaTriggerManager areaTriggerManager;
 
     /**
      * Simply try to get plugin object directly. *
@@ -305,8 +319,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return array of AreaTrigger names. The array can be empty but never null.
      */
     public String[] currentAreasAt(Location location) {
-        AreaTriggerManager areaManager = plugin.getAreaManager();
-        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
+        return areaTriggerManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
                 .map(Trigger::getInfo)
                 .map(TriggerInfo::getTriggerName)
@@ -320,8 +333,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return List of entities. null if the AreaTrigger with specified name doesn't exist.
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
-        AreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTrigger trigger = areaManager.get(areaTriggerName);
+        AreaTrigger trigger = areaTriggerManager.get(areaTriggerName);
         if (trigger == null)
             return null;
 
@@ -687,9 +699,9 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
      * @return The SerializableLocation value
      */
     public abstract Object serializeLocation(World world, double x, double y, double z);
@@ -701,10 +713,10 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * </p>
      *
      * @param world The world instance in which this location resides
-     * @param x The x-coordinate of this location
-     * @param y The y-coordinate of this location
-     * @param z The z-coordinate of this location
-     * @param yaw The absolute rotation on the x-plane, in degrees
+     * @param x     The x-coordinate of this location
+     * @param y     The y-coordinate of this location
+     * @param z     The z-coordinate of this location
+     * @param yaw   The absolute rotation on the x-plane, in degrees
      * @param pitch The absolute rotation on the y-plane, in degrees
      * @return The SerializableLocation value
      */

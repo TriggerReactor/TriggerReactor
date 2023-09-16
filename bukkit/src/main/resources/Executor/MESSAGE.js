@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,21 +15,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var ChatColor = Java.type('org.bukkit.ChatColor')
-var Bukkit = Java.type('org.bukkit.Bukkit')
-var Objects = Java.type('java.util.Objects');
 
-function MESSAGE(args){
-    for(var i = 0; i < args.length ; i++){
-        var text = Objects.toString(args[i])
-        if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
-            var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-            args[i] = ChatColor.translateAlternateColorCodes(Char('&'), PlaceholderAPI.setPlaceholders(player, text));
-        } else {
-            args[i] = ChatColor.translateAlternateColorCodes(Char('&'), text);
-        }
-    	
-        player.sendMessage(args[i]);
-    }
-    return null;
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ChatColor = Java.type("org.bukkit.ChatColor");
+var Object = Java.type("java.lang.Object");
+
+var validation = {
+  overloads: [[{ type: Object.class, name: "message" }]],
+};
+
+function MESSAGE(args) {
+  if (!player) throw new Error("Player is null.");
+
+  var message = args[0].toString();
+
+  message = ChatColor.translateAlternateColorCodes("&", message);
+
+  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+    var PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
+    message = PlaceholderAPI.setPlaceholders(player, message);
+  }
+
+  player.sendMessage(message);
+
+  return null;
 }

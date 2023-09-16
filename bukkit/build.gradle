@@ -4,8 +4,11 @@ dependencies {
 
 allprojects {
     repositories {
+        //maven {
+        //    url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        //}
         maven {
-            url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+            url "https://repo.papermc.io/repository/maven-public/"
         }
         //maven {
         //    url "http://nexus.hc.to/content/repositories/pub_releases/"
@@ -29,7 +32,9 @@ allprojects {
                     "${project(':core').archivesBaseName}${project.version == "unspecified" ? "" : "-" + project.version}.jar",
                     "${project(':bukkit').archivesBaseName}${project.version == "unspecified" ? "" : "-" + project.version}.jar",
                     "commons-lang3-3.12.0.jar",
-
+                    "guice-5.1.0.jar",
+                    "guice-assistedinject-5.1.0.jar",
+                    "aopalliance-1.0.jar",
             ]
 
             configurations.runtimeClasspath
@@ -44,18 +49,20 @@ allprojects {
 subprojects {
     dependencies {
         implementation fileTree(dir: "libs", includes: ['*.jar'])
-        api project(":bukkit")
+        implementation(project(":bukkit")) {
+            exclude group: 'org.spigotmc', module: 'spigot-api'
+        }
 
-        testImplementation project(':bukkit').sourceSets.test.output
+        testImplementation(project(':bukkit').sourceSets.test.output)
+    }
+
+    tasks.register('copyTestResources', Copy) {
+        from project(":bukkit").sourceSets.main.output.resourcesDir
+        into "${buildDir}/classes/test"
     }
 
     jar.dependsOn project(':bukkit').jar
 
-
-    task copyTestResources(type: Copy) {
-        from project(":bukkit").sourceSets.main.output.resourcesDir
-        into "${buildDir}/classes/test"
-    }
     copyTestResources.dependsOn project(":bukkit").copyResources
     copyTestResources.dependsOn project(":bukkit").processResources
 

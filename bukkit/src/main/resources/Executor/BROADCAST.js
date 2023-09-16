@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -15,31 +16,38 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var ChatColor = Java.type('org.bukkit.ChatColor')
-var Bukkit = Java.type('org.bukkit.Bukkit')
-var BukkitUtil = Java.type('io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil')
+var Object = Java.type("java.lang.Object");
+
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ChatColor = Java.type("org.bukkit.ChatColor");
+
+var BukkitUtil = Java.type(
+  "io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil"
+);
+
+var validation = {
+  overloads: [[{ type: Object.class, name: "message" }]],
+};
 
 function BROADCAST(args) {
-	var str = "";
-	for (var i = 0; i < args.length; i++)
-		str += args[i];
+  var PlaceholderAPI;
+  var message = args[0].toString();
 
-	str = ChatColor.translateAlternateColorCodes(Char('&'), str);
+  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
+    PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
 
-	var PlaceholderAPI;
-	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-		PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-	}
+  message = ChatColor.translateAlternateColorCodes("&", message);
 
-	var players = BukkitUtil.getOnlinePlayers();
-	for (var iter = players.iterator(); iter.hasNext();) {
-		var p = iter.next();
-		if (PlaceholderAPI) {
-			p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
-		} else {
-			p.sendMessage(str);
-		}
-	}
+  var players = BukkitUtil.getOnlinePlayers();
+  var iter = players.iterator();
+  while (iter.hasNext()) {
+    var target = iter.next();
+    var msg = PlaceholderAPI
+      ? PlaceholderAPI.setPlaceholders(target, message)
+      : message;
 
-	return null;
+    target.sendMessage(msg);
+  }
+
+  return null;
 }

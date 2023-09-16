@@ -27,7 +27,7 @@ var TargetEntityEvent = Java.type('org.spongepowered.api.event.entity.TargetEnti
 function entityname(args) {
     var entityName = null;
 
-    if(event instanceof AffectEntityEvent) {
+    if (event instanceof AffectEntityEvent) {
         var entities = event.getEntities();
         if(entities.size() < 1)
             return null;
@@ -39,6 +39,8 @@ function entityname(args) {
             return null;
 
         entityName = entity.get(Keys.DISPLAY_NAME).orElse(null);
+    } else {
+        throw new Error('$slot Placeholder is available only in CustomTrigger!')
     }
 
     return entityName;

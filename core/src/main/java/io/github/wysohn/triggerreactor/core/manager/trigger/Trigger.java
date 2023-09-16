@@ -1,34 +1,57 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
+import io.github.wysohn.triggerreactor.core.script.interpreter.*;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
 import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
+    @Inject
+    private ITriggerDependencyFacade triggerDependencyFacade;
+    @Inject
+    private TaskSupervisor taskSupervisor;
+    @Inject
+    private IExceptionHandle exceptionHandle;
+    @Inject
+    private InterpreterGlobalContext globalContext;
+
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     protected final TriggerInfo info;
 
@@ -36,15 +59,17 @@ public abstract class Trigger implements Cloneable, IObservable {
 
     protected String script;
     protected Node root;
-    protected Map<String, Executor> executorMap;
-    protected Map<String, Placeholder> placeholderMap;
-    protected Map<Object, Object> gvarMap;
+
+    private Interpreter interpreter;
+    private ExecutingTrigger lastExecution;
+    private boolean ignoreSyncIfNotServerThread = false;
 
     /**
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
      * in order to make the Trigger work properly. If you want to create a Trigger with customized
      * behavior, it's not necessary to call {@link #init()} but need to override {@link #initInterpreter(Map)},
-     * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as your need
+     * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as
+     * your need
      */
     public Trigger(TriggerInfo info, String script) {
         super();
@@ -87,7 +112,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         try {
             if (script == null) {
                 throw new NullPointerException("init() was invoked, yet 'script' was null. Make sure to override " +
-                        "init() method to in order to construct a customized Trigger.");
+                        "init() method in order to construct a customized Trigger.");
             }
 
             Charset charset = StandardCharsets.UTF_8;
@@ -96,13 +121,13 @@ public abstract class Trigger implements Cloneable, IObservable {
             Parser parser = new Parser(lexer);
 
             root = parser.parse(true);
-            List<Warning> warnings = parser.getWarnings();
 
-            AbstractTriggerManager.reportWarnings(warnings, this);
-            //TODO: refactor this hard dependency in 3.4.x
-            executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
-            placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();
-            gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();
+            // This allows us to re-use the same AST for multiple threads,
+            //   though, we need to absolutely make sure
+            //   that Interpreter does not share any state between threads
+            //   except for the AST and the global context.
+            interpreter = InterpreterBuilder.start(globalContext, root)
+                    .build();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
                     + " -- " + info + "]!", ex);
@@ -131,36 +156,10 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     /**
-     * Start this trigger. Variables in scriptVars may be overridden if it has same name as
-     * the name of fields of Event class.
-     *
-     * @param e          the Event associated with this Trigger
-     * @param scriptVars the temporary local variables
-     * @param sync choose whether to run this trigger in the current thread or spawn a new thread
-     *             and run in there.
-     * @return true if activated; false if on cooldown
-     */
-    public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
-        if (checkCooldown(e)) {
-            return false;
-        }
-
-        scriptVars.put("event", e);
-        scriptVars.putAll(TriggerReactorCore.getInstance().getSharedVars());
-        Map<String, Object> customVars = TriggerReactorCore.getInstance().getCustomVarsForTrigger(e);
-        if (customVars != null)
-            scriptVars.putAll(customVars);
-
-        Interpreter interpreter = initInterpreter(scriptVars);
-
-        startInterpretation(e, scriptVars, interpreter, sync);
-        return true;
-    }
-
-    /**
      * Read {@link #activate(Object, Map, boolean)}
-     *
+     * <p>
      * The only difference is that it determines sync/async from the trigger config.
+     *
      * @param e
      * @param scriptVars
      * @return
@@ -172,11 +171,33 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     /**
+     * Start this trigger. Variables in scriptVars may be overridden if it has same name as
+     * the name of fields of Event class.
+     *
+     * @param e          the Event associated with this Trigger
+     * @param scriptVars the temporary local variables
+     * @param sync       choose whether to run this trigger in the current thread or spawn a new thread
+     *                   and run in there.
+     * @return true if activated; false if on cooldown
+     */
+    public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
+        if (checkCooldown(e)) {
+            return false;
+        }
+
+        scriptVars.put("event", e);
+        scriptVars.putAll(triggerDependencyFacade.getExtraVariables(e));
+
+        startInterpretation(e, scriptVars, interpreter, sync);
+        return true;
+    }
+
+    /**
      * @param e
      * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
      */
     protected boolean checkCooldown(Object e) {
-        IPlayer iPlayer = TriggerReactorCore.getInstance().extractPlayerFromContext(e);
+        IPlayer iPlayer = triggerDependencyFacade.extractPlayerFromContext(e);
 
         if (iPlayer != null) {
             UUID uuid = iPlayer.getUniqueId();
@@ -189,22 +210,8 @@ public abstract class Trigger implements Cloneable, IObservable {
         return false;
     }
 
-    /**
-     * Create interpreter with appropriate options and variables.
-     *
-     * @param scriptVars
-     * @return
-     */
-    protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setTaskSupervisor(TriggerReactorCore.getInstance());
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvarMap);
-        interpreter.setVars(scriptVars);
-        interpreter.setSelfReference(TriggerReactorCore.getInstance().getSelfReference());
-
-        return interpreter;
+    protected ProcessInterrupter createInterrupter() {
+        return triggerDependencyFacade.createInterrupter(cooldowns);
     }
 
     /**
@@ -218,75 +225,111 @@ public abstract class Trigger implements Cloneable, IObservable {
      *                    set it to false will let it run in separate thread. This is more efficient if you
      *                    only need to read data from Event and never interact with it.
      */
-    protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-        Callable<Void> call = new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
-                    start(t, e, scriptVars, interpreter, sync);
-                } catch (Exception ex) {
-                    TriggerReactorCore.getInstance().handleException(e, new Exception(
-                            "Trigger [" + info + "] produced an error!", ex));
-                }
-                return null;
-            }
-        };
+    protected void startInterpretation(Object e,
+                                       Map<String, Object> scriptVars,
+                                       Interpreter interpreter,
+                                       boolean sync) {
+        ExecutingTrigger executingTrigger = new ExecutingTrigger(
+                exceptionHandle,
+                info,
+                e,
+                interpreter,
+                scriptVars,
+                createInterrupter(),
+                getTimingId()
+        );
 
         if (sync) {
-            if (TriggerReactorCore.getInstance().isServerThread()) {
+            if (taskSupervisor.isServerThread()) {
                 try {
-                    call.call();
-                } catch (Exception e1) {
-
+                    new TaskWrapper(e, executingTrigger, true).call();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            // if task is initiated from non-server thread, and this flag is set to true, then simply execute the task
+            //   from the current thread.
+            else if (ignoreSyncIfNotServerThread) {
+                try {
+                    new TaskWrapper(e, executingTrigger, false).call();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
                 }
             } else {
-                Future<Void> future = TriggerReactorCore.getInstance().callSyncMethod(call);
+                Future<Void> future = taskSupervisor.submitSync(new TaskWrapper(e, executingTrigger, true));
                 try {
                     future.get(3, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e1) {
-
+                } catch (InterruptedException e1) {
+                    // ignore
+                } catch (ExecutionException e1) {
+                    exceptionHandle.handleException(e, new RuntimeException(
+                            "Failed to process Trigger [" + info + "]!",
+                            e1.getCause()));
                 } catch (TimeoutException e1) {
-                    TriggerReactorCore.getInstance().handleException(e, new RuntimeException(
+                    exceptionHandle.handleException(e, new RuntimeException(
                             "Took too long to process Trigger [" + info + "]! Is the server lagging?",
                             e1));
                 }
             }
         } else {
-            ASYNC_POOL.submit(call);
+            taskSupervisor.submitAsync(() -> {
+                try {
+                    new TaskWrapper(e, executingTrigger, false).call();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
         }
     }
 
     /**
-     * The actual execution part. The Trigger can be sync/async depends on which thread invokes this method.
+     * Get the copy of variables that were used in the last execution.
      *
-     * @param e
-     * @param scriptVars
-     * @param interpreter
-     * @param sync
-     * @param timing
+     * @return null if the trigger is still running or has not been executed yet.
      */
-    protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
-                         boolean sync) {
-        try {
-            interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupter(cooldowns),
-                    timing);
-        } catch (InterpreterException ex) {
-            TriggerReactorCore.getInstance().handleException(e,
-                    new Exception("Could not finish interpretation for [" + info + "]!", ex));
-        }
+    public synchronized Map<String, Object> getVarCopy() {
+        return Optional.ofNullable(lastExecution)
+                .map(ExecutingTrigger::getLocalContext)
+                .map(InterpreterLocalContext::getVarCopy)
+                .orElse(null);
+    }
+
+    public synchronized Object getResult() {
+        return Optional.ofNullable(lastExecution)
+                .map(ExecutingTrigger::getInterpreter)
+                .map(i -> {
+                    try {
+                        return i.result(lastExecution.localContext);
+                    } catch (InterpreterException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElse(null);
+    }
+
+    public boolean isIgnoreSyncIfNotServerThread() {
+        return ignoreSyncIfNotServerThread;
     }
 
     /**
-     * The actual execution part. The Trigger can be sync/async depends on which thread invokes this method.
+     * Set whether to ignore the sync flag if the current thread is not the server thread.
+     * The original behavior is that if the current thread is not the server thread, then
+     * the task is scheduled to run in the server thread, hence, no matter what thread the
+     * task is initiated from, it will always run in the server thread. And of course, if the
+     * current thread is the server thread, then the task will run in the current thread as it
+     * is already synchronous.
+     * <p>
+     * However, this is not always desirable. For example, RepeatingTriggers are activated
+     * from a non-server thread, yet we don't want it to run in the server thread too, but setting
+     * it async would spawn another thread under current implementation, which would cause timing issues
+     * (eg. the task is scheduled to run every 1 second, but it takes 2 seconds to finish, then the next task
+     * would be scheduled to run 1 second after the previous task, which then is executed before
+     * the previous task is done, making both of them running at the same time).
      *
-     * @param e
-     * @param scriptVars
-     * @param interpreter
-     * @param sync
+     * @param ignoreSyncIfNotServerThread true to ignore the sync flag if the current thread is not the server thread.
      */
-    protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-        start(Timings.LIMBO, e, scriptVars, interpreter, sync);
+    public void setIgnoreSyncIfNotServerThread(boolean ignoreSyncIfNotServerThread) {
+        this.ignoreSyncIfNotServerThread = ignoreSyncIfNotServerThread;
     }
 
     @Override
@@ -297,5 +340,94 @@ public abstract class Trigger implements Cloneable, IObservable {
         return "[" + getClass().getSimpleName() + "=" + info + "]";
     }
 
-    private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();
+    private class TaskWrapper implements Callable<Void> {
+        private final Object e;
+        private final ExecutingTrigger executingTrigger;
+        private final boolean sync;
+
+        private TaskWrapper(Object e, ExecutingTrigger executingTrigger, boolean sync) {
+            this.e = e;
+            this.executingTrigger = executingTrigger;
+            this.sync = sync;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            try {
+                executingTrigger.sync = sync;
+                executingTrigger.call();
+            } catch (Exception ex) {
+                exceptionHandle.handleException(e, ex);
+            } finally {
+                Trigger.this.lastExecution = executingTrigger;
+            }
+            return null;
+        }
+    }
+
+    public static class ExecutingTrigger implements Callable<Void> {
+        private final IExceptionHandle exceptionHandle;
+        private final TriggerInfo info;
+
+        private final Object e;
+        private final Interpreter interpreter;
+
+        private final String timingId;
+
+        private final InterpreterLocalContext localContext;
+
+        private boolean isDone = false;
+        private boolean sync;
+
+        public ExecutingTrigger(IExceptionHandle exceptionHandle,
+                                TriggerInfo info,
+                                Object e,
+                                Interpreter interpreter,
+                                Map<String, Object> initialVars,
+                                ProcessInterrupter interrupter,
+                                String timingId) {
+            this.exceptionHandle = exceptionHandle;
+            this.info = info;
+            this.e = e;
+            this.interpreter = interpreter;
+            this.timingId = timingId;
+
+            this.localContext = new InterpreterLocalContext(Timings.getTiming(timingId))
+                    .putAllVars(initialVars);
+            this.localContext.setInterrupter(interrupter);
+        }
+
+        @Override
+        public Void call() throws Exception {
+            // execution must be created every time and executed only once.
+            if (isDone) throw new IllegalStateException("Cannot reuse this object!");
+
+            try (Timings.Timing t = Timings.getTiming(timingId).begin(sync)) {
+                EXECUTING_TRIGGER.set(info.toString());
+                interpreter.start(e, localContext);
+            } catch (Exception ex) {
+                exceptionHandle.handleException(e, new Exception(
+                        "Trigger [" + info + "] produced an error!", ex));
+            } finally {
+                isDone = true;
+                EXECUTING_TRIGGER.remove();
+            }
+            return null;
+        }
+
+        public InterpreterLocalContext getLocalContext() {
+            return localContext;
+        }
+
+        public Interpreter getInterpreter() {
+            return interpreter;
+        }
+
+        // This might not be perfectly reliable, but it should do the job for most cases.
+        private static final ThreadLocal<String> EXECUTING_TRIGGER = new ThreadLocal<>();
+
+        public static String getExecutingTriggerSummary() {
+            return EXECUTING_TRIGGER.get();
+        }
+    }
 }

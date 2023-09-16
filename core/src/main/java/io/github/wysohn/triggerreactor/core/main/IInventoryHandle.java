@@ -1,10 +1,27 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.main;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 
-public interface IInventoryHandle<ItemStack> {
+public interface IInventoryHandle {
     /**
      * Create actual inventory.
      *
@@ -23,7 +40,39 @@ public interface IInventoryHandle<ItemStack> {
      */
     void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
 
-    Class<ItemStack> getItemClass();
+    Class<?> getItemClass();
 
-    IItemStack wrapItemStack(ItemStack item);
+    /**
+     * Wrap the item into IItemStack. The implementation of this method
+     * must check if the item is instance of the class appropriate for
+     * this handle.
+     *
+     * @param item the item to be wrapped
+     * @return the wrapped item
+     */
+    IItemStack wrapItemStack(Object item);
+
+    /**
+     * Set the contents of the inventory.
+     *
+     * @param inv   the inventory
+     * @param items the items to be set
+     */
+    void setContents(IInventory inv, IItemStack[] items);
+
+    /**
+     * Get the contents of the inventory.
+     *
+     * @param inv the inventory
+     * @return the contents of the inventory
+     */
+    IItemStack[] getContents(IInventory inv);
+
+    boolean removeLore(IItemStack iS, int index);
+
+    boolean setLore(IItemStack iS, int index, String lore);
+
+    void addItemLore(IItemStack iS, String lore);
+
+    void setItemTitle(IItemStack iS, String title);
 }

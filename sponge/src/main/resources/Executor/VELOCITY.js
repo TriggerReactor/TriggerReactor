@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,19 +15,86 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function VELOCITY(args){
-	if(player === null)
-		return null;
-		
-	if(args.length != 3)
-		throw new Error("Invalid parameters! [Number, Number, Number]");
-		
-	for (var i in [0, 1, 2]) {
-		if (typeof args[i] == "string") {args[i] = parseFloat(args[i]);}
-	}
-	
-	var Vector3d = Java.type('com.flowpowered.math.vector.Vector3d');
-	entity.setVelocity(new Vector3d(args[0].doubleValue(), args[1].doubleValue(), args[2].doubleValue()));
+var Entity = Java.type('org.spongepowered.api.entity.Entity')
+var Location = Java.type('org.spongepowered.api.world.Location')
+var Sponge = Java.type('org.spongepowered.api.Sponge')
+var Vector3d = Java.type('com.flowpowered.math.vector.Vector3d')
 
-	return null;
+validation = {
+  overloads: [
+    [
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' }
+    ],
+    [
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'target', type: Entity.class }
+    ],
+    [
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'target', type: 'string' }
+    ],
+    [{ name: 'location', type: Vector3d.class }],
+    [{ name: 'location', type: Location.class }],
+    [
+      { name: 'location', type: Vector3d.class },
+      { name: 'target', type: Entity.class }
+    ],
+    [
+      { name: 'location', type: Vector3d.class },
+      { name: 'target', type: 'string' }
+    ]
+  ]
+}
+
+function VELOCITY(args) {
+  var target = player,
+    location
+
+  if (args.length === 1) {
+    if (args[0] instanceof Location) {
+      location = args[0].getPosition()
+    } else {
+      location = args[0]
+    }
+  } else if (args.length === 2) {
+    var targetOrtargetName = args[3]
+
+    if (typeof targetOrtargetName === 'string')
+      target = Sponge.getServer().getPlayer(targetOrtargetName).orElse(null)
+    else target = targetOrtargetName
+    location = args[0]
+  } else if (args.length === 3) {
+    var x = args[0]
+    var y = args[1]
+    var z = args[2]
+
+    location = new Vector3d(x, y, z)
+  } else if (args.length === 4) {
+    var x = args[0]
+    var y = args[1]
+    var z = args[2]
+    var targetOrtargetName = args[3]
+
+    if (typeof targetOrtargetName === 'string')
+      target = Sponge.getServer().getPlayer(targetOrtargetName).orElse(null)
+    else target = targetOrtargetName
+    location = new Vector3d(x, y, z)
+  } else {
+    throw new Error('Invalid parameters!')
+  }
+
+  if (!(target instanceof Entity)) {
+    throw new Error('Could not find a player')
+  } else if (!(location instanceof Vector3d)) {
+    throw new Error('Could not find a target location')
+  }
+
+  target.setVelocity(location)
+  return null
 }

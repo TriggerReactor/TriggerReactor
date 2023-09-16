@@ -20,5 +20,32 @@ package io.github.wysohn.triggerreactor.core.config.source;
 import java.io.File;
 
 public interface IConfigSourceFactory {
-    IConfigSource create(String type, File folder, String fileName);
+    /**
+     * @param folder   the folder where config file will reside
+     * @param fileName name of the file <b>without</b> any dots. The underlying
+     *                 factory will append the extension as needed.
+     */
+    static void assertFile(File folder, String fileName) {
+        if (!folder.exists())
+            folder.mkdirs();
+
+        if (!folder.isDirectory())
+            throw new RuntimeException(folder + " must be a directory.");
+
+        if (fileName.lastIndexOf('.') != -1)
+            throw new RuntimeException("fileName must not include dot(.).");
+    }
+
+    /**
+     * Create a new config file or load existing one.
+     * <p>
+     * Postcondition: the file is guaranteed to exist and loaded if not newly created.
+     *
+     * @param saveWorker precondition: must not be null and is running
+     * @param folder     the folder where config file will reside
+     * @param fileName   name of the file <b>without</b> any dots. The underlying
+     *                   factory will append the extension as needed.
+     * @return config source
+     */
+    IConfigSource create(SaveWorker saveWorker, File folder, String fileName);
 }

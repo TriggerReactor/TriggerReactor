@@ -1,40 +1,42 @@
 /*
- *     Copyright (C) 2021 Dr_Romantic and contributors
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion {
-    private final TriggerReactorCore plugin;
+    private final PluginDescriptionFile description;
     private final IVariablePlaceholder variablePlaceholder;
 
     /**
      * Since we register the expansion inside our own plugin, we
      * can simply use this method here to get an instance of our
      * plugin.
-     *
-     * @param plugin The instance of our plugin.
      */
-    public PlaceholderExpansionSupport(TriggerReactorCore plugin) {
-        this.plugin = plugin;
-        this.variablePlaceholder = new VariablePlaceholder(plugin);
+    public PlaceholderExpansionSupport(PluginDescriptionFile description,
+                                       GlobalVariableManager globalVariableManager,
+                                       CommandTriggerManager commandTriggerManager) {
+        this.description = description;
+        this.variablePlaceholder = new VariablePlaceholder(description, globalVariableManager, commandTriggerManager);
     }
 
     /**
@@ -68,7 +70,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      */
     @Override
     public String getAuthor() {
-        return plugin.getAuthor();
+        return String.join(", ", description.getAuthors());
     }
 
     /**
@@ -95,7 +97,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      */
     @Override
     public String getVersion() {
-        return plugin.getVersion();
+        return description.getVersion();
     }
 
     @Override

@@ -1,25 +1,27 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.IEventManagement;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -27,12 +29,16 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
-
+@Singleton
 public final class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
     public static final String TAB_HINT = "hint";
     public static final String TAB_CANDIDATES = "candidates";
@@ -41,17 +47,30 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     public static final String TAB_REGEX = "regex";
 
+    @Inject
+    private Logger logger;
+    @Inject
+    private ICommandHandler commandHandler;
+    @Inject
+    private IPluginManagement pluginManagement;
+    @Inject
+    private IEventManagement eventManagement;
+    @Inject
+    private IExceptionHandle exceptionHandle;
+    @Inject
+    private ICommandTriggerFactory factory;
+    @Inject
+    private ITriggerLoader<CommandTrigger> loader;
 
-    ICommandHandler commandHandler;
-
-    public CommandTriggerManager(TriggerReactorCore plugin, ICommandHandler commandHandler, ITriggerLoader<CommandTrigger> loader) {
-        super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"), loader);
-
-        this.commandHandler = commandHandler;
+    @Inject
+    private CommandTriggerManager(@Named("DataFolder") File dataFolder,
+                                  @Named("CommandTriggerManagerFolder") String folderName) {
+        super(new File(dataFolder, folderName));
     }
 
-    public CommandTriggerManager(TriggerReactorCore plugin, ICommandHandler commandHandler) {
-        this(plugin, commandHandler, new CommandTriggerLoader());
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -64,10 +83,9 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
         super.reload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
-            if(!registerToAPI(trigger)){
-                plugin.getLogger()
-                        .warning("Attempted to register command trigger " + trigger.getInfo() + " but failed.");
-                plugin.getLogger().warning("Probably, the command is already in use by another command trigger.");
+            if (!registerToAPI(trigger)) {
+                logger.warning("Attempted to register command trigger " + trigger.getInfo() + " but failed.");
+                logger.warning("Probably, the command is already in use by another command trigger.");
             }
         }
 
@@ -91,25 +109,31 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     /**
      * Register the trigger to the API so that it can be served as a real command.
+     *
      * @param trigger target command trigger
      * @return true if the command is successfully registered. false if the command is already in use.
      */
     private boolean registerToAPI(CommandTrigger trigger) {
         ICommand command = commandHandler.register(trigger.getInfo().getTriggerName(),
-                                                   trigger.aliases);
-        if(command == null)
+                trigger.getAliases());
+        if (command == null)
             return false;
 
         trigger.setCommand(command);
         command.setTabCompleterMap(trigger.getTabCompleterMap());
-        command.setExecutor((sender, label, args) -> {
+        command.setExecutor((sender, label, args, original) -> {
             //TODO: remove this if we allow to use the command trigger in the console.
             if (!(sender instanceof IPlayer)) {
                 sender.sendMessage("CommandTrigger works only for Players.");
                 return;
             }
 
-            execute(plugin.createPlayerCommandEvent(sender, label, args), sender, label, args, trigger);
+            execute(eventManagement.createPlayerCommandEvent(sender, label, args),
+                    sender,
+                    label,
+                    args,
+                    trigger,
+                    original);
         });
 
         return true;
@@ -129,33 +153,35 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
         CommandTrigger trigger;
         try {
             String name = TriggerInfo.extractName(file);
-            IConfigSource config = configSourceFactory.create(folder, name);
+            IConfigSource config = getConfigSource(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = new CommandTrigger(info, script);
+            trigger = factory.create(info, script);
+            trigger.init();
 
-            if(!registerToAPI(trigger))
+            if (!registerToAPI(trigger))
                 return false;
-        } catch (TriggerInitFailedException e1) {
+        } catch (Exception e1) {
             commandHandler.unregister(cmd);
-            plugin.handleException(adding, e1);
+            exceptionHandle.handleException(adding, e1);
             return false;
         }
 
         put(cmd, trigger);
         commandHandler.sync();
-        plugin.saveAsynchronously(this);
         return true;
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger(new TriggerInfo(null,
-                                                  IConfigSource.empty(),
-                                                  "temp") {
+        CommandTrigger commandTrigger = factory.create(new TriggerInfo(null,
+                IConfigSource.empty(),
+                "temp") {
             @Override
             public boolean isValid() {
                 return false;
             }
         }, script);
+        commandTrigger.init();
+        return commandTrigger;
     }
 
     public void reregisterCommand(String triggerName) {
@@ -168,13 +194,18 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
                 });
     }
 
-    private void execute(Object context, ICommandSender sender, String cmd, String[] args, CommandTrigger trigger) {
+    private void execute(Object context,
+                         ICommandSender sender,
+                         String cmd,
+                         String[] args,
+                         CommandTrigger trigger,
+                         ICommand original) {
         for (String permission : trigger.getPermissions()) {
             if (!sender.hasPermission(permission)) {
                 sender.sendMessage("&c[TR] You don't have permission!");
-                if (plugin.isDebugging()) {
-                    plugin.getLogger().info("Player " + sender.getName() + " executed command " + cmd
-                                                    + " but didn't have permission " + permission + "");
+                if (pluginManagement.isDebugging()) {
+                    logger.info("Player " + sender.getName() + " executed command " + cmd
+                            + " but didn't have permission " + permission + "");
                 }
                 return;
             }
@@ -186,8 +217,34 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
         varMap.put("command", cmd);
         varMap.put("args", args);
         varMap.put("argslength", args.length);
+        varMap.put("original", new OverrideHandle(sender, cmd, args, original));
 
         trigger.activate(context, varMap);
     }
 
+    public static class OverrideHandle {
+        private final ICommandSender sender;
+        private final String label;
+        private final String[] args;
+        private final ICommand original;
+
+        public OverrideHandle(ICommandSender sender, String label, String[] args, ICommand original) {
+            this.sender = sender;
+            this.label = label;
+            this.args = args;
+            this.original = original;
+        }
+
+        public void forward() {
+            Optional.ofNullable(original)
+                    .map(ICommand::getExecutor)
+                    .ifPresent(executor -> executor.execute(sender, label, args, original));
+        }
+
+        public void run(String... args) {
+            Optional.ofNullable(original)
+                    .map(ICommand::getExecutor)
+                    .ifPresent(executor -> executor.execute(sender, label, args, null));
+        }
+    }
 }

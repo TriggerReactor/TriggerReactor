@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,22 +15,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack');
-validation = {
-    "overloads": [
-        [{"name": "item", "type": itemStackType.class}]
-    ]
 
-}
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+
+var validation = {
+  overloads: [
+    [
+      { type: ItemStack.class, name: 'item' }
+    ]
+  ]
+};
 
 function name(args) {
-    var item = args[0];
-    if(item.hasItemMeta()) {
-       if(item.getItemMeta().hasDisplayName())
-           return item.getItemMeta().getDisplayName()
-       else
-           return item.getType().name().toLowerCase();
-    } else {
-        return item.getType().name().toLowerCase();
-    }
+  var item = args[0];
+
+  var itemMeta = item.getItemMeta();
+
+  if (!itemMeta || !itemMeta.hasDisplayName())
+    return item.getType().name().toLowerCase();
+
+  return itemMeta.getDisplayName();
 }

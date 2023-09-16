@@ -1,41 +1,57 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
-    private long interval = 1000L;
-    private boolean autoStart = false;
+    @Inject
+    private IRepeatingTriggerFactory factory;
+
+    @Inject
+    private Logger logger;
+    @Inject
+    private IExceptionHandle exceptionHandle;
+
+    @TriggerRuntimeDependency
     private Map<String, Object> vars;
 
-    public RepeatingTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
+    @AssistedInject
+    private RepeatingTrigger(@Assisted TriggerInfo info,
+                             @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
-
-        init();
-    }
-
-    public RepeatingTrigger(TriggerInfo info, String script, long interval) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
-        this.interval = interval;
-
-        init();
-    }
-
-    /**
-     * This should be called at least once on start up so variables can be
-     * initialized.
-     */
-    @Override
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
-        ValidationUtil.notNull(scriptVars);
-        vars = scriptVars;
-
-        return super.activate(e, scriptVars);
+        setIgnoreSyncIfNotServerThread(true);
     }
 
     /**
@@ -45,9 +61,15 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @Override
     public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
         ValidationUtil.notNull(scriptVars);
-        vars = scriptVars;
 
-        return super.activate(e, scriptVars, sync);
+        boolean result = super.activate(e, scriptVars, sync);
+
+        // update variable state, so we can use it in the next iteration.
+        vars = new HashMap<>();
+        Optional.ofNullable(getVarCopy())
+                .ifPresent(vars::putAll);
+
+        return result;
     }
 
     /**
@@ -59,43 +81,45 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     public long getInterval() {
-        return interval;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Long.class)
+                .filter(i -> i > 0L)
+                .orElse(1000L);
     }
 
     public void setInterval(long interval) {
-        this.interval = interval;
+        info.put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, interval);
     }
 
     public boolean isAutoStart() {
-        return autoStart;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, Boolean.class)
+                .orElse(true);
     }
 
     public void setAutoStart(boolean autoStart) {
-        this.autoStart = autoStart;
+        info.put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, autoStart);
     }
 
     @Override
     public RepeatingTrigger clone() {
-        try {
-            return new RepeatingTrigger(info, script, interval);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return factory.create(info, script);
     }
 
     @Override
     public String toString() {
         return super.toString() + "{" +
-                "interval=" + interval +
-                ", autoStart=" + autoStart +
+                "interval=" + getInterval() +
+                ", autoStart=" + isAutoStart() +
                 ", paused=" + paused +
                 '}';
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
+    @TriggerRuntimeDependency
     private boolean paused;
+    @TriggerRuntimeDependency
+    private boolean running;
+    @TriggerRuntimeDependency
+    private Future<?> future;
 
     public boolean isPaused() {
         return paused;
@@ -111,48 +135,63 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
     }
 
+    public void start(ExecutorService exec) {
+        if (running)
+            return;
+
+        running = true;
+        future = exec.submit(this);
+    }
+
+    public void stop() {
+        if (!running)
+            return;
+
+        running = false;
+        future.cancel(true);
+
+        synchronized (this) {
+            this.notify();
+        }
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
     @Override
     public void run() {
         try {
-            while (!Thread.interrupted()) {
+            while (running && !Thread.interrupted()) {
                 synchronized (this) {
                     while (paused && !Thread.interrupted()) {
                         this.wait();
                     }
                 }
 
-                vars.put(RepeatingTriggerManager.TRIGGER, "repeat");
-
-                // we re-use the variables over and over.
-                activate(new Object(), vars);
-
-                try {
-                    Thread.sleep(interval);
-                } catch (InterruptedException e) {
+                if (!running)
                     break;
-                }
+
+                task("repeat");
+
+                Thread.sleep(getInterval());
             }
+        } catch (InterruptedException e) {
+            // ignore
         } catch (Exception e) {
-            throwableHandler.onFail(e);
+            exceptionHandle.handleException(null, e);
         }
 
         try {
-            vars.put(RepeatingTriggerManager.TRIGGER, "stop");
-            activate(new Object(), vars);
+            task("stop");
         } catch (Exception e) {
-            throwableHandler.onFail(e);
+            exceptionHandle.handleException(null, e);
         }
     }
 
-    private final RepeatingTriggerManager.ThrowableHandler throwableHandler = new RepeatingTriggerManager.ThrowableHandler() {
-        @Override
-        public void onFail(Throwable throwable) {
-            throwable.printStackTrace();
-            TriggerReactorCore.getInstance().getLogger()
-                    .warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
-            TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
-            TriggerReactorCore.getInstance().getLogger()
-                    .warning("If you are an administrator, see console for more details.");
-        }
-    };
+    void task(String trigger) {
+        vars.put(RepeatingTriggerManager.TRIGGER, trigger);
+        // we re-use the variables over and over.
+        activate(new Object(), vars, true);
+    }
 }

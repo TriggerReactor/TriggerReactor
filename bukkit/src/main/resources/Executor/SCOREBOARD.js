@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,153 +15,113 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var DisplaySlot = Java.type('org.bukkit.scoreboard.DisplaySlot');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'type', matches: 'OBJ' },
+      { type: 'string', name: 'boardName' },
+      { type: 'string', name: 'subType', matches: 'SET' },
+      { type: 'string', name: 'scoreName' },
+      { type: 'int', name: 'score' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'OBJ' },
+      { type: 'string', name: 'boardName' },
+      { type: 'string', name: 'subType', matches: 'REMOVE' },
+      { type: 'string', name: 'scoreName' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'OBJ' },
+      { type: 'string', name: 'boardName' },
+      { type: 'string', name: 'subType', matches: 'NAME' },
+      { type: 'string', name: 'displayName' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'OBJ' },
+      { type: 'string', name: 'boardName' },
+      { type: 'string', name: 'subType', matches: 'SLOT' },
+      { type: 'string', name: 'slot' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'ADD' },
+      { type: 'string', name: 'entry' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'REMOVE' },
+      { type: 'string', name: 'entry' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'PREFIX' },
+      { type: 'string', name: 'prefix' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'SUFFIX' },
+      { type: 'string', name: 'suffix' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'NAME' },
+      { type: 'string', name: 'newTeamName' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'INVISHARE' },
+      { type: 'boolean', name: 'isInvishare' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'TEAM' },
+      { type: 'string', name: 'teamName' },
+      { type: 'string', name: 'subType', matches: 'TEAMDAMAGE' },
+      { type: 'boolean', name: 'isTeamDamage' }
+    ]
+  ]
+};
+
 function SCOREBOARD(args) {
-    //#SCOREBOARD "TEAM" <teamname> "ADD" <playername>
-    //#SCOREBOARD "TEAM" <teamname> "REMOVE" <playername>
-    //#SCOREBOARD "TEAM" <teamname> "PREFIX" <prefix>
-    //#SCOREBOARD "TEAM" <teamname> "SUFFIX" <suffix>
-    //#SCOREBOARD "TEAM" <teamname> "NAME" <name>
-    //#SCOREBOARD "TEAM" <teamname> "INVISHARE" true/false
-    //#SCOREBOARD "TEAM" <teamname> "TEAMDAMAGE" true/false
+  var board = player.getScoreboard();
+  if (!board) board = Bukkit.getScoreboardManager().getNewScoreboard();
 
-    //#SCOREBOARD "OBJ" <objectivename[:criteria]> "SET" <scorename> <value|null>
-    //#SCOREBOARD "OBJ" <objectivename[:criteria]> "NAME" <name>
-    //#SCOREBOARD "OBJ" <objectivename[:criteria]> "SLOT" <DisplaySlot>
+  if (0 <= overload && overload <= 3) {
+    var objectiveName = args[1].split(':')[0];
+    var objectiveCriteria = args[1].split(':', 2)[1];
 
-    if (args.length != 4 && args.length != 5)
-        throw new Error("Invalid parameters! [String, String, String, VALUE, [VALUE]]");
+    var objective = board.getObjective(objectiveName);
+    if (!objective)
+      objective = board.registerNewObjective(objectiveName, objectiveCriteria);
 
-    var board = player.getScoreboard();
-    if (board == null)
-        board = Bukkit.getScoreboardManager().getNewScoreboard();
+    if (0 <= overload && overload <= 1) {
+      var score = objective.getScore(args[3]);
 
-    if (args[0] == "TEAM") {
-        var teamname = args[1];
-        var operation = args[2];
-        var value = args[3];
+      if (overload === 0) score.setScore(args[4]);
+      else score.setScore(null);
+    } else if (overload === 2) objective.setDisplayName(args[3]);
+    else if (overload === 3)
+      objective.setDisplaySlot(DisplaySlot.valueOf(args[3].toUpperCase()));
+  } else {
+    var team = board.getTeam(args[1]);
+    if (!team) team = board.registerNewTeam(args[1]);
 
-        if (typeof teamname !== "string")
-            throw new Error(teamname + " is not String!");
+    if (overload === 4) team.addEntry(args[3]);
+    else if (overload === 5) team.removeEntry(args[3]);
+    else if (overload === 6) team.setPrefix(args[3]);
+    else if (overload === 7) team.setSuffix(args[3]);
+    else if (overload === 8) team.setDisplayName(args[3]);
+    else if (overload === 9) team.setCanSeeFriendlyInvisibles(args[3]);
+    else if (overload === 10) team.setAllowFriendlyFire(args[3]);
+  }
 
-        var team = board.getTeam(teamname);
-        if (team == null)
-            team = board.registerNewTeam(teamname);
-
-        if (typeof operation !== "string")
-            throw new Error(operation + " is not a String!");
-
-        switch (operation) {
-            case "ADD":
-                if (typeof value !== "string")
-                    throw new Error(value + " is not String!");
-
-                team.addEntry(value);
-                break;
-            case "REMOVE":
-                if (typeof value !== "string")
-                    throw new Error(value + " is not String!");
-
-                team.removeEntry(value);
-                break;
-            case "PREFIX":
-                if (typeof value !== "string")
-                    throw new Error(value + " is not String!");
-
-                team.setPrefix(value);
-                break;
-            case "SUFFIX":
-                if (typeof value !== "string")
-                    throw new Error(value + " is not String!");
-
-                team.setSuffix(value);
-                break;
-            case "NAME":
-                if (typeof value !== "string")
-                    throw new Error(value + " is not String!");
-
-                team.setDisplayName(value)
-                break;
-            case "INVISHARE":
-                if (typeof value !== "boolean")
-                    throw new Error(value + " is not Boolean(true|false)!");
-
-                team.setCanSeeFriendlyInvisibles(value);
-                break;
-            case "TEAMDAMAGE":
-                if (typeof value !== "boolean")
-                    throw new Error(value + " is not Boolean(true|false)!");
-
-                team.setAllowFriendlyFire(value);
-                break;
-            default:
-                throw new Error(operation + " is not valid operation!");
-        }
-
-
-    } else if (args[0] == "OBJ") {
-        var objectiveName = args[1];
-
-        if (typeof objectiveName !== "string")
-            throw new Error(objectiveName + " is not String!");
-
-        var split = objectiveName.split(":", 2);
-
-        var objective = board.getObjective(split[0]);
-        if (objective == null) {
-            if (split.length == 2)
-                objective = board.registerNewObjective(split[0], split[1])
-            else
-                objective = board.registerNewObjective(split[0], "dummy");
-        }
-
-        var operation = args[2];
-        if (typeof operation !== "string")
-            throw new Error(operation + " is not a String!");
-
-        switch (operation) {
-            case "SET":
-                if (args.length != 5)
-                    throw new Error("Invalid parameters! [String, String, String, String, Number]");
-
-                var scorename = args[3];
-                var value = args[4];
-
-                if (typeof scorename !== "string")
-                    throw new Error(scorename + " is not a String");
-
-                if (value != null && typeof value !== "number")
-                    throw new Error((typeof value) + " is not a Number");
-
-                if (value == null)
-                    board.resetScores(scorename);
-                else
-                    objective.getScore(scorename).setScore(value);
-                break;
-            case "NAME":
-                var value = args[3];
-                if (typeof value !== "string")
-                    throw new Error(value + " is not a String");
-
-                objective.setDisplayName(value);
-
-                break;
-            case "SLOT":
-                var value = args[3];
-                if (typeof value !== "string")
-                    throw new Error(value + " is not a String");
-
-                var DisplaySlot = Java.type('org.bukkit.scoreboard.DisplaySlot');
-                var slotType = DisplaySlot.valueOf(value);
-
-                objective.setDisplaySlot(slotType);
-
-                break;
-            default:
-                throw new Error(operation + " is not valid operation!");
-        }
-    } else {
-        throw new Error("Invalid parameters! " + args[0] + " is not a valid type.");
-    }
-
-    player.setScoreboard(board);
+  player.setScoreboard(board);
 }

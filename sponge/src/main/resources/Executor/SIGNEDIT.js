@@ -14,40 +14,47 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function SIGNEDIT(args) {
-	if(args.length == 3 || args.length == 5){ 
-		var lineNumber = parseInt(args[0]);
-		var lineText = args[1];
-		var location;
+var BlockTypes = Java.type('org.spongepowered.api.block.BlockTypes')
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var Text = Java.type('org.spongepowered.api.text.Text')
+var Location = Java.type('org.spongepowered.api.world.Location')
+var ArrayList = Java.type('java.util.ArrayList')
 
-        if(lineNumber < 0 || lineNumber > 3){
-            throw new Error("line should be within 0 and 3!");
-        }
+function SIGNEDIT(args) {
+  if (args.length == 3 || args.length == 5) {
+    var lineNumber = parseInt(args[0])
+    var lineText = args[1]
+    var location
 
-		if(args.length == 3){
-			location = args[2];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[2], args[3], args[4]);
-		}
+    if (lineNumber < 0 || lineNumber > 3) {
+      throw new Error('line should be within 0 and 3!')
+    }
 
-        if(location.getBlockType() != BlockTypes.STANDING_SIGN
-            && location.getBlockType() != BlockTypes.WALL_SIGN)
-            throw new Error('That block is not a valid sign!');
+    if (args.length == 3) {
+      location = args[2]
+    } else {
+      var world = player.getWorld()
+      location = new Location(world, args[2], args[3], args[4])
+    }
 
-        var ArrayList = Java.type('java.util.ArrayList');
-		var lines = location.get(Keys.SIGN_LINES).orElse(new ArrayList());
+    if (
+      location.getBlockType() != BlockTypes.STANDING_SIGN &&
+      location.getBlockType() != BlockTypes.WALL_SIGN
+    )
+      throw new Error('That block is not a valid sign!')
 
-        while(lines.size() < 4){
-            lines.add(Text.of(""));
-        }
+    var lines = location.get(Keys.SIGN_LINES).orElse(new ArrayList())
 
-        lines.set(lineNumber, Text.of(lineText));
-        location.offer(Keys.SIGN_LINES, lines);
+    while (lines.size() < 4) {
+      lines.add(Text.of(''))
+    }
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Line<number>, Text<string>, Location<location or number number number>]');
-	}
-	return null;
+    lines.set(lineNumber, Text.of(lineText))
+    location.offer(Keys.SIGN_LINES, lines)
+  } else {
+    throw new Error(
+      'Invalid parameters. Need [Line<number>, Text<string>, Location<location or number number number>]'
+    )
+  }
+  return null
 }
