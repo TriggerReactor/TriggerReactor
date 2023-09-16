@@ -22,6 +22,9 @@ import javax.inject.Inject;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -183,8 +186,10 @@ public class GsonConfigSource implements IConfigSource {
             e.printStackTrace();
         }
 
-        if (!tempFile.renameTo(file)) {
-            System.err.println("Failed to rename temp file to " + file.getName());
+        try {
+            Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to rename temp file to " + file.getName(), e);
         }
     }
 
