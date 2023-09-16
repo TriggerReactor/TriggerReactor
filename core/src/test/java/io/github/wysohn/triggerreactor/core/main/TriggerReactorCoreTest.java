@@ -444,6 +444,8 @@ public class TriggerReactorCoreTest {
         boolean result2 = scriptEditManager.isEditing(sender);
         clickTriggerManager.handleLocationSetting(location, sender);
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertTrue(result1);
         assertFalse(result2);
@@ -483,6 +485,8 @@ public class TriggerReactorCoreTest {
                 "#MESSAGE \"Hello World\""
         });
         clickTriggerManager.handleLocationSetting(location, sender);
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertNotNull(clickTriggerManager.get(simpleLocation.toString()));
@@ -527,6 +531,8 @@ public class TriggerReactorCoreTest {
         boolean result2 = scriptEditManager.isEditing(sender);
         walkTriggerManager.handleLocationSetting(location, sender);
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertTrue(result1);
         assertFalse(result2);
@@ -566,6 +572,8 @@ public class TriggerReactorCoreTest {
                 "#MESSAGE \"Hello World\""
         });
         walkTriggerManager.handleLocationSetting(location, sender);
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertNotNull(walkTriggerManager.get(simpleLocation.toString()));
@@ -607,6 +615,8 @@ public class TriggerReactorCoreTest {
         scriptEditManager.onChat(sender, "save");
         boolean result2 = scriptEditManager.isEditing(sender);
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertTrue(result1);
         assertFalse(result2);
@@ -646,6 +656,8 @@ public class TriggerReactorCoreTest {
                 "#MESSAGE \"Hello World\""
         });
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertNotNull(cmdTriggerManager.get("mycmd"));
 
@@ -675,6 +687,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"cmd", "mycmd", "sync"});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertTrue(cmdTriggerManager.get("mycmd").getInfo().isSync());
     }
@@ -697,6 +711,8 @@ public class TriggerReactorCoreTest {
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"cmd", "mycmd", "permission", "my.permission1", "my.permission2", "my.permission3"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertEquals(Arrays.asList("my.permission1", "my.permission2", "my.permission3"),
@@ -721,6 +737,8 @@ public class TriggerReactorCoreTest {
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"cmd", "mycmd", "aliases", "myalias1", "myalias2", "myalias3"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertEquals(Arrays.asList("myalias1", "myalias2", "myalias3"),
@@ -962,6 +980,8 @@ public class TriggerReactorCoreTest {
         scriptEditManager.onChat(sender, "save");
         boolean result2 = scriptEditManager.isEditing(sender);
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertTrue(result1);
         assertFalse(result2);
@@ -987,6 +1007,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "create", "54", "#MESSAGE \"Hello World\""});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertNotNull(inventoryTriggerManager.get("MyInventory"));
         assertEquals(54, inventoryTriggerManager.get("MyInventory").getItems().length);
@@ -1010,6 +1032,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "create", "54", "#MESSAGE \"Hello World\""});
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "settitle", "Custom_Title"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertNotNull(inventoryTriggerManager.get("MyInventory"));
@@ -1045,6 +1069,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "delete"});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertNull(inventoryTriggerManager.get("MyInventory"));
     }
@@ -1072,6 +1098,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "item", "1"});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertNotNull(inventoryTriggerManager.get("MyInventory"));
         assertEquals(54, inventoryTriggerManager.get("MyInventory").getItems().length);
@@ -1096,6 +1124,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "create", "54", "#MESSAGE \"Hello World\""});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertNotNull(inventoryTriggerManager.get("MyInventory"));
         assertFalse(inventoryTriggerManager.get("MyInventory").canPickup());
@@ -1118,6 +1148,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "create", "54", "#MESSAGE \"Hello World\""});
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "pickup"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertNotNull(inventoryTriggerManager.get("MyInventory"));
@@ -1147,6 +1179,8 @@ public class TriggerReactorCoreTest {
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "open"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         verify(sender).openInventory(any(IInventory.class));
@@ -1178,6 +1212,8 @@ public class TriggerReactorCoreTest {
                 new SimpleLocation("world", 10, 10, 10));
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "create"});
         boolean result2 = areaSelectionManager.isSelecting(uuid);
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertTrue(result1);
@@ -1220,6 +1256,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "delete"});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertTrue(exists);
         assertNull(areaTriggerManager.get("MyArea"));
@@ -1250,6 +1288,8 @@ public class TriggerReactorCoreTest {
 
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "enter", "#MESSAGE \"Hello World\""});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         AreaTrigger myArea = areaTriggerManager.get("MyArea");
@@ -1283,6 +1323,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"a", "MyArea", "exit", "#MESSAGE \"Hello World\""});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         AreaTrigger myArea = areaTriggerManager.get("MyArea");
         assertNotNull(myArea);
@@ -1312,6 +1354,8 @@ public class TriggerReactorCoreTest {
         // act
         handler.onCommand(sender, COMMAND_NAME, new String[]{"custom", "onJoin", "MyCustomTrigger", "#MESSAGE \"Hello World\""});
 
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
         // assert
         assertNotNull(customTriggerManager.get("MyCustomTrigger"));
         assertEquals("#MESSAGE \"Hello World\"", customTriggerManager.get("MyCustomTrigger").getScript());
@@ -1339,6 +1383,8 @@ public class TriggerReactorCoreTest {
         scriptEditManager.onChat(sender, "#MESSAGE \"Hello World\"");
         scriptEditManager.onChat(sender, "save");
         boolean result2 = scriptEditManager.isEditing(sender);
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertTrue(result1);
@@ -1418,6 +1464,8 @@ public class TriggerReactorCoreTest {
 
         handler.onCommand(sender, COMMAND_NAME, new String[]{"saveAll"});
         handler.onCommand(sender, COMMAND_NAME, new String[]{"reload", "confirm"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
 
         // assert
         assertJsonEquals(generateSampleJson(max), readContent("var.json"));
