@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-latest, ubuntu-latest]
         java: [8, 17]
 
     steps:
