@@ -143,7 +143,8 @@ public class InventoryTriggerLoaderTest {
         loader.save(trigger);
 
         verify(info).put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, 9);
-        verify(info).put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, "title");
+        verify(info, never()).put(eq(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE), any());
+        verify(info, never()).put(eq(TriggerConfigKey.KEY_TRIGGER_INVENTORY_PICKUP), any());
         verify(info).put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, 0, item);
         for (int i = 1; i < 9; i++) {
             verify(info, never()).put(eq(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS), eq(i), any());
