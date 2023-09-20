@@ -185,6 +185,7 @@ public abstract class Trigger implements Cloneable, IObservable {
             return false;
         }
 
+        scriptVars.put("this", this);
         scriptVars.put("event", e);
         scriptVars.putAll(triggerDependencyFacade.getExtraVariables(e));
 
