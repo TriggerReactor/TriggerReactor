@@ -9,8 +9,6 @@ name: Build TriggerReactor
 
 on:
   push:
-    branches:
-      - 'development'
     paths: ['core/**', 'bukkit/**', 'sponge/**']
   pull_request:
     types: [ opened, reopened, synchronize, labeled ]
