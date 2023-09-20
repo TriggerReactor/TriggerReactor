@@ -185,7 +185,7 @@ public abstract class Trigger implements Cloneable, IObservable {
             return false;
         }
 
-        scriptVars.put("this", this);
+        scriptVars.put("this", getTriggerFacade());
         scriptVars.put("event", e);
         scriptVars.putAll(triggerDependencyFacade.getExtraVariables(e));
 
@@ -331,6 +331,10 @@ public abstract class Trigger implements Cloneable, IObservable {
      */
     public void setIgnoreSyncIfNotServerThread(boolean ignoreSyncIfNotServerThread) {
         this.ignoreSyncIfNotServerThread = ignoreSyncIfNotServerThread;
+    }
+
+    public TriggerFacade getTriggerFacade() {
+        return new TriggerFacade(this);
     }
 
     @Override
