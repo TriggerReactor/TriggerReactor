@@ -20,6 +20,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerFacade;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import javax.inject.Inject;
@@ -51,6 +52,11 @@ public class ClickTrigger extends Trigger {
             return true;
 
         return super.activate(e, scriptVars);
+    }
+
+    @Override
+    public LocationTriggerFacade getTriggerFacade() {
+        return new LocationTriggerFacade(this);
     }
 
     @Override

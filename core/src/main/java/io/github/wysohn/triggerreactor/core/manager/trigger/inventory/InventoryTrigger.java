@@ -22,10 +22,7 @@ import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 
 public class InventoryTrigger extends Trigger {
@@ -71,6 +68,11 @@ public class InventoryTrigger extends Trigger {
     @Override
     protected ProcessInterrupter createInterrupter() {
         return pluginManagement.createInterrupterForInv(cooldowns, InventoryTriggerManager.inventoryMap);
+    }
+
+    @Override
+    public InventoryTriggerFacade getTriggerFacade() {
+        return new InventoryTriggerFacade(this);
     }
 
     @Override

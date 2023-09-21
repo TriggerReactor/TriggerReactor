@@ -21,6 +21,7 @@ import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.IEventHook;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerFacade;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import javax.inject.Inject;
@@ -43,6 +44,11 @@ public class CustomTrigger extends Trigger implements IEventHook {
         super(info, script);
         this.event = event;
         this.eventName = eventName;
+    }
+
+    @Override
+    public CustomTriggerFacade getTriggerFacade() {
+        return new CustomTriggerFacade(this);
     }
 
     @Override

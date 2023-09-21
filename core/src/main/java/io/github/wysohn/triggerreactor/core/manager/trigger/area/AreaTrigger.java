@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDep
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerFacade;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
@@ -96,6 +97,11 @@ public class AreaTrigger extends Trigger {
             default:
                 throw new RuntimeException("Unknown area event type " + type);
         }
+    }
+
+    @Override
+    public AreaTriggerFacade getTriggerFacade() {
+        return new AreaTriggerFacade(this);
     }
 
     @Override

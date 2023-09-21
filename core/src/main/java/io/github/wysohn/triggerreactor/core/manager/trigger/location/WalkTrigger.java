@@ -35,6 +35,11 @@ public class WalkTrigger extends Trigger {
     }
 
     @Override
+    public LocationTriggerFacade getTriggerFacade() {
+        return new LocationTriggerFacade(this);
+    }
+
+    @Override
     public Trigger clone() {
         return factory.create(info, script);
     }

@@ -22,10 +22,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.HashMap;
@@ -97,6 +94,11 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
     public void setAutoStart(boolean autoStart) {
         info.put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, autoStart);
+    }
+
+    @Override
+    public RepeatingTriggerFacade getTriggerFacade() {
+        return new RepeatingTriggerFacade(this);
     }
 
     @Override

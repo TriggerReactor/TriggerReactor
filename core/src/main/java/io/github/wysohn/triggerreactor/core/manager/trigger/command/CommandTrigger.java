@@ -20,10 +20,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 
 import javax.inject.Inject;
 import java.util.*;
@@ -94,6 +91,11 @@ public class CommandTrigger extends Trigger {
 
     public void setCommand(ICommand command) {
         this.command = command;
+    }
+
+    @Override
+    public CommandTriggerFacade getTriggerFacade() {
+        return new CommandTriggerFacade(this);
     }
 
     @Override
