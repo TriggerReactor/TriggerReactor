@@ -107,6 +107,11 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
 
     @Override
     public <T> Future<T> submitSync(Callable<T> call) {
+        if (!plugin.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled. If you see this error while" +
+                    " the server is shutting down, you can simply ignore this.");
+        }
+
         if (this.isServerThread()) {
             return immediateFuture(call);
         } else {

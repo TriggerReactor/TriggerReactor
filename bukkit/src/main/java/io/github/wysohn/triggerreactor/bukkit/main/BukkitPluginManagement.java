@@ -186,6 +186,10 @@ public class BukkitPluginManagement implements IPluginManagement {
 
                             if (sync) {
                                 trigger.activate(context.getTriggerCause(), context.getVars(), true);
+
+                                // reset the variable space to synchronize the variable space
+                                context.clearVars();
+                                context.putAllVars(trigger.getVarCopy());
                             } else {//use snapshot to avoid concurrent modification
                                 trigger.activate(context.getTriggerCause(), new HashMap<>(context.getVars()), false);
                             }
