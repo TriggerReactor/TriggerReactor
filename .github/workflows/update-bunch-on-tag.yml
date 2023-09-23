@@ -30,8 +30,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Build Jars & Javadoc
-        run: ./gradlew build javadoc -x test -P version=${{ github.ref_name }} --stacktrace
+      - name: Build Jars
+        run: ./gradlew build -x test -P version=${{ github.ref_name }} -P java_version=8 --stacktrace
 
       - name: Exclude by-products
         run: |
@@ -49,8 +49,12 @@ jobs:
           overwrite: true
           prerelease: contains(github.ref_name, 'Beta')
 
-      - name: Update JavaDoc
+      - name: Build JavaDoc
         if: contains(github.ref, 'Release')
+        run: ./gradlew javadoc -x test -P version=${{ github.ref_name }} --stacktrace
+
+      - name: Update JavaDoc
+        if: contains(github.ref, 'Release') && success()
         continue-on-error: true
         run: |
           mkdir build/docs/tmp
