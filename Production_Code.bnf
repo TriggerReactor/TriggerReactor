@@ -42,6 +42,7 @@
 
 <term>               ::= <biter> '*' <term>
                      | <biter> '/' <term>
+                     | <biter> '%' <term>
                      | <biter>
 
 <biter>              ::= <factor> '&' <biter>
