@@ -443,15 +443,16 @@ public class Lexer {
             unread();
             c = '.';
         } else if (c == '?') {
+            String op = String.valueOf(c);
             read();
 
             if (c == ':') {
                 read();
 
-                return new Token(Type.OPERATOR, "?:");
+                return new Token(Type.OPERATOR, op + ":");
             }
 
-            return new Token(Type.OPERATOR, String.valueOf(c), row, col);
+            return new Token(Type.OPERATOR, op, row, col);
         }
 
         Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
