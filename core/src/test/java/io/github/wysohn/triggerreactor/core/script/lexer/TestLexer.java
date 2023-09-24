@@ -826,6 +826,17 @@ public class TestLexer {
     }
 
     @Test
+    public void testElvisOperator() throws Exception {
+        final String text = "unknown ?: -1";
+        final Lexer lexer = new Lexer(text, charset);
+        testToken(lexer, Type.ID, "unknown");
+        testToken(lexer, Type.OPERATOR, "?:");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.INTEGER, "1");
+        testEnd(lexer);
+    }
+
+    @Test
     public void testRange() throws Exception {
         String text;
         Lexer lexer;

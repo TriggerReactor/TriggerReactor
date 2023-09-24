@@ -721,6 +721,30 @@ public class TestParser {
     }
 
     @Test
+    public void testElvisOperator() throws Exception {
+        // arrange
+        final String text = "unknown ?: -1";
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "unknown")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?:")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
+    }
+
+    @Test
     public void testSingleNode() throws Exception {
         // arrange
         final String text = String.join(

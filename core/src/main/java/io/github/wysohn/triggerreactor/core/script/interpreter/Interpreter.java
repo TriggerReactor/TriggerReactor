@@ -1430,6 +1430,20 @@ public class Interpreter {
 
                         localContext.pushToken(new Token(Type.ID, right.value, right).castTo((Class<?>) left.value));
                         break;
+                    case "?:":
+                        // Alt token if left reference is null
+                        right = localContext.popToken();
+                        // Nullable reference
+                        left = tryUnwrapVariable(localContext.popToken(), localContext);
+
+                        final Token token;
+                        if (left.type == Type.NULLVALUE || left.value == null || left.value == "null") {
+                            token = new Token(right.type, right.value, right);
+                        } else {
+                            token = new Token(left.type, left.value, left);
+                        }
+                        localContext.pushToken(token);
+                        break;
                     case "=":
                         right = localContext.popToken();
                         left = localContext.popToken();

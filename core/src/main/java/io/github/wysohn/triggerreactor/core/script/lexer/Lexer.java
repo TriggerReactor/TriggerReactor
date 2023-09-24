@@ -442,6 +442,16 @@ public class Lexer {
             // Not ExclusiveRange(`..`) or InclusiveRange(`..=`) operators, push back
             unread();
             c = '.';
+        } else if (c == '?') {
+            read();
+
+            if (c == ':') {
+                read();
+
+                return new Token(Type.OPERATOR, "?:");
+            }
+
+            return new Token(Type.OPERATOR, String.valueOf(c), row, col);
         }
 
         Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
@@ -730,7 +740,7 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "1.23e2";
+        String text = "a.b.c ?: d";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n" + text);
 

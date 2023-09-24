@@ -38,6 +38,7 @@
 
 <expression>         ::= <term> '+' <expression>
                      | <term> '-' <expression>
+                     | <term> '?:' <expression>
                      | <term>
 
 <term>               ::= <biter> '*' <term>

@@ -791,6 +791,27 @@ public class Parser {
             } else {
                 return node;
             }
+        } else if (token != null && token.type == Type.OPERATOR && "?:".equals(token.value)) {
+            final Node node = new Node(token);
+            nextToken();
+
+            //insert left expression(or term+expression)
+            node.getChildren().add(left);
+
+            final Node term = parseTerm();
+            if (term != null) {
+                //insert right term
+                node.getChildren().add(term);
+            } else {
+                throw new ParserException("Expected a term after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+            }
+
+            Node termAndExpression = parseTermAndExpression(node);
+            if (termAndExpression != null) {
+                return termAndExpression;
+            } else {
+                return node;
+            }
         } else {
             return null;
         }
@@ -1424,7 +1445,7 @@ public class Parser {
     public static void main(String[] ar) throws IOException, LexerException, ParserException {
         final Charset charset = StandardCharsets.UTF_8;
         final String[] texts = new String[]{
-                "target.innerInstance@List.size()"
+                "a.b.c ?: d"
         };
         final StringJoiner joiner = new StringJoiner("\n");
 

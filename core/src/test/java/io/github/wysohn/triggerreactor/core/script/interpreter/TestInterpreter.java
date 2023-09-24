@@ -3752,6 +3752,18 @@ public class TestInterpreter {
         verify(executor).evaluate(any(), anyMap(), any(), any());
     }
 
+    @Test
+    public void testElvisOperator() throws Exception {
+        // arrange
+        final String text = "unknown ?: -1";
+
+        // act
+        final int result = InterpreterTest.Builder.of(text).build().test();
+
+        // assert
+        assertEquals(-1, result);
+    }
+
     public static class NestedTest {
         public Object innerInstance;
 
