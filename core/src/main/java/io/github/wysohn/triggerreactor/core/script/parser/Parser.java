@@ -148,10 +148,6 @@ public class Parser {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("SWITCH".equals(token.value)) {
-                final Token switchToken = token;
-                nextToken();
-                return parseSwitch(switchToken);
             } else if ("ENDSWITCH".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
@@ -1108,6 +1104,10 @@ public class Parser {
                 throw new ParserException("LAMBDA body should have at least one statement: " + body);
 
             return lambda;
+        } else if ("SWITCH".equals(token.value)) {
+            final Token switchToken = token;
+            nextToken();
+            return parseSwitch(switchToken);
         }
 
         if (token.type == Type.ID && ("true".equals(token.value) || "false".equals(token.value))) {

@@ -5,7 +5,6 @@
                      | <if-else>
                      | <while>
                      | <for>
-                     | <switch-case>
                      | <invoke>
                      | '#' <string> [':' <string>] [<logic> [',' <logic>]]
 
@@ -60,6 +59,7 @@
                      | <boolean>
                      | <end-line>
                      | <lambda>
+                     | <switch-case>
                      | '!' <factor>
                      | <id>
 

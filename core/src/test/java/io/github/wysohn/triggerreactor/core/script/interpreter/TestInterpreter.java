@@ -2827,6 +2827,24 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testSwitchExpression() throws Exception {
+        // arrange
+        final String text = ""
+                + "quantity = SWITCH true\n"
+                + "  DEFAULT => -1\n"
+                + "ENDSWITCH";
+
+        // act
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        test.test();
+
+        // assert
+        assertEquals(-1, test.getScriptVar("quantity"));
+    }
+
+    @Test
     public void testSwitchComplex() throws Exception {
         // arrange
         final String text = ""
