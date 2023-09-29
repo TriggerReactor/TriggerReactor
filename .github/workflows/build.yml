@@ -101,7 +101,8 @@ jobs:
           check_name: 'Test Report'
 
   build:
-    needs: [test_graalvm, test_java]
+    # needs: [test_graalvm, test_java]
+    needs: [test_java]
     runs-on: ${{ matrix.os }}
     permissions:
       checks: write
