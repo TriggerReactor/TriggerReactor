@@ -157,6 +157,8 @@ public class Token {
         IMPORT, CLAZZ,
 
         ROOT, ENDL,
+        WHITESPACE,
+        LINE_COMMENT, BLOCK_COMMENT,
 
         //Literal
         STRING, INTEGER, DECIMAL, BOOLEAN,
