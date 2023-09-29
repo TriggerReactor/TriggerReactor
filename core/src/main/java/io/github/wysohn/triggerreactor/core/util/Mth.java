@@ -8,7 +8,7 @@ public final class Mth {
      * @param value the value to be clamped
      * @param min the lower bound of the result
      * @param max the upper bound of the result
-     * @return {@code value} if {@code min} ≤ {@code value} ≤ {@code max},
+     * @return {@code value} if {@code min} <= {@code value} <= {@code max},
      *          {@code min} if {@code value} < {@code min},
      *          or {@code max} if {@code max} < {@code value}
      */
@@ -23,7 +23,7 @@ public final class Mth {
      * @param value the value to be clamped
      * @param min the lower bound of the result
      * @param max the upper bound of the result
-     * @return {@code value} if {@code min} ≤ {@code value} ≤ {@code max},
+     * @return {@code value} if {@code min} < {@code value} < {@code max},
      *          {@code min} if {@code value} < {@code min},
      *          or {@code max} if {@code max} < {@code value}
      */
@@ -38,7 +38,7 @@ public final class Mth {
      * @param value the value to be clamped
      * @param min the lower bound of the result
      * @param max the upper bound of the result
-     * @return {@code value} if {@code min} ≤ {@code value} ≤ {@code max},
+     * @return {@code value} if {@code min} < {@code value} < {@code max},
      *          {@code min} if {@code value} < {@code min},
      *          or {@code max} if {@code max} < {@code value}
      */
@@ -53,7 +53,7 @@ public final class Mth {
      * @param value the value to be clamped
      * @param min the lower bound of the result
      * @param max the upper bound of the result
-     * @return {@code value} if {@code min} ≤ {@code value} ≤ {@code max},
+     * @return {@code value} if {@code min} < {@code value} < {@code max},
      *          {@code min} if {@code value} < {@code min},
      *          or {@code max} if {@code max} < {@code value}
      */
