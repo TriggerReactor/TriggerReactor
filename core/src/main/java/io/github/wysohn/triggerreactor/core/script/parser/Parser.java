@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.core.util.Mth;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import javax.swing.*;
@@ -54,9 +55,55 @@ public class Parser {
         nextToken();
     }
 
+    /**
+     * Get the next token from the lexer, advancing types
+     * such as {@link Type#LINE_COMMENT Line-Comment}, {@link Type#BLOCK_COMMENT Block-Comment}, and {@link Type#WHITESPACE Whitespaces}.
+     *
+     * @throws IOException if an I/O error occurs
+     * @throws ParserException if parsing fails
+     */
     private void nextToken() throws IOException, ParserException {
+        nextToken(Type.defaults());
+    }
+
+    /**
+     * Get the next token from the lexer, advancing types from the given.
+     *
+     * @param types types to skip
+     * @throws IOException if an I/O error occurs
+     * @throws ParserException if parsing fails
+     * @throws IllegalArgumentException if given {@code types} is empty
+     */
+    private void nextToken(final Type... types) throws IOException, ParserException {
+        if (types.length == 0) {
+            throw new IllegalArgumentException("Array is empty");
+        } else if (types.length == 1) {
+            nextToken(EnumSet.of(types[0]));
+        } else if (types.length == 2) {
+            nextToken(EnumSet.of(types[0], types[1]));
+        } else if (types.length == 3) {
+            nextToken(EnumSet.of(types[0], types[1], types[2]));
+        } else {
+            nextToken(EnumSet.of(types[0], types));
+        }
+    }
+
+
+    /**
+     * Get the next token from the lexer, advancing types from the given.
+     *
+     * @param types types to skip
+     * @throws IOException if an I/O error occurs
+     * @throws ParserException if parsing fails
+     * @throws IllegalArgumentException if given {@code types} is empty
+     */
+    private void nextToken(final EnumSet<Type> types) throws IOException, ParserException {
         try {
             token = lexer.getToken();
+
+            while (token != null && types.remove(token.getType())) {
+                token = lexer.getToken();
+            }
 
             if (showWarnings && token != null) {
                 int row = lexer.getRow();
@@ -1302,16 +1349,35 @@ public class Parser {
         if (token.type == Type.ID) {
             Deque<Node> deque = new LinkedList<>();
 
-            Token idToken;
+            Token idToken = null;
+            int depth = 0;
             do {
-                if (".".equals(token.value))
-                    nextToken();
+                // First token always to be non-null, so we no longer need to check for null values here.
+                if (token.is(Type.ID)) {
+                    idToken = token;
+                    nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
+                }
 
-                idToken = token;
-                nextToken();
+                // Prevent greedy consumption of whitespace.
+                // e.g.
+                // SWITCH <factor>
+                //    CASE <logic> => <statement>
+                // ====================
+                //    ^^^ HERE
+                // if (token != null && token.is(Type.WHITESPACE)) {
+                //     // deque.addLast(new Node(idToken));
+                //     // deque.addLast(new Node(new Token(Type.OPERATOR, ".", token)));
+                //     nextToken();
+                //     break;
+                // }
+
+                final Node accessorNode = tryConsumeOptionalChainingOperator();
+                if (token != null && token.is(".")) {
+                    nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
+                }
 
                 //id[i]
-                if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access                                                                                   // access
+                if (isArrayAccessor(token)) { // array access
                     nextToken();
 
                     Node index = parseExpression();
@@ -1319,22 +1385,25 @@ public class Parser {
 
                     if (token == null || !"]".equals(token.value))
                         throw new ParserException("Expected ']' but found " + token);
-                    nextToken();
+                    nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
 
                     arrAccess.getChildren().add(new Node(idToken));
                     arrAccess.getChildren().add(index);
 
                     deque.addLast(arrAccess);
+                    deque.addLast(accessorNode);
                 }
                 //id(args)
-                else if (token != null && "(".equals(token.value)) {//fuction call
+                else if (isMethodAccessor(token)) { // method access
                     nextToken();
 
                     Node call = new Node(new Token(Type.CALL, idToken.value, idToken));
 
                     if (token != null && ")".equals(token.value)) {
+                        nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
+
                         deque.addLast(call);
-                        nextToken();
+                        deque.addLast(accessorNode);
                     } else {
                         call.getChildren().add(parseLogic());
                         while (token != null && ",".equals(token.value)) {
@@ -1343,54 +1412,58 @@ public class Parser {
                         }
 
                         if (token == null || !")".equals(token.value))
-                            throw new ParserException("Extected ')' but end of stream is reached. " + token);
-                        nextToken();
+                            throw new ParserException("Expected ')' but end of stream is reached. " + token);
+                        nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
 
                         deque.addLast(call);
-                    }
-
-                    //id(args)[i]
-                    if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access                                                                                   // access
-                        nextToken();
-
-                        Node index = parseExpression();
-                        Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>", idToken));
-
-                        if (token == null || !"]".equals(token.value))
-                            throw new ParserException("Expected ']' but found " + token);
-                        nextToken();
-
-                        arrAccess.getChildren().add(index);
-
-                        deque.addLast(arrAccess);
+                        deque.addLast(accessorNode);
                     }
                 }
                 //id@Type
-                else if (token != null && token.type == Type.OPERATOR && token.value.equals("@")) { // type cast
+                else if (isTypeCaster(token)) { // type cast
                     nextToken();
 
                     if (token == null || token.type != Type.ID)
                         throw new ParserException("Expected a type but found " + token);
                     Token type = token;
-                    nextToken();
+                    nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
 
                     Node cast = new Node(new Token(Type.OPERATOR, "@"));
                     cast.getChildren().add(new Node(type));
                     cast.getChildren().add(new Node(idToken));
                     deque.addLast(cast);
+                    deque.addLast(accessorNode);
                 }
                 //id
                 else {
-                    if (idToken.type != Type.ID)
+                    if (idToken == null || idToken.type != Type.ID) {
                         throw new ParserException("Expected an ID but found " + idToken);
+                    }
                     deque.addLast(new Node(idToken));
+                    deque.addLast(accessorNode);
                 }
-            } while (token != null && ".".equals(token.value));
 
-            if (deque.peekFirst().getToken().type != Type.THIS) {
-                deque.push(new Node(new Token(Type.THIS, "<This>", deque.peekFirst().getToken())));
+                // Consumes some cases such as `id@Type.`
+                if (token != null && token.is(".")) {
+                    nextToken();
+                }
+            } while (token != null && (
+                    "?".equals(token.value) || ".".equals(token.value)
+                            || (Mth.clamp(++depth, 0, Byte.MAX_VALUE) > 0 && (token.type == Type.ID
+                            || isArrayAccessor(token)
+                            || isMethodAccessor(token)
+                            || isTypeCaster(token)))
+            ));
+
+            final Node mayThisNode = deque.peekFirst();
+            if (mayThisNode != null && mayThisNode.getToken().type != Type.THIS) {
+                deque.push(new Node(new Token(Type.THIS, "<This>", mayThisNode.getToken())));
             }
 
+            // Finally advance whitespaces.
+            if (token != null && token.is(Type.WHITESPACE)) {
+                nextToken(Type.WHITESPACE);
+            }
             return parseId(deque);
         } else {
             return null;
@@ -1404,7 +1477,9 @@ public class Parser {
         while (!deque.isEmpty()) {
             Node left = stack.pop();
             Node right = deque.pop();
-            Node node = new Node(new Token(Type.OPERATOR, ".", left.getToken()));
+
+            // NOTE: the popped value should be kind of "?." or ".".
+            Node node = new Node(new Token(Type.OPERATOR, deque.pop().getToken().getValue(), left.getToken()));
             node.getChildren().add(left);
             node.getChildren().add(right);
 
@@ -1436,6 +1511,47 @@ public class Parser {
         }
 
         return node;
+    }
+
+    private static final Node ACCESSOR_NODE = new Node(new Token(Type.OPERATOR, "."));
+
+    /**
+     * Consume current token if is an optional chaining character(<code>?</code>) then return
+     * a node containing processed token.
+     * <p>
+     * The returned token has value is always kind of {@code ?.} or {@code .}.
+     *
+     * @return The node containing processed token
+     * @throws IOException if I/O error occurs
+     * @throws ParserException if unexpected error occurs while parsing (e.g. eos)
+     */
+    private Node tryConsumeOptionalChainingOperator() throws IOException, ParserException {
+        if (token == null) {
+            return ACCESSOR_NODE;
+        }
+
+        final boolean safeAccessor = "?".equals(token.value);
+        final Node node;
+        if (safeAccessor) {
+            node = new Node(new Token(Type.OPERATOR, "?.", token));
+            nextToken();
+        } else {
+            node = new Node(new Token(Type.OPERATOR, ".", token));
+        }
+
+        return node;
+    }
+
+    private boolean isArrayAccessor(final Token token) {
+        return token != null && token.is(Type.OPERATOR, "[");
+    }
+
+    private boolean isMethodAccessor(final Token token) {
+        return token != null && token.is(Type.OPERATOR, "(");
+    }
+
+    private boolean isTypeCaster(final Token token) {
+        return token != null && token.is(Type.OPERATOR, "@");
     }
 
     public List<Warning> getWarnings() {

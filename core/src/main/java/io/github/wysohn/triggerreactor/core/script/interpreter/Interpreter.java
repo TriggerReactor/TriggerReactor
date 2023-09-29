@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.core.util.SneakyThrows;
 import io.github.wysohn.triggerreactor.tools.ExceptionUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
@@ -40,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 public class Interpreter {
     InterpreterGlobalContext globalContext;
     private Node root;
+    private int safeAccessStack = 0;
 
     Interpreter(Node root) {
         this.root = root;
@@ -59,6 +61,19 @@ public class Interpreter {
 
     public SelfReference getSelfReference() {
         return globalContext.selfReference;
+    }
+
+    public int incrementSafeAccessStack() {
+        return ++this.safeAccessStack;
+    }
+
+    public boolean consumeSafeAccessStack() {
+        if (this.safeAccessStack > 0) {
+            --this.safeAccessStack;
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -787,8 +802,11 @@ public class Interpreter {
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
-                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                        e);
+                result = SneakyThrows.expect(
+                        this::consumeSafeAccessStack,
+                        () -> null,
+                        () -> new InterpreterException("Function " + right + " does not exist or parameter types not match.", e)
+                );
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
@@ -806,8 +824,11 @@ public class Interpreter {
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
-                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                        e);
+                result = SneakyThrows.expect(
+                        this::consumeSafeAccessStack,
+                        () -> null,
+                        () -> new InterpreterException("Function " + right + " does not exist or parameter types not match.", e)
+                );
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
@@ -862,7 +883,17 @@ public class Interpreter {
             try {
                 var = accessor.evaluateTarget();
             } catch (NoSuchFieldException e) {
-                throw new InterpreterException("Unknown field " + accessor, e);
+                var = SneakyThrows.expect(
+                        this::consumeSafeAccessStack,
+                        () -> null,
+                        () -> new InterpreterException("Unknown field " + accessor, e)
+                );
+            } catch (ArrayIndexOutOfBoundsException e) {
+                var = SneakyThrows.expect(
+                        this::consumeSafeAccessStack,
+                        () -> null,
+                        () -> new InterpreterException(Accessor.outOfBoundsException(accessor, e))
+                );
             } catch (Exception e) {
                 throw new InterpreterException("Unknown error " + e.getMessage(), e);
             }
@@ -1411,6 +1442,7 @@ public class Interpreter {
                 }
             } else if (node.getToken().type == Type.OPERATOR) {
                 Token right, left;
+
                 switch ((String) node.getToken().value) {
                     case "@":
                         // id
@@ -1450,6 +1482,8 @@ public class Interpreter {
 
                         assignValue(left, right, localContext);
                         break;
+                    case "?.": // fall-through
+                        incrementSafeAccessStack();
                     case ".":
                         right = localContext.popToken();
                         //function call
@@ -1480,6 +1514,10 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
+                                    if (consumeSafeAccessStack()) {
+                                        localContext.pushToken(left);
+                                        return null;
+                                    }
                                     throw new InterpreterException(
                                             "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
@@ -1495,7 +1533,11 @@ public class Interpreter {
                                     try {
                                         var = accessor.evaluateTarget();
                                     } catch (NoSuchFieldException e) {
-                                        throw new InterpreterException("Unknown field " + accessor, e);
+                                        var = SneakyThrows.expect(
+                                                this::consumeSafeAccessStack,
+                                                () -> null,
+                                                () -> new InterpreterException("Unknown field " + accessor, e)
+                                        );
                                     } catch (Exception e) {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
@@ -1523,6 +1565,11 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
+                                    if (consumeSafeAccessStack()) {
+                                        localContext.pushToken(left);
+                                        return null;
+                                    }
+
                                     throw new InterpreterException(
                                             "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
@@ -1538,7 +1585,11 @@ public class Interpreter {
                                     try {
                                         var = accessor.evaluateTarget();
                                     } catch (NoSuchFieldException e) {
-                                        throw new InterpreterException("Unknown field " + accessor, e);
+                                        var = SneakyThrows.expect(
+                                                this::consumeSafeAccessStack,
+                                                () -> null,
+                                                () -> new InterpreterException("Unknown field " + accessor, e)
+                                        );
                                     } catch (Exception e) {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }

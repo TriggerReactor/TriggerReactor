@@ -912,6 +912,20 @@ public class TestLexer {
     }
 
     @Test
+    public void testOptionalChainingOperator() throws Exception {
+        final String text = "a?.b?.c";
+        final Lexer lexer = new Lexer(text, charset);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "?");
+        testToken(lexer, Type.OPERATOR, ".");
+        testToken(lexer, Type.ID, "b");
+        testToken(lexer, Type.OPERATOR, "?");
+        testToken(lexer, Type.OPERATOR, ".");
+        testToken(lexer, Type.ID, "c");
+        testEnd(lexer);
+    }
+
+    @Test
     public void testRange() throws Exception {
         String text;
         Lexer lexer;

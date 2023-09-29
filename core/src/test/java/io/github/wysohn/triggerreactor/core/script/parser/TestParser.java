@@ -748,6 +748,119 @@ public class TestParser {
     }
 
     @Test
+    public void testOptionalChainingOperator_arrayAccess() throws Exception {
+        // arrange
+        final String text = "fruits = arrayOf(\"apple\", \"orange\", \"banana\")\n"
+                + "mayApple = fruits?.[0]";
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "fruits")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "apple")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "orange")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "banana")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "arrayOf")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "mayApple")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "fruits")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.ARRAYACCESS, "<Array Access>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
+    }
+
+    @Test
+    public void testOptionalChainingOperator_fieldAccess() throws Exception {
+        // arrange
+        final String text = "player?.gameMode";
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "player")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "gameMode")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
+    }
+
+    @Test
+    public void testOptionalChainingOperator_methodAccess() throws Exception {
+        // arrange
+        final String text = "player?.getGameMode?.()";
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "player")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "getGameMode")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
+    }
+
+    @Test
+    public void testOptionalChainingOperator_methodAccess_withElvisOperator() throws Exception {
+        // arrange
+        final String text = "player?.getGameMode?.() ?: GameMode.SURVIVAL";
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "player")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "getGameMode")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "GameMode")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "SURVIVAL")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?:")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
+    }
+
+    @Test
     public void testSingleNode() throws Exception {
         // arrange
         final String text = String.join(

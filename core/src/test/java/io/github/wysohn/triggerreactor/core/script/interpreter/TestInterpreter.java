@@ -3764,6 +3764,156 @@ public class TestInterpreter {
         assertEquals(-1, result);
     }
 
+    @Test
+    public void testOptionalChainingOperator() throws Exception {
+        // arrange
+        final String text = "a?.b?.c";
+
+        // act
+        final Object result = InterpreterTest.Builder.of(text).build().test();
+
+        // assert
+        assertNull(result);
+    }
+
+    @Test
+    public void testOptionalChainingOperator2() throws Exception {
+        // arrange
+        final String text = "a?.b?.c";
+
+        // act
+        final int result = InterpreterTest.Builder.of(text)
+                .addScriptVariable("a", new A())
+                .build()
+                .test();
+
+        // assert
+        assertEquals(127, result);
+    }
+
+    @Test
+    public void testOptionalChainingOperator_withElvisOperator() throws Exception {
+        // arrange
+        final String text = "a?.b?.c ?: -1";
+
+        // act
+        final int result = InterpreterTest.Builder.of(text).build().test();
+
+        // assert
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testOptionalChainingOperator2_withElvisOperator() throws Exception {
+        // arrange
+        final String text = "a?.b?.c ?: -1";
+
+        // act
+        final int result = InterpreterTest.Builder.of(text)
+                .addScriptVariable("a", new A())
+                .build()
+                .test();
+
+        // assert
+        assertEquals(127, result);
+    }
+
+    @Test
+    public void testOptionalChainingOperator_fieldAccess() throws Exception {
+        // arrange
+        final String text = "test?.unknownField";
+
+        // act
+        final Object result = InterpreterTest.Builder.of(text)
+                .addScriptVariable("test", new TheTest())
+                .build()
+                .test();
+
+        // assert
+        assertNull(result);
+    }
+
+    @Test
+    public void testOptionalChainingOperator_fieldAccess2() throws Exception {
+        // arrange
+        final String text = "test?.in";
+
+        // act
+        final InTest result = InterpreterTest.Builder.of(text)
+                .addScriptVariable("test", new TheTest())
+                .build()
+                .test();
+
+        // assert
+        assertNotNull(result);
+        assertEquals(result.getClass(), InTest.class);
+        assertEquals(result.health, 0.82, 0.001);
+        assertTrue(result.hasPermission("tt"));
+    }
+
+    @Test
+    public void testOptionalChainingOperator_arrayAccess() throws Exception {
+        // arrange
+        final String text = String.join(
+                "\n",
+                "fruits = arrayOf(\"apple\", \"orange\", \"pineapple\", \"melon\")",
+                "len = fruits?.length",
+                "safeLen = vegetables?.length ?: -1",
+                "mayApple = fruits?.[0]",
+                "mayNull = fruits?.[4]"
+        );
+
+        // act
+        final InterpreterTest interpreter = InterpreterTest.Builder.of(text)
+                .overrideSelfReference(new CommonFunctions())
+                .build();
+        interpreter.test();
+
+        // assert
+        assertEquals(4, interpreter.getScriptVar("len"));
+        assertEquals(-1, interpreter.getScriptVar("safeLen"));
+        assertEquals("apple", interpreter.getScriptVar("mayApple"));
+        assertNull(interpreter.getScriptVar("mayNull"));
+    }
+
+    @Test
+    public void testOptionalChainingOperator_methodAccess() throws Exception {
+        // arrange
+        final String text = "test?.unknownMethod?.()";
+
+        // act
+        final Object result = InterpreterTest.Builder.of(text)
+                .addScriptVariable("test", new TheTest())
+                .build()
+                .test();
+
+        // assert
+        assertNull(result);
+    }
+
+    @Test
+    public void testOptionalChainingOperator_methodAccess2() throws Exception {
+        // arrange
+        final String text = "test.localTest?.()";
+
+        // act
+        final String result = InterpreterTest.Builder.of(text)
+                .addScriptVariable("test", new TheTest())
+                .build()
+                .test();
+
+        // assert
+        assertEquals("local", result);
+    }
+
+    public final static class A {
+        public final B b = new B();
+    }
+
+    public final static class B {
+        public final int c = 127;
+    }
+
     public static class NestedTest {
         public Object innerInstance;
 
