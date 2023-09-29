@@ -718,6 +718,9 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR, "@")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.CALL, "abc")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
     }
 
     @Test
