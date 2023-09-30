@@ -119,7 +119,8 @@ public class Interpreter {
             return;
 
         //IF children -- [0] : condition , [1] : true body , [2] : false body(may not exist)
-        if ("ELSEIF".equals(node.getToken().value) || "IF".equals(node.getToken().value)) {
+        if (("ELSEIF".equals(node.getToken().value) || "elseif".equals(node.getToken().value))
+                || ("IF".equals(node.getToken().value) || "if".equals(node.getToken().value))) {
             start(node.getChildren().get(0), localContext);//[0] condition
             if (localContext.isStopFlag())
                 return;
@@ -162,7 +163,7 @@ public class Interpreter {
                     throw new InterpreterException("Unexpected token for IF statement! -- " + resultToken);
                 }
             }
-        } else if ("TRY".equals(node.getToken().value)) {
+        } else if ("TRY".equals(node.getToken().value) || "try".equals(node.getToken().value)) {
             if (node.getChildren().size() == 2 || node.getChildren().size() == 3) {
                 try {
                     start(node.getChildren().get(0), localContext);
@@ -201,7 +202,7 @@ public class Interpreter {
             } else {
                 throw new InterpreterException("Unexpected token for TRY statement! -- " + node.getToken());
             }
-        } else if ("WHILE".equals(node.getToken().value)) {
+        } else if ("WHILE".equals(node.getToken().value) || "while".equals(node.getToken().value)) {
             long start = System.currentTimeMillis();
 
             Token resultToken = null;
@@ -241,7 +242,7 @@ public class Interpreter {
                                         + "considered as 'too long' and can crash the server.");
                 }
             } while (!localContext.isStopFlag());
-        } else if ("FOR".equals(node.getToken().value)) {
+        } else if ("FOR".equals(node.getToken().value) || "for".equals(node.getToken().value)) {
             start(node.getChildren().get(0), localContext);
 
 
@@ -936,11 +937,11 @@ public class Interpreter {
                     || node.getToken().type == Type.SWITCH
                     || node.getToken().type == Type.CASE
                     || node.getToken().type == Type.CASEBODY
-                    || "IF".equals(node.getToken().value)
-                    || "ELSEIF".equals(node.getToken().value)
-                    || "WHILE".equals(node.getToken().value)) {
+                    || ("IF".equals(node.getToken().value) || "if".equals(node.getToken().value))
+                    || ("ELSEIF".equals(node.getToken().value) || "elseif".equals(node.getToken().value))
+                    || ("WHILE".equals(node.getToken().value) || "while".equals(node.getToken().value))) {
                 return null;
-            } else if ("IS".equals(node.getToken().value)) {
+            } else if ("IS".equals(node.getToken().value) || "is".equals(node.getToken().value)) {
                 Token right = localContext.popToken();
                 Token left = localContext.popToken();
 
