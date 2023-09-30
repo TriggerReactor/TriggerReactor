@@ -41,7 +41,6 @@ import java.util.concurrent.ExecutionException;
 public class Interpreter {
     InterpreterGlobalContext globalContext;
     private Node root;
-    private int safeAccessStack = 0;
 
     Interpreter(Node root) {
         this.root = root;
@@ -61,19 +60,6 @@ public class Interpreter {
 
     public SelfReference getSelfReference() {
         return globalContext.selfReference;
-    }
-
-    public int incrementSafeAccessStack() {
-        return ++this.safeAccessStack;
-    }
-
-    public boolean consumeSafeAccessStack() {
-        if (this.safeAccessStack > 0) {
-            --this.safeAccessStack;
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -803,7 +789,7 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 result = SneakyThrows.expect(
-                        this::consumeSafeAccessStack,
+                        localContext::consumeSafeAccessStack,
                         () -> null,
                         () -> new InterpreterException("Function " + right + " does not exist or parameter types not match.", e)
                 );
@@ -825,7 +811,7 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 result = SneakyThrows.expect(
-                        this::consumeSafeAccessStack,
+                        localContext::consumeSafeAccessStack,
                         () -> null,
                         () -> new InterpreterException("Function " + right + " does not exist or parameter types not match.", e)
                 );
@@ -884,13 +870,13 @@ public class Interpreter {
                 var = accessor.evaluateTarget();
             } catch (NoSuchFieldException e) {
                 var = SneakyThrows.expect(
-                        this::consumeSafeAccessStack,
+                        localContext::consumeSafeAccessStack,
                         () -> null,
                         () -> new InterpreterException("Unknown field " + accessor, e)
                 );
             } catch (ArrayIndexOutOfBoundsException e) {
                 var = SneakyThrows.expect(
-                        this::consumeSafeAccessStack,
+                        localContext::consumeSafeAccessStack,
                         () -> null,
                         () -> new InterpreterException(Accessor.outOfBoundsException(accessor, e))
                 );
@@ -1483,7 +1469,7 @@ public class Interpreter {
                         assignValue(left, right, localContext);
                         break;
                     case "?.": // fall-through
-                        incrementSafeAccessStack();
+                        localContext.incrementSafeAccessStack();
                     case ".":
                         right = localContext.popToken();
                         //function call
@@ -1514,10 +1500,11 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    if (consumeSafeAccessStack()) {
+                                    if (localContext.consumeSafeAccessStack()) {
                                         localContext.pushToken(left);
                                         return null;
                                     }
+
                                     throw new InterpreterException(
                                             "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
@@ -1534,7 +1521,7 @@ public class Interpreter {
                                         var = accessor.evaluateTarget();
                                     } catch (NoSuchFieldException e) {
                                         var = SneakyThrows.expect(
-                                                this::consumeSafeAccessStack,
+                                                localContext::consumeSafeAccessStack,
                                                 () -> null,
                                                 () -> new InterpreterException("Unknown field " + accessor, e)
                                         );
@@ -1565,7 +1552,7 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    if (consumeSafeAccessStack()) {
+                                    if (localContext.consumeSafeAccessStack()) {
                                         localContext.pushToken(left);
                                         return null;
                                     }
@@ -1586,7 +1573,7 @@ public class Interpreter {
                                         var = accessor.evaluateTarget();
                                     } catch (NoSuchFieldException e) {
                                         var = SneakyThrows.expect(
-                                                this::consumeSafeAccessStack,
+                                                localContext::consumeSafeAccessStack,
                                                 () -> null,
                                                 () -> new InterpreterException("Unknown field " + accessor, e)
                                         );
