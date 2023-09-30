@@ -1358,19 +1358,6 @@ public class Parser {
                     nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
                 }
 
-                // Prevent greedy consumption of whitespace.
-                // e.g.
-                // SWITCH <factor>
-                //    CASE <logic> => <statement>
-                // ====================
-                //    ^^^ HERE
-                // if (token != null && token.is(Type.WHITESPACE)) {
-                //     // deque.addLast(new Node(idToken));
-                //     // deque.addLast(new Node(new Token(Type.OPERATOR, ".", token)));
-                //     nextToken();
-                //     break;
-                // }
-
                 final Node accessorNode = tryConsumeOptionalChainingOperator();
                 if (token != null && token.is(".")) {
                     nextToken(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
