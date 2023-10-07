@@ -1455,7 +1455,7 @@ public class Interpreter {
                         left = tryUnwrapVariable(localContext.popToken(), localContext);
 
                         final Token token;
-                        if (left.type == Type.NULLVALUE || left.value == null || left.value == "null") {
+                        if (left.type == Type.NULLVALUE || left.value == null) {
                             token = new Token(right.type, right.value, right);
                         } else {
                             token = new Token(left.type, left.value, left);
