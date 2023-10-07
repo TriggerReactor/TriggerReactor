@@ -206,7 +206,7 @@ public class Token {
          */
         RANGE,
 
-        GID, GID_TEMP, ID, PLACEHOLDER, EXECUTOR, NULLVALUE,
+        GID, GID_TEMP, ID, REFERENCE, PLACEHOLDER, EXECUTOR, NULLVALUE,
 
         BODY, PARAMETERS,
 
