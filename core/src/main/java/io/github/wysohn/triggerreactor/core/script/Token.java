@@ -224,6 +224,7 @@ public class Token {
         EPS;
 
         private static final EnumSet<Type> DEFAULTS = EnumSet.of(Type.WHITESPACE, Type.LINE_COMMENT, Type.BLOCK_COMMENT);
+        private static final EnumSet<Type> COMMENT = EnumSet.of(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
 
         public boolean isLiteral() {
             return this == STRING || this == INTEGER || this == DECIMAL || this == BOOLEAN;
@@ -231,6 +232,10 @@ public class Token {
 
         public static EnumSet<Type> defaults() {
             return DEFAULTS.clone();
+        }
+
+        public static EnumSet<Type> comment() {
+            return COMMENT.clone();
         }
     }
 
