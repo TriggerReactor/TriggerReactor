@@ -717,6 +717,8 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.ID, "con")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, "@")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.REFERENCE, null)), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.CALL, "abc")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
@@ -858,6 +860,58 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR, "?:")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertTrue(queue.isEmpty());
+    }
+
+    @Test
+    public void testOptionalChainingOperator_complex() throws Exception {
+        // arrange
+        final String text = "a.b.c.d.e.methodChaining(a, 3 + b * 4)[4]?.h()?.[127]";
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+        serializeNode(queue, root);
+
+        // assert
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "b")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "c")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "d")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "e")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "b")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "*")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "methodChaining")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.REFERENCE, null)), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.ARRAYACCESS, "<Array Access>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.REFERENCE, null)), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "h")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.REFERENCE, null)), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "127")), queue.poll());
+        assertEquals(new Node(new Token(Type.ARRAYACCESS, "<Array Access>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "?.")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
     }
 
     @Test

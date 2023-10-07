@@ -3906,6 +3906,37 @@ public class TestInterpreter {
         assertEquals("local", result);
     }
 
+    @Test
+    public void testOptionalChainingOperator_complex() throws Exception {
+        // arrange
+        final String text = "a.b.c.d.e.methodChaining(a, 3 + 5 * 4)[4]?.h()?.[100]";
+
+        // act
+        final InterpreterTest interpreter = InterpreterTest.Builder.of(text)
+                .addScriptVariable("a", new Object() {
+                    public final Object b = new Object() {
+                        public final Object c = new Object() {
+                            public final Object d = new Object() {
+                                public final Object e = new Object() {
+                                    public final Object[] methodChaining(Object a, Object b) {
+                                        return new Object[]{a, b, a, b, new Object() {
+                                            public final int[] h() {
+                                                final int[] ints = new int[Byte.MAX_VALUE];
+                                                Arrays.fill(ints, 127);
+                                                return ints;
+                                            }
+                                        }};
+                                    }
+                                };
+                            };
+                        };
+                    };
+                }).build();
+
+        // assert
+        assertEquals(127, (int) interpreter.test());
+    }
+
     public final static class A {
         public final B b = new B();
     }

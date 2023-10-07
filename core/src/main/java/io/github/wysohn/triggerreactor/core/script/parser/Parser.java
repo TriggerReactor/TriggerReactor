@@ -1354,16 +1354,24 @@ public class Parser {
 
             Token idToken = null;
             int depth = 0;
+
+            boolean nextOperationRequiresDot = false;
             do {
                 // First token always to be non-null, so we no longer need to check for null values here.
                 if (token.is(Type.ID)) {
                     idToken = token;
                     nextToken(Type.comment());
+                } else {
+                    idToken = new Token(Type.REFERENCE, null, token.row, token.col);
                 }
 
+                final boolean dotConsumed;
                 final Node accessorNode = tryConsumeOptionalChainingOperator();
                 if (token != null && token.is(".")) {
+                    dotConsumed = true;
                     nextToken(Type.comment());
+                } else {
+                    dotConsumed = false;
                 }
 
                 // Validate idToken for common cases such as <id>[index].<id> (correct) and
@@ -1395,7 +1403,8 @@ public class Parser {
                     arrAccess.getChildren().add(index);
 
                     deque.addLast(arrAccess);
-                    deque.addLast(accessorNode);
+
+                    nextOperationRequiresDot = !idToken.is(Type.REFERENCE);
                 }
                 //id(args)
                 else if (isMethodAccessor(token)) { // method access
@@ -1407,7 +1416,6 @@ public class Parser {
                         nextToken(Type.comment());
 
                         deque.addLast(call);
-                        deque.addLast(accessorNode);
                     } else {
                         call.getChildren().add(parseLogic());
                         while (token != null && ",".equals(token.value)) {
@@ -1420,8 +1428,9 @@ public class Parser {
                         nextToken(Type.comment());
 
                         deque.addLast(call);
-                        deque.addLast(accessorNode);
                     }
+
+                    nextOperationRequiresDot = true;
                 }
                 //id@Type
                 else if (isTypeCaster(token)) { // type cast
@@ -1436,21 +1445,20 @@ public class Parser {
                     cast.getChildren().add(new Node(type));
                     cast.getChildren().add(new Node(idToken));
                     deque.addLast(cast);
-                    deque.addLast(accessorNode);
                 }
                 //id
                 else {
-                    if (idToken == null || idToken.type != Type.ID) {
+                    if (idToken == null) {
+                        throw new ParserException("Expected an ID but end of stream is reached.");
+                    } else if (idToken.type != Type.ID && idToken.type != Type.REFERENCE) {
                         throw new ParserException("Expected an ID but found " + idToken);
                     }
+
                     deque.addLast(new Node(idToken));
-                    deque.addLast(accessorNode);
                 }
 
-                // Consumes some cases such as `id@Type.`
-                if (token != null && token.is(".")) {
-                    nextToken();
-                }
+                // Push accessor node.
+                deque.addLast(accessorNode);
             } while (token != null && (
                     "?".equals(token.value) || ".".equals(token.value)
                             || (Mth.clamp(++depth, 0, Byte.MAX_VALUE) > 0 && (token.type == Type.ID

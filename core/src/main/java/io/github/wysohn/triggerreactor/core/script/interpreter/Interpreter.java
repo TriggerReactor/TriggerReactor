@@ -1472,8 +1472,14 @@ public class Interpreter {
                         localContext.incrementSafeAccessStack();
                     case ".":
                         right = localContext.popToken();
+                        if (right.is(Type.REFERENCE)) {
+                            final Token rawRef = localContext.popToken();
+                            final Token ref = tryUnwrapVariable(rawRef, localContext);
+
+                            localContext.pushToken(ref.castTo(rawRef.getCastTo()));
+                        }
                         //function call
-                        if (right.type == Type.CALL) {
+                        else if (right.type == Type.CALL) {
                             Object[] args = new Object[localContext.getCallArgsSize()];
                             for (int i = localContext.getCallArgsSize() - 1; i >= 0; i--) {
                                 Token argument = localContext.popToken();
@@ -1562,9 +1568,12 @@ public class Interpreter {
                                 }
 
                                 if (left.isObject() || left.isArray()) {
-                                    localContext.pushToken(new Token(Type.ACCESS,
-                                            new Accessor(left.value, (String) right.value),
-                                            node.getToken()).castTo(right.getCastTo()));
+                                    // field access for target object
+                                    if (right.value instanceof Accessor) {
+                                        localContext.pushToken(new Token(Type.ACCESS, right.value, node.getToken()).castTo(right.getCastTo()));
+                                    } else {
+                                        localContext.pushToken(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value), node.getToken()).castTo(right.getCastTo()));
+                                    }
                                 } else {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -1599,6 +1608,13 @@ public class Interpreter {
 
                 if (isVariable(right)) {
                     right = unwrapVariable(right, localContext);
+                }
+
+                if (left.is(Type.REFERENCE)) {
+                    left = localContext.popToken();
+                    localContext.pushToken(left);
+
+                    left = tryUnwrapVariable(left, localContext);
                 }
 
                 if (!left.isArray())
@@ -1642,6 +1658,8 @@ public class Interpreter {
                         Boolean.parseBoolean((String) node.getToken().value),
                         node.getToken()));
             } else if (node.getToken().type == Type.EPS) {
+                localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
+            } else if (node.getToken().type == Type.REFERENCE) {
                 localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.NULLVALUE) {
                 localContext.pushToken(new Token(node.getToken().type, null, node.getToken()));
