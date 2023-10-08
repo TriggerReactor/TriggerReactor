@@ -38,7 +38,6 @@
 
 <expression>         ::= <term> '+' <expression>
                      | <term> '-' <expression>
-                     | <term> '?:' <expression>
                      | <term>
 
 <term>               ::= <biter> '*' <term>
@@ -55,7 +54,8 @@
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
-                     |  '{' <factor> '}'
+                     |  '{' <logic> '}'
+                     | <factor> ?: <logic>
                      | '$' <string> [':' <logic>]
                      | <number>
                      | <string>

@@ -841,27 +841,6 @@ public class Parser {
             } else {
                 return node;
             }
-        } else if (token != null && token.type == Type.OPERATOR && "?:".equals(token.value)) {
-            final Node node = new Node(token);
-            nextToken();
-
-            //insert left expression(or term+expression)
-            node.getChildren().add(left);
-
-            final Node term = parseTerm();
-            if (term != null) {
-                //insert right term
-                node.getChildren().add(term);
-            } else {
-                throw new ParserException("Expected a term after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
-            }
-
-            Node termAndExpression = parseTermAndExpression(node);
-            if (termAndExpression != null) {
-                return termAndExpression;
-            } else {
-                return node;
-            }
         } else {
             return null;
         }
@@ -922,30 +901,51 @@ public class Parser {
     }
 
     private Node parseFactorAndBiter(Node left) throws IOException, LexerException, ParserException {
-        if (token != null && token.type == Type.OPERATOR_A
-                && ("&".equals(token.value) || "^".equals(token.value) || "|".equals(token.value)
-                || "<<".equals(token.value) || ">>".equals(token.value) || ">>>".equals(token.value))) {
-            Node node = new Node(token);
-            nextToken();
+        if (token != null) {
+            if (token.type == Type.OPERATOR_A
+                    && ("&".equals(token.value) || "^".equals(token.value) || "|".equals(token.value)
+                    || "<<".equals(token.value) || ">>".equals(token.value) || ">>>".equals(token.value))) {
+                Node node = new Node(token);
+                nextToken();
 
-            node.getChildren().add(left);
+                node.getChildren().add(left);
 
-            Node factor = parseFactor();
-            if (factor != null) {
-                node.getChildren().add(factor);
-            } else {
-                throw new ParserException("Expected a factor after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                Node factor = parseFactor();
+                if (factor != null) {
+                    node.getChildren().add(factor);
+                } else {
+                    throw new ParserException("Expected a factor after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                }
+
+                Node factorAndBiter = parseFactorAndBiter(node);
+                if (factorAndBiter != null) {
+                    return factorAndBiter;
+                } else {
+                    return node;
+                }
+            } else if (token.is(Type.OPERATOR, "?:")) {
+                final Node node = new Node(token);
+                nextToken();
+
+                node.getChildren().add(left);
+
+                final Node logic = parseLogic();
+                if (logic != null) {
+                    node.getChildren().add(logic);
+                } else {
+                    throw new ParserException("Expected a logic after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                }
+
+                final Node factorAndBiter = parseFactorAndBiter(node);
+                if (factorAndBiter != null) {
+                    return factorAndBiter;
+                } else {
+                    return node;
+                }
             }
-
-            Node factorAndBiter = parseFactorAndBiter(node);
-            if (factorAndBiter != null) {
-                return factorAndBiter;
-            } else {
-                return node;
-            }
-        } else {
-            return null;
         }
+
+        return null;
     }
 
 //    private Node parseLogicAndBitwise(Node left) throws IOException, LexerException, ParserException {
