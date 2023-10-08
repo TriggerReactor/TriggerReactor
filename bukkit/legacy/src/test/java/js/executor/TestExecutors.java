@@ -73,7 +73,7 @@ public class TestExecutors extends AbstractTestExecutors {
     public void testSound3() throws Exception {
         Player player = mock(Player.class);
         Location location = mock(Location.class);
-        Sound sound = Sound.FUSE;
+        Sound sound = Sound.ENTITY_CREEPER_PRIMED;
         float volume = 0.5F;
 
         JsTest test = new ExecutorTest(engine, "SOUND")
@@ -92,7 +92,7 @@ public class TestExecutors extends AbstractTestExecutors {
         int x = 100;
         int y = 50;
         int z = -100;
-        Sound sound = Sound.FUSE;
+        Sound sound = Sound.ENTITY_CREEPER_PRIMED;
         float volume = 0.5F;
         float pitch = -0.5F;
 
@@ -153,7 +153,7 @@ public class TestExecutors extends AbstractTestExecutors {
     @Test
     public void testSoundAll3() throws Exception {
         Location location = mock(Location.class);
-        Sound sound = Sound.FUSE;
+        Sound sound = Sound.ENTITY_CREEPER_PRIMED;
         float volume = 0.5F;
 
         World world = mock(World.class);

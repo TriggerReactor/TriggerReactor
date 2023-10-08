@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "local>TriggerReactor/.github:renovate-config"
+  ],
+  "ignoreDeps": [
+    "com.google.code.gson:gson",
+    "org.slf4j:slf4j-api"
+  ]
+}

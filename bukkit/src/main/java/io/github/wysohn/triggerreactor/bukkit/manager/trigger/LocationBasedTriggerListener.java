@@ -56,11 +56,6 @@ public abstract class LocationBasedTriggerListener<T extends Trigger, M extends 
             wallSign = Material.getMaterial("WALL_SIGN");
         }
 
-        // Should never come to this branch, but who knows?
-        if (wallSign == null) {
-            wallSign = Material.WALL_SIGN;
-        }
-
         WALL_SIGN = wallSign;
     }
 
