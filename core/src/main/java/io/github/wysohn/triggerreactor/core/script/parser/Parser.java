@@ -1237,7 +1237,7 @@ public class Parser {
             } else {
                 gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
             }
-            Node keyString = parseLogic();
+            Node keyString = parseExpression();
 
             gvarNode.getChildren().add(keyString);
 

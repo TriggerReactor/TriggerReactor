@@ -54,7 +54,7 @@
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
-                     |  '{' <logic> '}'
+                     |  '{' <expression> '}'
                      | <factor> ?: <logic>
                      | '$' <string> [':' <logic>]
                      | <number>
