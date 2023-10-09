@@ -50,6 +50,8 @@ import javax.inject.Singleton;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 @Singleton
@@ -209,31 +211,42 @@ public class BukkitPluginManagement implements IPluginManagement {
                 })
                 .perExecutor((context, command, args) -> {
                     if ("GUI".equalsIgnoreCase(command)) {
-                        String target = null;
-                        String guiName = null;
+                        Future<Boolean> task = taskSupervisor.submitSync(() -> {
+                            String target = null;
+                            String guiName = null;
 
-                        if (args.length == 2 && args[0] instanceof String && args[1] instanceof String) {
-                            target = ((String) args[0]);
-                            guiName = ((String) args[1]);
-                        } else if (args.length == 1 && args[0] instanceof String) {
+                            if (args.length == 2 && args[0] instanceof String && args[1] instanceof String) {
+                                target = ((String) args[0]);
+                                guiName = ((String) args[1]);
+                            } else if (args.length == 1 && args[0] instanceof String) {
 
-                            if (context.getVar("player") instanceof Player){
-                                target = new BukkitPlayer((Player) context.getVar("player")).getName();
+                                if (context.getVar("player") instanceof Player){
+                                    target = new BukkitPlayer((Player) context.getVar("player")).getName();
+                                } else {
+                                    throw new RuntimeException("Player is null.");
+                                }
+                                guiName = ((String) args[0]);
+
                             } else {
-                                throw new RuntimeException("Player is null.");
+                                throw new RuntimeException("Need parameter [String(InventoryTrigger Name)] or [String(Player Name), String(InventoryTrigger Name)]");
                             }
-                            guiName = ((String) args[0]);
 
-                        } else {
-                            throw new RuntimeException("Need parameter [String(InventoryTrigger Name)] or [String(Player Name), String(InventoryTrigger Name)]");
-                        }
+                            invTriggerManager.openGUI(target, guiName, context.getVarCopy());
 
-                        IInventory inventory = invTriggerManager.openGUI(target, guiName, context.getVarCopy());
-                        if (inventory == null) {
-                            throw new RuntimeException("No such Inventory Trigger named " + guiName);
-                        } else {
+                            IInventory inventory = invTriggerManager.openGUI(target, guiName, context.getVarCopy());
+                            if (inventory == null) {
+                                throw new RuntimeException("No such Inventory Trigger named " + guiName);
+                            }
+
                             return true;
+                        });
+
+                        try {
+                            return task.get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw ((RuntimeException) e.getCause());
                         }
+
                     }
 
                     return false;
