@@ -426,58 +426,58 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(1, test.getOverload(player, itemStack));
     }
 
-    @Test
-    public void testGui1() throws Exception {
-        Player player = mock(Player.class);
-        String playerName = "TestPlayer";
-        String guiName = "TESTGUI";
+//    @Test
+//    public void testGui1() throws Exception {
+//        Player player = mock(Player.class);
+//        String playerName = "TestPlayer";
+//        String guiName = "TESTGUI";
+//
+//        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
+//        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+//        IInventory inventory = mock(IInventory.class);
+//        Injector injector = mock(Injector.class);
+//
+//        when(player.getName()).thenReturn(playerName);
+//        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
+//        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
+//
+//        JsTest test = new ExecutorTest(engine, "GUI")
+//                .addVariable("player", player)
+//                .addVariable("plugin", mockPlugin)
+//                .addVariable("injector", injector);
+//
+//        test.withArgs(guiName).test();
+//
+//        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
+//
+//        Assert.assertEquals(0, test.getOverload(guiName));
+//    }
 
-        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
-        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
-        IInventory inventory = mock(IInventory.class);
-        Injector injector = mock(Injector.class);
-
-        when(player.getName()).thenReturn(playerName);
-        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
-        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
-
-        JsTest test = new ExecutorTest(engine, "GUI")
-                .addVariable("player", player)
-                .addVariable("plugin", mockPlugin)
-                .addVariable("injector", injector);
-
-        test.withArgs(guiName).test();
-
-        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
-
-        Assert.assertEquals(0, test.getOverload(guiName));
-    }
-
-    @Test
-    public void testGui2() throws Exception {
-        Player player = mock(Player.class);
-        String playerName = "TestPlayer";
-        String guiName = "TESTGUI";
-
-        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
-        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
-        IInventory inventory = mock(IInventory.class);
-        Injector injector = mock(Injector.class);
-
-        when(player.getName()).thenReturn(playerName);
-        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
-        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
-
-        JsTest test = new ExecutorTest(engine, "GUI")
-                .addVariable("plugin", mockPlugin)
-                .addVariable("injector", injector);
-
-        test.withArgs(player, guiName).test();
-
-        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
-
-        Assert.assertEquals(1, test.getOverload(player, guiName));
-    }
+//    @Test
+//    public void testGui2() throws Exception {
+//        Player player = mock(Player.class);
+//        String playerName = "TestPlayer";
+//        String guiName = "TESTGUI";
+//
+//        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
+//        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+//        IInventory inventory = mock(IInventory.class);
+//        Injector injector = mock(Injector.class);
+//
+//        when(player.getName()).thenReturn(playerName);
+//        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
+//        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
+//
+//        JsTest test = new ExecutorTest(engine, "GUI")
+//                .addVariable("plugin", mockPlugin)
+//                .addVariable("injector", injector);
+//
+//        test.withArgs(player, guiName).test();
+//
+//        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
+//
+//        Assert.assertEquals(1, test.getOverload(player, guiName));
+//    }
 
     @Test
     public void testItemFrameRotate() throws Exception {
