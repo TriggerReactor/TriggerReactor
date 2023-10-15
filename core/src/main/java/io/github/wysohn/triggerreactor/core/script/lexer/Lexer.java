@@ -124,8 +124,16 @@ public class Lexer {
      * @throws LexerException
      */
     public Token getToken() throws IOException, LexerException {
-        skipWhiteSpaces();
-        skipComment();
+        if (isWhitespace(c)) {
+            return readWhitespace();
+        }
+
+        if (c == '/') {
+            final Token comment = readComment();
+            if (comment != null) {
+                return comment;
+            }
+        }
 
         if (Character.isDigit(c)) {
             return readNumber();
@@ -159,39 +167,59 @@ public class Lexer {
         return null;
     }
 
-    private void skipWhiteSpaces() throws IOException {
-        //skip white spaces
-        while (c == ' ' || c == '\t' || c == '\r') {
-            read();
-        }
+    private Token readWhitespace() throws LexerException, IOException {
+        // Capture row, column
+        final int row = this.row;
+        final int col = this.col;
+
+        eatWhitespaces();
+        return new Token(Type.WHITESPACE, null, row, col);
     }
 
-    private void skipComment() throws LexerException, IOException {
-        if (c == '/') {
+    private Token readComment() throws LexerException, IOException {
+        read();
+
+        switch (c) {
+            case '/': return readLineComment();
+            case '*': return readBlockComment();
+        }
+
+        // Was not comment
+        unread();
+        c = '/';
+        return null;
+    }
+
+    private Token readLineComment() throws LexerException, IOException {
+        // Capture row, column
+        final int row = this.row - 1;
+        final int col = this.col;
+
+        // Skip until next line or end of line
+        while (c != '\n' && read());
+
+        return new Token(Type.LINE_COMMENT, null, row, col);
+    }
+
+    private Token readBlockComment() throws LexerException, IOException {
+        // Capture row, column
+        final int row = this.row - 1;
+        final int col = this.col;
+
+        while (read()) {
+            while (c != '*' && read());
             read();
 
+            // Eat stream while cursor meet */, or throw exception if end of stream is reached.
             if (c == '/') {
-                //skip until next line or end of line
-                while (c != '\n' && read()) ;
-            } else if (c == '*') {
-                while (read()) {
-                    while (c != '*' && read()) ;
-                    read();
-
-                    // Eat stream while cursor meet */, or throw exception if end of stream is reached.
-                    if (c == '/') {
-                        read();
-                        break;
-                    } else if (eos) {
-                        throw new LexerException("Expected '/' but end of stream is reached", this);
-                    }
-                }
-            } else {
-                //was not comment
-                unread();
-                c = '/';
+                read();
+                break;
+            } else if (eos) {
+                throw new LexerException("Expected '/' but end of stream is reached", this);
             }
         }
+
+        return new Token(Type.BLOCK_COMMENT, null, row, col);
     }
 
     private Token readNumber() throws IOException, LexerException {
@@ -442,6 +470,17 @@ public class Lexer {
             // Not ExclusiveRange(`..`) or InclusiveRange(`..=`) operators, push back
             unread();
             c = '.';
+        } else if (c == '?') {
+            String op = String.valueOf(c);
+            read();
+
+            if (c == ':') {
+                read();
+
+                return new Token(Type.OPERATOR, op + ":");
+            }
+
+            return new Token(Type.OPERATOR, op, row, col);
         }
 
         Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
@@ -469,8 +508,13 @@ public class Lexer {
     }
 
     private Token readImport() throws IOException, LexerException {
-        skipWhiteSpaces();
-        skipComment();
+        if (isWhitespace(c)) {
+            readWhitespace();
+        }
+
+        if (c == '/') {
+            readComment();
+        }
 
         if (c == '.') {
             throw new LexerException("IMPORT found a dangling .(dot)", this);
@@ -521,6 +565,22 @@ public class Lexer {
         return Token.Base.Decimal;
     }
 
+    // @formatter:off
+    private static final Predicate<Character> PREDICATE_WHITESPACE = c ->
+               c == '\t'     // 0009
+         // || c == '\n'
+            || c == '\u000B' // vertical tab
+            || c == '\u000C' // form feed
+            || c == '\r'
+            || c == ' '
+            || c == '\u0085' // NEXT LINE from latin1
+            || c == '\u200E' // LEFT-TO-RIGHT MARK
+            || c == '\u200F' // RIGHT-TO-RIGHT MARK
+            || c == '\u2028' // LINE SEPARATOR
+            || c == '\u2029' // PARAGRAPH SEPARATOR
+    ;
+    // @formatter:on
+
     private static final Predicate<Character> PREDICATE_DECIMAL_DIGIT = c -> Character.isDigit(c) || c == '_';
     private static final Predicate<Character> PREDICATE_HEXADECIMAL_DIGIT = c -> PREDICATE_DECIMAL_DIGIT.test(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
     private static final BiConsumer<Appendable, Character> DIGIT_CONSUMER = (appendable, c) -> {
@@ -532,12 +592,28 @@ public class Lexer {
         }
     };
 
+    private static Predicate<Character> isWhitespace() {
+        return PREDICATE_WHITESPACE;
+    }
+
+    private static boolean isWhitespace(final char c) {
+        return PREDICATE_WHITESPACE.test(c);
+    }
+
     private static Predicate<Character> isDecimalDigit() {
         return PREDICATE_DECIMAL_DIGIT;
     }
 
     private static Predicate<Character> isHexadecimalDigit() {
         return PREDICATE_HEXADECIMAL_DIGIT;
+    }
+
+    private StringBuilder eatWhitespaces() throws IOException {
+        return eatWhitespaces(new StringBuilder());
+    }
+
+    private StringBuilder eatWhitespaces(final StringBuilder builder) throws IOException {
+        return eatWhile(isWhitespace(), StringBuilder::append, () -> builder);
     }
 
     private StringBuilder eatDecimalDigits() throws IOException {
@@ -730,7 +806,7 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "1.23e2";
+        String text = "a.b.c ?: d";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n" + text);
 

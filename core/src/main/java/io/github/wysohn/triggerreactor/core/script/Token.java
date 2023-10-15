@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,6 +50,18 @@ public class Token {
 
     public Object getValue() {
         return value;
+    }
+
+    public boolean is(final Type type) {
+        return this.type == type;
+    }
+
+    public boolean is(final String value) {
+        return value.equals(this.value);
+    }
+
+    public boolean is(final Type type, final String value) {
+        return is(type) && is(value);
     }
 
     public boolean isInteger() {
@@ -157,6 +170,8 @@ public class Token {
         IMPORT, CLAZZ,
 
         ROOT, ENDL,
+        WHITESPACE,
+        LINE_COMMENT, BLOCK_COMMENT,
 
         //Literal
         STRING, INTEGER, DECIMAL, BOOLEAN,
@@ -191,7 +206,7 @@ public class Token {
          */
         RANGE,
 
-        GID, GID_TEMP, ID, PLACEHOLDER, EXECUTOR, NULLVALUE,
+        GID, GID_TEMP, ID, REFERENCE, PLACEHOLDER, EXECUTOR, NULLVALUE,
 
         BODY, PARAMETERS,
 
@@ -208,8 +223,19 @@ public class Token {
          **/
         EPS;
 
+        private static final EnumSet<Type> DEFAULTS = EnumSet.of(Type.WHITESPACE, Type.LINE_COMMENT, Type.BLOCK_COMMENT);
+        private static final EnumSet<Type> COMMENT = EnumSet.of(Type.LINE_COMMENT, Type.BLOCK_COMMENT);
+
         public boolean isLiteral() {
             return this == STRING || this == INTEGER || this == DECIMAL || this == BOOLEAN;
+        }
+
+        public static EnumSet<Type> defaults() {
+            return DEFAULTS.clone();
+        }
+
+        public static EnumSet<Type> comment() {
+            return COMMENT.clone();
         }
     }
 
