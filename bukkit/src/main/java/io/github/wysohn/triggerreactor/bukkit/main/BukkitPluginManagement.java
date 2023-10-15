@@ -243,8 +243,14 @@ public class BukkitPluginManagement implements IPluginManagement {
 
                         try {
                             return task.get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            throw ((RuntimeException) e.getCause());
+                        } catch (ExecutionException e) {
+                            if (e.getCause() instanceof RuntimeException) {
+                                throw ((RuntimeException) e.getCause());
+                            } else {
+                                throw new RuntimeException(e);
+                            }
+                        } catch (InterruptedException ignored) {
+
                         }
 
                     }
