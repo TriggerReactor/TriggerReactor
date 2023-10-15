@@ -42,6 +42,7 @@
 
 <term>               ::= <biter> '*' <term>
                      | <biter> '/' <term>
+                     | <biter> '%' <term>
                      | <biter>
 
 <biter>              ::= <factor> '&' <biter>
@@ -53,7 +54,8 @@
                      | <factor>
 
 <factor>             ::= '(' <logic> ')'
-                     |  '{' <factor> '}'
+                     |  '{' <expression> '}'
+                     | <factor> ?: <logic>
                      | '$' <string> [':' <logic>]
                      | <number>
                      | <string>

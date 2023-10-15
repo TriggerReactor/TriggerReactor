@@ -86,6 +86,17 @@ public class TriggerReactorCoreTest {
         gameManagement = mock(IGameManagement.class);
         eventManagement = mock(IEventManagement.class);
         taskSupervisor = mock(TaskSupervisor.class);
+        when(taskSupervisor.isServerThread()).thenReturn(true);
+        when(taskSupervisor.submitSync(any(Callable.class))).thenAnswer(invocation -> {
+            Callable callable = invocation.getArgument(0);
+            return CompletableFuture.completedFuture(callable.call());
+        });
+        when(taskSupervisor.newThread(any(Runnable.class), anyString(), anyInt())).thenAnswer(invocation ->
+                new Thread((Runnable) invocation.getArgument(0)));
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArgument(0)).run();
+            return null;
+        }).when(taskSupervisor).runTask(any(Runnable.class));
 
         commandHandler = mock(ICommandHandler.class);
         eventRegistry = mock(IEventRegistry.class);
@@ -942,11 +953,6 @@ public class TriggerReactorCoreTest {
 
         when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
-        when(taskSupervisor.submitSync(any())).thenAnswer(invocation -> {
-            Callable callable = invocation.getArgument(0);
-            callable.call();
-            return CompletableFuture.completedFuture(null);
-        });
 
         NamedTriggerManager namedTriggerManager = injector.getInstance(NamedTriggerManager.class);
 
@@ -1419,17 +1425,6 @@ public class TriggerReactorCoreTest {
         when(pluginManagement.getConsoleSender()).thenReturn(sender);
 
         when(javascriptFileLoader.listFiles(any(), any())).thenReturn(new File[0]);
-        when(taskSupervisor.isServerThread()).thenReturn(true);
-        when(taskSupervisor.submitSync(any(Callable.class))).thenAnswer(invocation -> {
-            Callable callable = invocation.getArgument(0);
-            return CompletableFuture.completedFuture(callable.call());
-        });
-        when(taskSupervisor.newThread(any(), any(), anyInt())).thenAnswer(invocation ->
-                new Thread((Runnable) invocation.getArgument(0)));
-        doAnswer(invocation -> {
-            ((Runnable) invocation.getArgument(0)).run();
-            return null;
-        }).when(taskSupervisor).runTask(any(Runnable.class));
 
         // act
         for (int i = 0; i < 150; i++) {

@@ -38,19 +38,15 @@ public class Accessor {
         return targetParent;
     }
 
-    public Object evaluateTarget() throws NoSuchFieldException, IllegalArgumentException {
+    public Object evaluateTarget() throws ArrayIndexOutOfBoundsException, NoSuchFieldException, IllegalArgumentException {
         if (targetParent.getClass().isArray()) {
             if (target instanceof Integer) {
-                try {
-                    return Array.get(targetParent, (Integer) target);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    throw new IllegalArgumentException(target + " is out of bound for array! Size: " + Array.getLength(targetParent));
-                }
+                return Array.get(targetParent, (Integer) target);
             } else if (target instanceof String && ((String) target).equals("length")) {
                 return Array.getLength(targetParent);
-            } else {
-                throw new IllegalArgumentException(target.getClass() + " is not a valid type for array operation.");
             }
+
+            throw new IllegalArgumentException(target.getClass() + " is not a valid type for array operation.");
         } else if (targetParent instanceof Class) {
             return ReflectionUtil.getField((Class<?>) targetParent, (Object) null, (String) target);
         } else {
@@ -75,5 +71,15 @@ public class Accessor {
         }
     }
 
+    public static ArrayIndexOutOfBoundsException outOfBoundsException(final Accessor accessor) {
+        return new ArrayIndexOutOfBoundsException(accessor.target + " is out of bound for array! Size: " + Array.getLength(accessor.targetParent));
+    }
+
+    public static ArrayIndexOutOfBoundsException outOfBoundsException(final Accessor accessor, final Throwable cause) {
+        final ArrayIndexOutOfBoundsException e = new ArrayIndexOutOfBoundsException(accessor.target + " is out of bound for array! Size: " + Array.getLength(accessor.targetParent));
+        e.initCause(cause);
+
+        return e;
+    }
 
 }
