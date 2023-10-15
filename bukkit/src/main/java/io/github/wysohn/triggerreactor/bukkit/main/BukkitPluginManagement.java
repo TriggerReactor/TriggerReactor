@@ -27,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
@@ -49,6 +50,8 @@ import javax.inject.Singleton;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 @Singleton
@@ -64,6 +67,8 @@ public class BukkitPluginManagement implements IPluginManagement {
     private TaskSupervisor taskSupervisor;
     @Inject
     private NamedTriggerManager namedTriggerManager;
+    @Inject
+    private InventoryTriggerManager invTriggerManager;
 
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
 
@@ -200,6 +205,54 @@ public class BukkitPluginManagement implements IPluginManagement {
                                     + " Make sure to put double quotes, if you provided "
                                     + "String literal.");
                         }
+                    }
+
+                    return false;
+                })
+                .perExecutor((context, command, args) -> {
+                    if ("GUI".equalsIgnoreCase(command)) {
+                        Future<Boolean> task = taskSupervisor.submitSync(() -> {
+                            String target = null;
+                            String guiName = null;
+
+                            if (args.length == 2 && args[0] instanceof String && args[1] instanceof String) {
+                                target = ((String) args[0]);
+                                guiName = ((String) args[1]);
+                            } else if (args.length == 1 && args[0] instanceof String) {
+
+                                if (context.getVar("player") instanceof Player){
+                                    target = new BukkitPlayer((Player) context.getVar("player")).getName();
+                                } else {
+                                    throw new RuntimeException("Player is null.");
+                                }
+                                guiName = ((String) args[0]);
+
+                            } else {
+                                throw new RuntimeException("Need parameter [String(InventoryTrigger Name)] or [String(Player Name), String(InventoryTrigger Name)]");
+                            }
+
+                            invTriggerManager.openGUI(target, guiName, context.getVarCopy());
+
+                            IInventory inventory = invTriggerManager.openGUI(target, guiName, context.getVarCopy());
+                            if (inventory == null) {
+                                throw new RuntimeException("No such Inventory Trigger named " + guiName);
+                            }
+
+                            return true;
+                        });
+
+                        try {
+                            return task.get();
+                        } catch (ExecutionException e) {
+                            if (e.getCause() instanceof RuntimeException) {
+                                throw ((RuntimeException) e.getCause());
+                            } else {
+                                throw new RuntimeException(e);
+                            }
+                        } catch (InterruptedException ignored) {
+
+                        }
+
                     }
 
                     return false;
