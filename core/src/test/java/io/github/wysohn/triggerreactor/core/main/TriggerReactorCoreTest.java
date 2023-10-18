@@ -17,6 +17,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
@@ -180,6 +181,14 @@ public class TriggerReactorCoreTest {
         Injector injector = Guice.createInjector(modules);
         injector.getInstance(TriggerReactorCore.class).initialize();
         return injector;
+    }
+
+    private String generateLongText(int length) {
+        StringBuilder longText = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            longText.append("This is a very long text content. ");
+        }
+        return longText.toString();
     }
 
     @Test
@@ -1469,6 +1478,37 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertJsonEquals(generateSampleJson(max), readContent("var.json"));
+    }
+
+    @Test
+    public void command_saveAll_commandTrigger() throws Exception {
+        // arrange
+        String longText = generateLongText(100000);
+
+        int max = 1000;
+        Injector injector = createInjector();
+
+        CommandTriggerManager commandTriggerManager = injector.getInstance(CommandTriggerManager.class);
+
+        TriggerInfo info = mock(TriggerInfo.class);
+        when(info.getSourceCodeFile()).thenReturn(folder.newFile("command.json"));
+        CommandTrigger trigger = mock(CommandTrigger.class);
+        when(trigger.getInfo()).thenReturn(info);
+        when(trigger.getScript()).thenReturn(longText);
+        when(trigger.getAliases()).thenReturn(new String[0]);
+
+        commandTriggerManager.put("command", trigger);
+
+        // act
+        for (int i = 0; i < max; i++) {
+            commandTriggerManager.saveAll();
+            commandTriggerManager.reload();
+        }
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
+        // assert
+        assertEquals(longText, readContent("command.json"));
     }
 
     private String generateSampleJson(int size) {
