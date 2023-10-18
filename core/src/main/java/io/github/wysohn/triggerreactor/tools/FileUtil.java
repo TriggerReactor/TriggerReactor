@@ -17,10 +17,10 @@
 package io.github.wysohn.triggerreactor.tools;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class FileUtil {
     /**
@@ -33,29 +33,16 @@ public class FileUtil {
             file.getParentFile().mkdirs();
         }
 
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        long timestamp = System.currentTimeMillis();
+        File temp = new File(file.getParentFile(), file.getName() + ".tmp." + timestamp);
+        temp.createNewFile();
+
+        try (FileWriter fw = new FileWriter(temp);
+             BufferedWriter bw = new BufferedWriter(fw)) {
+            bw.write(str);
         }
 
-        File temp = File.createTempFile("CopyOf_" + file.getName(), ".tmp", file.getParentFile());
-
-        try (FileOutputStream fos = new FileOutputStream(temp);
-             OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");) {
-            osw.write(str);
-        }
-
-        try (FileInputStream istream = new FileInputStream(temp);
-             FileOutputStream ostream = new FileOutputStream(file)) {
-            FileChannel src = istream.getChannel();
-            FileChannel dest = ostream.getChannel();
-            dest.transferFrom(src, 0, src.size());
-        }
-
-        temp.delete();
+        Files.move(temp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static String readFromFile(File file) throws UnsupportedEncodingException, IOException {
