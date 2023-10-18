@@ -68,6 +68,22 @@ public class AreaTriggerLoaderTest {
         ).getInstance(AreaTriggerLoader.class);
     }
 
+    private String fileContent(File file) throws IOException {
+        return new String(Files.readAllBytes(file.toPath()));
+    }
+
+    private void writeContent(File file, String s) throws IOException {
+        Files.write(file.toPath(), s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String generateLongText(int length) {
+        StringBuilder longText = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            longText.append("This is a very long text content. ");
+        }
+        return longText.toString();
+    }
+
     @Test
     public void listTriggers() throws IOException {
         IConfigSourceFactory factory = mock(IConfigSourceFactory.class);
@@ -87,10 +103,6 @@ public class AreaTriggerLoaderTest {
         assertEquals(1, triggerInfos.length);
         assertEquals("trigger", triggerInfos[0].getTriggerName());
         verify(factory).create(saveWorker, folder.getRoot(), "trigger");
-    }
-
-    private void writeContent(File file, String s) throws IOException {
-        Files.write(file.toPath(), s.getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -163,7 +175,75 @@ public class AreaTriggerLoaderTest {
                 AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
     }
 
-    private String fileContent(File file) throws IOException {
-        return new String(Files.readAllBytes(file.toPath()));
+    @Test
+    public void testConcurrentSave() throws InterruptedException, IOException {
+        String longText = generateLongText(1000000);
+
+        File areaTriggerFolder = folder.newFolder("AreaTrigger");
+        File areaTrigger1 = new File(areaTriggerFolder, "trigger1");
+        Area area = new Area(
+                new SimpleLocation("world", 0, 0, 0),
+                new SimpleLocation("world", 10, 10, 10)
+        );
+
+        IConfigSource source = mock(IConfigSource.class);
+        when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
+                .thenReturn(Optional.of("world@0,0,0"));
+        when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), String.class))
+                .thenReturn(Optional.of("world@10,10,10"));
+
+        TriggerInfo info = new AreaTriggerInfo(areaTrigger1, source, "trigger1");
+
+        AreaTrigger trigger = mock(AreaTrigger.class);
+        EnterTrigger enterTrigger = mock(EnterTrigger.class);
+        ExitTrigger exitTrigger = mock(ExitTrigger.class);
+        when(trigger.getEnterTrigger()).thenReturn(enterTrigger);
+        when(trigger.getExitTrigger()).thenReturn(exitTrigger);
+        when(enterTrigger.getScript()).thenReturn(longText);
+        when(exitTrigger.getScript()).thenReturn(longText);
+        when(trigger.getArea()).thenReturn(area);
+        when(trigger.getInfo()).thenReturn(info);
+
+        int numThreads = 50; // Number of concurrent threads
+        Thread[] threads = new Thread[numThreads];
+
+        for (int i = 0; i < numThreads; i++) {
+            threads[i] = new Thread(() -> {
+                try {
+                    loader.save(trigger);
+                } catch (Exception e) {
+                    // Handle exceptions if needed
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        for (int i = 0; i < numThreads; i++) {
+            threads[i].start();
+        }
+
+        for (int i = 0; i < numThreads; i++) {
+            threads[i].join(); // Wait for all threads to finish
+        }
+
+        // After all threads finish, check the content of the file
+        assertEquals(longText, fileContent(new File(areaTrigger1,
+                AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg")));
+        assertEquals(longText, fileContent(new File(areaTrigger1,
+                AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
     }
+
+    @Test
+    public void save_concurrent() throws InvalidTrgConfigurationException, IOException,
+            AbstractTriggerManager.TriggerInitFailedException {
+        File areaTriggerFolder = folder.newFolder("AreaTrigger");
+        File areaTrigger1 = new File(areaTriggerFolder, "trigger1");
+        Area area = new Area(
+                new SimpleLocation("world", 0, 0, 0),
+                new SimpleLocation("world ", 10, 10, 10)
+        );
+
+
+    }
+
 }
