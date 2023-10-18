@@ -109,10 +109,10 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             T t = loader.load(info);
             Optional.of(t)
                     .ifPresent(trigger -> {
-                        if (has(info.getTriggerName())) {
+                        if (triggers.containsKey(info.getTriggerName())) {
                             logger.warning(info + " is already registered! Duplicated Trigger?");
                         } else {
-                            put(info.getTriggerName(), trigger);
+                            triggers.put(info.getTriggerName(), trigger);
                         }
                     });
 
