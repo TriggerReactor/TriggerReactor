@@ -42,7 +42,7 @@ public class FileUtil {
             bw.write(str);
         }
 
-        Files.move(temp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Files.move(temp.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     public static String readFromFile(File file) throws UnsupportedEncodingException, IOException {
