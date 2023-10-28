@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge.entity;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
+import io.github.wysohn.triggerreactor.core.Constants;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -26,6 +27,11 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     @Override
     public boolean hasPermission(String permission) {
         return entity.hasPermission(permission);
+    }
+
+    @Override
+    public boolean hasPermissionToSeeExceptions() {
+        return entity.hasPermission(Constants.PERMISSION_SEE_EXCEPTIONS);
     }
 
     @Override
