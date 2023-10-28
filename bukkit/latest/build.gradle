@@ -65,6 +65,11 @@ task writePluginYml {
                     put("description", "Grant admin permission")
                 }
             })
+            put(id.toLowerCase() + ".see.exceptions", new HashMap<String, Object>() {
+                {
+                    put("description", "See exceptions")
+                }
+            })
         }
     })
     map.put("api-version", 1.13)
