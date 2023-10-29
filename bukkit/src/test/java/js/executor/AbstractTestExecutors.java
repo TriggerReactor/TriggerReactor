@@ -1,11 +1,8 @@
 package js.executor;
 
 import com.google.inject.Injector;
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.main.Platform;
 import io.github.wysohn.triggerreactor.core.manager.PlatformManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
@@ -884,6 +881,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testMysql() throws Exception {
+        // arrange
         class FakeMysqlHelper {
             public void set(String key, Object value) {
             }
@@ -897,17 +895,22 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         FakeMysqlHelper mysqlHelper = mock(FakeMysqlHelper.class);
         FakePlugin plugin = mock(FakePlugin.class);
+        Injector injector = mock(Injector.class);
 
         String key = "testKey";
         Object value = 100D;
 
         when(plugin.getMysqlHelper()).thenReturn(mysqlHelper);
+        when(injector.getInstance(any(Class.class))).thenReturn(mysqlHelper);
 
         JsTest test = new ExecutorTest(engine, "MYSQL")
+                .addVariable("injector", injector)
                 .addVariable("plugin", plugin);
 
+        // act
         test.withArgs(key, value).test();
 
+        // assert
         verify(mysqlHelper).set(key, value);
 
         Assert.assertEquals(0, test.getOverload(key, value));

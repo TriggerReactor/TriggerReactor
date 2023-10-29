@@ -17,6 +17,7 @@
  *******************************************************************************/
 
 var Object = Java.type('java.lang.Object');
+var MysqlSupport = Java.type('io.github.wysohn.triggerreactor.bukkit.main.MysqlSupport');
 
 var validation = {
   overloads: [
@@ -28,7 +29,7 @@ var validation = {
 };
 
 function MYSQL(args) {
-  var mysqlHelper = plugin.getMysqlHelper();
+  var mysqlHelper = injector.getInstance(MysqlSupport.class);
 
   if (!mysqlHelper) throw new Error('Mysql connection is not available.');
 
