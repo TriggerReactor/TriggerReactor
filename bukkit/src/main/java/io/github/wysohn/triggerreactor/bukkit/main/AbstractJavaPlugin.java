@@ -23,7 +23,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Module;
 import com.google.inject.*;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
@@ -347,12 +347,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             ds.setUser(userName);
             ds.setPassword(password);
             ds.setCharacterEncoding("UTF-8");
-            ds.setUseUnicode(true);
             ds.setAutoReconnectForPools(true);
             ds.setAutoReconnect(true);
-            ds.setAutoReconnectForConnectionPools(true);
 
-            ds.setCachePreparedStatements(true);
             ds.setCachePrepStmts(true);
 
             pool = new MiniConnectionPoolManager(ds, 2);
@@ -368,7 +365,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             try {
                 conn = pool.getConnection();
             } catch (SQLException e) {
-                // e.printStackTrace();
+                e.printStackTrace();
             } finally {
                 if (conn == null)
                     conn = pool.getValidConnection();
