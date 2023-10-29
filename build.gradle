@@ -63,7 +63,7 @@ subprojects {
 
     dependencies {
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-        api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
+        api group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
         // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
         api group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
