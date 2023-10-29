@@ -23,7 +23,6 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Module;
 import com.google.inject.*;
-import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
@@ -45,7 +44,6 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
-import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -63,11 +61,8 @@ import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.inject.Named;
-import java.io.*;
+import java.io.File;
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -195,6 +190,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         areaTriggerListener = injector.getInstance(AreaTriggerListener.class);
         areaSelectionListener = injector.getInstance(AreaSelectionListener.class);
 
+        mysqlHelper = injector.getInstance(MysqlSupport.class);
+
         managers = injector.getInstance(new Key<Set<Manager>>() {
         });
 
@@ -244,9 +241,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         if (config.getBoolean("Mysql.Enable", false)) {
             try {
                 getLogger().info("Initializing Mysql support...");
-                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
+                mysqlHelper.connect(config.getString("Mysql.Address"),
                         config.getString("Mysql.DbName"),
-                        "data",
                         config.getString("Mysql.UserName"),
                         config.getString("Mysql.Password"));
                 getLogger().info(mysqlHelper.toString());
@@ -322,116 +318,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     public void registerEvents(Listener listener) {
         if (listener != null)
             Bukkit.getPluginManager().registerEvents(listener, this);
-    }
-
-    public class MysqlSupport {
-        private final String KEY = "dbkey";
-        private final String VALUE = "dbval";
-
-        private final MysqlConnectionPoolDataSource ds;
-        private final MiniConnectionPoolManager pool;
-
-        private final String dbName;
-        private final String tablename;
-
-        private final String address;
-
-        private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws
-                SQLException {
-            this.dbName = dbName;
-            this.tablename = tablename;
-            this.address = address;
-
-            ds = new MysqlConnectionPoolDataSource();
-            ds.setURL("jdbc:mysql://" + address + "/" + dbName);
-            ds.setUser(userName);
-            ds.setPassword(password);
-            ds.setCharacterEncoding("UTF-8");
-            ds.setAutoReconnectForPools(true);
-            ds.setAutoReconnect(true);
-
-            ds.setCachePrepStmts(true);
-
-            pool = new MiniConnectionPoolManager(ds, 2);
-
-            Connection conn = createConnection();
-            initTable(conn);
-            conn.close();
-        }
-
-        private Connection createConnection() {
-            Connection conn = null;
-
-            try {
-                conn = pool.getConnection();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            } finally {
-                if (conn == null)
-                    conn = pool.getValidConnection();
-            }
-
-            return conn;
-        }
-
-        private final String CREATETABLEQUARY = "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY
-                + " CHAR(128) PRIMARY KEY," + "" + VALUE + " MEDIUMBLOB" + ")";
-
-        private void initTable(Connection conn) throws SQLException {
-            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
-            pstmt.executeUpdate();
-            pstmt.close();
-        }
-
-        public Object get(String key) throws SQLException {
-            Object out = null;
-
-            try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(
-                         "SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
-                pstmt.setString(1, key);
-                ResultSet rs = pstmt.executeQuery();
-
-                if (!rs.next())
-                    return null;
-                InputStream is = rs.getBinaryStream(VALUE);
-
-                try (ObjectInputStream ois = new ObjectInputStream(is)) {
-                    out = ois.readObject();
-                } catch (IOException | ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                    return null;
-                }
-            }
-
-            return out;
-        }
-
-        public void set(String key, Serializable value) throws SQLException {
-            try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)")) {
-
-
-                try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-                    oos.writeObject(value);
-
-                    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-
-                    pstmt.setString(1, key);
-                    pstmt.setBinaryStream(2, bais);
-
-                    pstmt.executeUpdate();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
-        }
     }
 
     public class BungeeCordHelper implements PluginMessageListener, Runnable {
