@@ -16,6 +16,8 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var MysqlSupport = Java.type('io.github.wysohn.triggerreactor.bukkit.main.MysqlSupport');
+
 var validation = {
   overloads: [
     [
@@ -25,11 +27,14 @@ var validation = {
 }
 
 function mysql(args) {
-  var key = args[0];
+  var mysqlHelper = injector.getInstance(MysqlSupport.class);
 
-  var mysqlHelper = plugin.getMysqlHelper();
   if (!mysqlHelper)
     throw new Error('Mysql connection is not available. Check your config.yml');
 
-  return mysqlHelper.get(key);
+  if(overload === 0){
+    return mysqlHelper.get(args[0])
+  } else {
+    throw new Error('Missing key');
+  }
 }
