@@ -87,7 +87,7 @@ public class StringUtils {
         }
         final int limit = len * count;
         final char[] multiple = new char[limit];
-        System.arraycopy(s.toCharArray(), 0, multiple, 0, len);
+        System.arraycopy(s, 0, multiple, 0, len);
         int copied = len;
         for (; copied < limit - copied; copied <<= 1) {
             System.arraycopy(multiple, 0, multiple, copied, copied);

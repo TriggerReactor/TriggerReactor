@@ -71,7 +71,6 @@ public class InterpreterLocalContext {
     private boolean continueFlag = false;
 
     private int callArgsSize = 0;
-    private int safeAccessStack = 0;
 
     public InterpreterLocalContext(Timings.Timing timing) {
         this(timing, null);
@@ -122,21 +121,6 @@ public class InterpreterLocalContext {
 
     void setCallArgsSize(int callArgsSize) {
         tryOrThrow(() -> this.callArgsSize = callArgsSize);
-    }
-
-    public int incrementSafeAccessStack() {
-        return tryOrThrow(() -> ++this.safeAccessStack);
-    }
-
-    public boolean consumeSafeAccessStack() {
-        return tryOrThrow(() -> {
-            if (this.safeAccessStack > 0) {
-                --this.safeAccessStack;
-                return true;
-            }
-
-            return false;
-        });
     }
 
     boolean hasImport(String name) {

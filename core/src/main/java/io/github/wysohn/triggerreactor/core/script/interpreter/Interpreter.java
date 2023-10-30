@@ -25,7 +25,6 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.core.util.SneakyThrows;
 import io.github.wysohn.triggerreactor.tools.ExceptionUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
@@ -788,11 +787,8 @@ public class Interpreter {
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
-                result = SneakyThrows.expect(
-                        localContext::consumeSafeAccessStack,
-                        () -> null,
-                        () -> new InterpreterException("Function " + right + " does not exist or parameter types not match.", e)
-                );
+                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
@@ -810,11 +806,8 @@ public class Interpreter {
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
-                result = SneakyThrows.expect(
-                        localContext::consumeSafeAccessStack,
-                        () -> null,
-                        () -> new InterpreterException("Function " + right + " does not exist or parameter types not match.", e)
-                );
+                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
@@ -869,17 +862,7 @@ public class Interpreter {
             try {
                 var = accessor.evaluateTarget();
             } catch (NoSuchFieldException e) {
-                var = SneakyThrows.expect(
-                        localContext::consumeSafeAccessStack,
-                        () -> null,
-                        () -> new InterpreterException("Unknown field " + accessor, e)
-                );
-            } catch (ArrayIndexOutOfBoundsException e) {
-                var = SneakyThrows.expect(
-                        localContext::consumeSafeAccessStack,
-                        () -> null,
-                        () -> new InterpreterException(Accessor.outOfBoundsException(accessor, e))
-                );
+                throw new InterpreterException("Unknown field " + accessor, e);
             } catch (Exception e) {
                 throw new InterpreterException("Unknown error " + e.getMessage(), e);
             }
@@ -1428,7 +1411,6 @@ public class Interpreter {
                 }
             } else if (node.getToken().type == Type.OPERATOR) {
                 Token right, left;
-
                 switch ((String) node.getToken().value) {
                     case "@":
                         // id
@@ -1448,38 +1430,16 @@ public class Interpreter {
 
                         localContext.pushToken(new Token(Type.ID, right.value, right).castTo((Class<?>) left.value));
                         break;
-                    case "?:":
-                        // Alt token if left reference is null
-                        right = localContext.popToken();
-                        // Nullable reference
-                        left = tryUnwrapVariable(localContext.popToken(), localContext);
-
-                        final Token token;
-                        if (left.type == Type.NULLVALUE || left.value == null) {
-                            token = new Token(right.type, right.value, right);
-                        } else {
-                            token = new Token(left.type, left.value, left);
-                        }
-                        localContext.pushToken(token);
-                        break;
                     case "=":
                         right = localContext.popToken();
                         left = localContext.popToken();
 
                         assignValue(left, right, localContext);
                         break;
-                    case "?.": // fall-through
-                        localContext.incrementSafeAccessStack();
                     case ".":
                         right = localContext.popToken();
-                        if (right.is(Type.REFERENCE)) {
-                            final Token rawRef = localContext.popToken();
-                            final Token ref = tryUnwrapVariable(rawRef, localContext);
-
-                            localContext.pushToken(ref.castTo(rawRef.getCastTo()));
-                        }
                         //function call
-                        else if (right.type == Type.CALL) {
+                        if (right.type == Type.CALL) {
                             Object[] args = new Object[localContext.getCallArgsSize()];
                             for (int i = localContext.getCallArgsSize() - 1; i >= 0; i--) {
                                 Token argument = localContext.popToken();
@@ -1506,11 +1466,6 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    if (localContext.consumeSafeAccessStack()) {
-                                        localContext.pushToken(left);
-                                        return null;
-                                    }
-
                                     throw new InterpreterException(
                                             "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
@@ -1526,11 +1481,7 @@ public class Interpreter {
                                     try {
                                         var = accessor.evaluateTarget();
                                     } catch (NoSuchFieldException e) {
-                                        var = SneakyThrows.expect(
-                                                localContext::consumeSafeAccessStack,
-                                                () -> null,
-                                                () -> new InterpreterException("Unknown field " + accessor, e)
-                                        );
+                                        throw new InterpreterException("Unknown field " + accessor, e);
                                     } catch (Exception e) {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
@@ -1558,22 +1509,14 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    if (localContext.consumeSafeAccessStack()) {
-                                        localContext.pushToken(left);
-                                        return null;
-                                    }
-
                                     throw new InterpreterException(
                                             "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
 
                                 if (left.isObject() || left.isArray()) {
-                                    // field access for target object
-                                    if (right.value instanceof Accessor) {
-                                        localContext.pushToken(new Token(Type.ACCESS, right.value, node.getToken()).castTo(right.getCastTo()));
-                                    } else {
-                                        localContext.pushToken(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value), node.getToken()).castTo(right.getCastTo()));
-                                    }
+                                    localContext.pushToken(new Token(Type.ACCESS,
+                                            new Accessor(left.value, (String) right.value),
+                                            node.getToken()).castTo(right.getCastTo()));
                                 } else {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -1581,11 +1524,7 @@ public class Interpreter {
                                     try {
                                         var = accessor.evaluateTarget();
                                     } catch (NoSuchFieldException e) {
-                                        var = SneakyThrows.expect(
-                                                localContext::consumeSafeAccessStack,
-                                                () -> null,
-                                                () -> new InterpreterException("Unknown field " + accessor, e)
-                                        );
+                                        throw new InterpreterException("Unknown field " + accessor, e);
                                     } catch (Exception e) {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
@@ -1608,13 +1547,6 @@ public class Interpreter {
 
                 if (isVariable(right)) {
                     right = unwrapVariable(right, localContext);
-                }
-
-                if (left.is(Type.REFERENCE)) {
-                    left = localContext.popToken();
-                    localContext.pushToken(left);
-
-                    left = tryUnwrapVariable(left, localContext);
                 }
 
                 if (!left.isArray())
@@ -1658,8 +1590,6 @@ public class Interpreter {
                         Boolean.parseBoolean((String) node.getToken().value),
                         node.getToken()));
             } else if (node.getToken().type == Type.EPS) {
-                localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
-            } else if (node.getToken().type == Type.REFERENCE) {
                 localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.NULLVALUE) {
                 localContext.pushToken(new Token(node.getToken().type, null, node.getToken()));

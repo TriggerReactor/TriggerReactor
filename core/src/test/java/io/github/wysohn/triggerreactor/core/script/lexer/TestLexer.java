@@ -47,7 +47,6 @@ public class TestLexer {
         Lexer lexer = new Lexer(text, charset);
 
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.INTEGER, "1");
         testToken(lexer, Type.OPERATOR_A, "+");
@@ -71,16 +70,12 @@ public class TestLexer {
         testToken(lexer, Type.INTEGER, "4");
         testToken(lexer, Type.OPERATOR, ")");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_L, ">=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "0");
         testToken(lexer, Type.OPERATOR, ")");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.STRING, "text");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.STRING, "test");
         testToken(lexer, Type.ENDL, null);
         testEnd(lexer);
@@ -94,19 +89,12 @@ public class TestLexer {
         text = "#MESSAGE 1 | 2 ^ 3 & ~4\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "1");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "|");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "2");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "^");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "3");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "&");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "~");
         testToken(lexer, Type.INTEGER, "4");
         testToken(lexer, Type.ENDL, null);
@@ -115,19 +103,12 @@ public class TestLexer {
         text = "#MESSAGE 1 << 2 >> 3 >>> 4\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "1");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "<<");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "2");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, ">>");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "3");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, ">>>");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "4");
         testToken(lexer, Type.ENDL, null);
         testEnd(lexer);
@@ -146,39 +127,27 @@ public class TestLexer {
                 "a %= 6\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "1");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "+=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "2");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "-=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "3");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "*=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "4");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "/=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "5");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "%=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "6");
         testToken(lexer, Type.ENDL, null);
         testEnd(lexer);
@@ -191,39 +160,27 @@ public class TestLexer {
                 "a >>>= 6\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "&=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "1");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "^=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "2");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "|=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "3");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "<<=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "4");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, ">>=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "5");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, ">>>=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "6");
         testToken(lexer, Type.ENDL, null);
         testEnd(lexer);
@@ -238,91 +195,69 @@ public class TestLexer {
                 "a = ++a * --a - a++ / a-- -(--a) -(++a) -(a++) -(a--) - -(--a) - -(++a) - -(a++) - -(a--)\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.INTEGER, "2");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR, "=");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_UNARY, "++");
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "*");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_UNARY, "--");
         testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR_UNARY, "++");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "/");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR_UNARY, "--");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.OPERATOR_UNARY, "--");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.OPERATOR_UNARY, "++");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR_UNARY, "++");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR_UNARY, "--");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.OPERATOR_UNARY, "--");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.OPERATOR_UNARY, "++");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR_UNARY, "++");
         testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.WHITESPACE, null);
 
         testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_A, "-");
         testToken(lexer, Type.OPERATOR, "(");
         testToken(lexer, Type.ID, "a");
@@ -340,7 +275,6 @@ public class TestLexer {
         Lexer lexer = new Lexer(text, charset);
 
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_L, "!");
         testToken(lexer, Type.ID, "true");
         testToken(lexer, Type.ENDL, null);
@@ -354,12 +288,10 @@ public class TestLexer {
         Lexer lexer = new Lexer(text, charset);
 
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.OPERATOR_L, "!");
         testToken(lexer, Type.ID, "true");
         testToken(lexer, Type.ENDL, null);
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.STRING, "next");
         testEnd(lexer);
     }
@@ -371,7 +303,6 @@ public class TestLexer {
         Lexer lexer = new Lexer(text, charset);
 
         testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
         testToken(lexer, Type.STRING, "HI \"X\"! \\");
         testEnd(lexer);
     }
@@ -382,10 +313,9 @@ public class TestLexer {
 
         Lexer lexer = new Lexer(text, charset);
 
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.WHITESPACE, null);
-        testToken(lexer, Type.STRING, "The cost is $100");
-        testEnd(lexer);
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "The cost is $100"), lexer.getToken());
+        assertNull(lexer.getToken());
     }
 
     @Test
@@ -435,13 +365,11 @@ public class TestLexer {
         text = "1//hey";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.INTEGER, "1");
-        testToken(lexer, Type.LINE_COMMENT, null);
         testEnd(lexer);
 
         text = "2/*hey*/+3";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.INTEGER, "2");
-        testToken(lexer, Type.BLOCK_COMMENT, null);
         testToken(lexer, Type.OPERATOR_A, "+");
         testToken(lexer, Type.INTEGER, "3");
         testEnd(lexer);
@@ -451,7 +379,6 @@ public class TestLexer {
                 " */+5";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.INTEGER, "4");
-        testToken(lexer, Type.BLOCK_COMMENT, null);
         testToken(lexer, Type.OPERATOR_A, "+");
         testToken(lexer, Type.INTEGER, "5");
         testEnd(lexer);
@@ -896,33 +823,6 @@ public class TestLexer {
     @Test
     public void testOperator() throws Exception {
 
-    }
-
-    @Test
-    public void testElvisOperator() throws Exception {
-        final String text = "unknown ?: -1";
-        final Lexer lexer = new Lexer(text, charset);
-        testToken(lexer, Type.ID, "unknown");
-        testToken(lexer, Type.WHITESPACE, null);
-        testToken(lexer, Type.OPERATOR, "?:");
-        testToken(lexer, Type.WHITESPACE, null);
-        testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.INTEGER, "1");
-        testEnd(lexer);
-    }
-
-    @Test
-    public void testOptionalChainingOperator() throws Exception {
-        final String text = "a?.b?.c";
-        final Lexer lexer = new Lexer(text, charset);
-        testToken(lexer, Type.ID, "a");
-        testToken(lexer, Type.OPERATOR, "?");
-        testToken(lexer, Type.OPERATOR, ".");
-        testToken(lexer, Type.ID, "b");
-        testToken(lexer, Type.OPERATOR, "?");
-        testToken(lexer, Type.OPERATOR, ".");
-        testToken(lexer, Type.ID, "c");
-        testEnd(lexer);
     }
 
     @Test
