@@ -563,8 +563,9 @@ public class Interpreter {
                             parameterToken = tryUnwrapVariable(rawParameterToken, localContext);
                         }
 
-                        if (variableType != Type.EPS && !variableType.equals(parameterToken.getType())) {
-                            throw new InterpreterException("Mismatched type for parameter " + rawParameterToken + "! Expected " + variableType + " but found " + parameterToken.getType());
+                        final Type parameterType = parameterToken.getType();
+                        if (variableType != Type.EPS && parameterType != Type.EPS && !variableType.equals(parameterType)) {
+                            throw new InterpreterException("Mismatched type for parameter " + rawParameterToken + "! Expected " + variableType + " but found " + parameterType);
                         }
 
                         if (variableNameToken.getValue().equals(parameterToken.getValue())) {
