@@ -37,7 +37,8 @@ public class FileUtil {
         File temp = new File(file.getParentFile(), file.getName() + ".tmp." + timestamp);
         temp.createNewFile();
 
-        try (FileWriter fw = new FileWriter(temp);
+        try (FileOutputStream fos = new FileOutputStream(temp);
+             OutputStreamWriter fw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
              BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(str);
         }
