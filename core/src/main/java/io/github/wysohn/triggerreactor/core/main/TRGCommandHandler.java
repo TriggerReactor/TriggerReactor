@@ -1325,6 +1325,45 @@ public class TRGCommandHandler {
                     sender.sendMessage(
                             "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     return true;
+                } else if (args.length == 3 && (args[0].equalsIgnoreCase("priority"))) {
+                    String name = args[1];
+                    int priority = -1;
+
+                    switch (args[2]) {
+                        case "lowest":
+                            priority = 100;
+                            break;
+                        case "low":
+                            priority = 200;
+                            break;
+                        case "normal":
+                            priority = 300;
+                            break;
+                        case "high":
+                            priority = 400;
+                            break;
+                        case "highest":
+                            priority = 500;
+                            break;
+                        case "monitor":
+                            priority = 600;
+                            break;
+                        default:
+                            sender.sendMessage("&7Invalid priority. " +
+                                    "Valid priorities are &6lowest&7, &6low&7, &6normal&7, &6high&7, &6highest&7, and &6monitor&7.");
+                            return true;
+                    }
+
+                    CustomTrigger trigger = customTriggerManager.get(name);
+                    if (trigger == null) {
+                        sender.sendMessage("&7No Custom Trigger found with name &6" + name);
+                        return true;
+                    }
+
+                    trigger.setPriority(priority);
+                    sender.sendMessage("&aSet the priority of &6" + name + "&a to &6" + args[2]);
+                    sender.sendMessage("&eNote that priority is not updated until &6/trg reload &e.");
+                    return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete")
                         || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
@@ -1544,6 +1583,7 @@ public class TRGCommandHandler {
                         "search",
                         "sudo",
                         "synccustom",
+                        "priority",
                         "timings",
                         "variables",
                         "version",
@@ -1576,6 +1616,7 @@ public class TRGCommandHandler {
                     case "sudo":
                         return null; //player selection
                     case "synccustom":
+                    case "priority":
                         return filter(triggerNames(customTriggerManager), args[1]);
                     case "timings":
                         return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
@@ -1597,6 +1638,8 @@ public class TRGCommandHandler {
                         return filter(Arrays.asList("aliases", "permission", "sync", "settab"), args[2]);
                     case "custom":
                         return filter(triggerNames(customTriggerManager), args[2]);
+                    case "priority":
+                        return filter(Arrays.asList("lowest", "low", "normal", "high", "highest"), args[2]);
                     case "delete":
                     case "del":
                         AbstractTriggerManager manager;
@@ -1706,10 +1749,20 @@ public class TRGCommandHandler {
             sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
             sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
             sender.sendMessage(
-                    "&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger "
-                            + "<name>");
+                    "&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
             sender.sendMessage("  &7/trg synccustom Greet");
 
+            sender.sendMessage("&b/triggerreactor[trg] priority <name> <priority> &8- &7Update priority of custom trigger <name>.");
+            sender.sendMessage("  &7/trg priority Greet normal &8- &7Set priority of custom trigger <name> to normal.");
+            sender.sendMessage("  &6*&7Available priorities: lowest, low, normal, high, highest, monitor");
+            sender.sendMessage("  &6*&7Default priority: highest");
+            sender.sendMessage("  &elowest&7: executed first. Can be cancelled by other triggers/plugins.");
+            sender.sendMessage("  &elow&7: executed after lowest priority.");
+            sender.sendMessage("  &enormal&7: executed after low priority. &eMost plugins use this priority.");
+            sender.sendMessage("  &ehigh&7: executed after normal priority. &eYou can possibly cancel other plugins' events.");
+            sender.sendMessage("  &ehighest&7: executed after high priority. &eYou can cancel all other plugins' events.");
+        });
+        add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
             sender.sendMessage(
                     "  &7&cWarning - This command will delete the previous data associated with the key if exists.");
