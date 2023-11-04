@@ -21,6 +21,7 @@ import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.IEventHook;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import javax.inject.Inject;
@@ -85,6 +86,27 @@ public class CustomTrigger extends Trigger implements IEventHook {
 
     public String getEventName() {
         return eventName;
+    }
+
+    /**
+     * Priority of this trigger. Lesser value means it will handle the event earlier. The specific mapping of the
+     * value depends on the implementation.
+     *
+     * @return priority. If less than 0, it will be ignored, and the default priority will be used. Default priority
+     * depends on the implementation. (NORMAL for Bukkit for example)
+     */
+    public int getPriority() {
+        return getInfo().get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_PRIORITY, Integer.class).orElse(-1);
+    }
+
+    /**
+     * Priority of this trigger. Lesser value means it will handle the event earlier. The specific mapping of the
+     * value depends on the implementation.
+     *
+     * @param priority new priority.
+     */
+    public void setPriority(int priority) {
+        getInfo().put(TriggerConfigKey.KEY_TRIGGER_CUSTOM_PRIORITY, priority);
     }
 
     @Override
