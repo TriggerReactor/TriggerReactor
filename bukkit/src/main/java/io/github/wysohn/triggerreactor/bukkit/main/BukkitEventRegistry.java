@@ -23,14 +23,16 @@ import io.github.wysohn.triggerreactor.core.IEventHook;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.event.*;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -98,17 +100,34 @@ public class BukkitEventRegistry implements IEventRegistry {
         return event;
     }
 
+    private EventPriority getPriority(int priority) {
+        if (priority < 0) {
+            return EventPriority.HIGHEST; // default
+        } else if (priority <= 100) {
+            return EventPriority.LOWEST;
+        } else if (priority <= 200) {
+            return EventPriority.LOW;
+        } else if (priority <= 300) {
+            return EventPriority.NORMAL;
+        } else if (priority <= 400) {
+            return EventPriority.HIGH;
+        } else if (priority <= 500) {
+            return EventPriority.HIGHEST;
+        } else {
+            return EventPriority.MONITOR;
+        }
+    }
+
     @Override
     public void registerEvent(Class<?> clazz, IEventHook eventHook) {
         Listener listener = new Listener() {
         };
         try {
-            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor() {
-                @Override
-                public void execute(Listener arg0, Event arg1) throws EventException {
-                    eventHook.onEvent(arg1);
-                }
-            }, plugin);
+            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz,
+                    listener,
+                    getPriority(eventHook.getPriority()),
+                    (l, event) -> eventHook.onEvent(event),
+                    plugin);
 
             registeredListerners.put(eventHook, listener);
         } catch (IllegalPluginAccessException e) {
