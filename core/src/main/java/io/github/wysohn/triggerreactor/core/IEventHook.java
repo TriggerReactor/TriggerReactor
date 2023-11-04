@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.core;
 
-@FunctionalInterface
 public interface IEventHook {
+    int getPriority();
+
     void onEvent(Object e);
 }
