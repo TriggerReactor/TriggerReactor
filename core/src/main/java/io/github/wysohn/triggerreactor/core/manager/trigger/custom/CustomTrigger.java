@@ -88,13 +88,6 @@ public class CustomTrigger extends Trigger implements IEventHook {
         return eventName;
     }
 
-    /**
-     * Priority of this trigger. Lesser value means it will handle the event earlier. The specific mapping of the
-     * value depends on the implementation.
-     *
-     * @return priority. If less than 0, it will be ignored, and the default priority will be used. Default priority
-     * depends on the implementation. (NORMAL for Bukkit for example)
-     */
     public int getPriority() {
         return getInfo().get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_PRIORITY, Integer.class).orElse(-1);
     }
