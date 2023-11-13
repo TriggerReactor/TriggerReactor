@@ -181,11 +181,14 @@ public abstract class Trigger implements Cloneable, IObservable {
      * @return true if activated; false if on cooldown
      */
     public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
-        if (checkCooldown(e)) {
+        IPlayer iPlayer = triggerDependencyFacade.extractPlayerFromContext(e);
+
+        if (checkCooldown(iPlayer)) {
             return false;
         }
 
         scriptVars.put("event", e);
+        scriptVars.put("cooldown", new TriggerCooldownProxy(this));
         scriptVars.putAll(triggerDependencyFacade.getExtraVariables(e));
 
         startInterpretation(e, scriptVars, interpreter, sync);
@@ -193,21 +196,60 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     /**
-     * @param e
+     * Check if this trigger is on cooldown caused by #COOLDOWN executor.
+     *
+     * @param iPlayer the player to check the cooldown
      * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
      */
-    protected boolean checkCooldown(Object e) {
-        IPlayer iPlayer = triggerDependencyFacade.extractPlayerFromContext(e);
-
+    protected boolean checkCooldown(IPlayer iPlayer) {
         if (iPlayer != null) {
-            UUID uuid = iPlayer.getUniqueId();
-
-            if (uuid != null) {
-                Long end = cooldowns.get(uuid);
-                return end != null && System.currentTimeMillis() < end;
-            }
+            return checkCooldown(iPlayer.getUniqueId());
         }
         return false;
+    }
+
+    /**
+     * Check if this trigger is on cooldown caused by #COOLDOWN executor.
+     *
+     * @param playerUuid the uuid of the player to check the cooldown
+     * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
+     */
+    public boolean checkCooldown(UUID playerUuid) {
+        if (playerUuid != null) {
+            Long end = cooldowns.get(playerUuid);
+            return end != null && System.currentTimeMillis() < end;
+        }
+        return false;
+    }
+
+    /**
+     * Check time until cooldown ends in milliseconds.
+     *
+     * @param iPlayer the player to check the cooldown
+     * @return time until cooldown ends in milliseconds; 0 if not cooldown or 'e' is not a compatible type
+     */
+    protected long checkCooldownUntilMillis(IPlayer iPlayer) {
+        if (iPlayer != null) {
+            return checkCooldownUntilMillis(iPlayer.getUniqueId());
+        }
+        return 0;
+    }
+
+    /**
+     * Check time until cooldown ends in milliseconds.
+     *
+     * @param playerUuid the uuid of the player to check the cooldown
+     * @return time until cooldown ends in milliseconds; 0 if not cooldown or 'e' is not a compatible type
+     */
+    public long checkCooldownUntilMillis(UUID playerUuid) {
+        if (playerUuid != null) {
+            Long end = cooldowns.get(playerUuid);
+            if (end == null) return 0;
+
+            long current = System.currentTimeMillis();
+            return Math.max(0, end - current);
+        }
+        return 0;
     }
 
     protected ProcessInterrupter createInterrupter() {
