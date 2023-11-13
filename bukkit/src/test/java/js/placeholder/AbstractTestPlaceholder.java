@@ -18,6 +18,7 @@
 package js.placeholder;
 
 import com.google.inject.Injector;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerCooldownProxy;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
@@ -42,11 +43,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Test driving class for testing Placeholders
@@ -1447,5 +1448,76 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         int result = (int) test.test();
 
         Assert.assertEquals(z, result);
+    }
+
+    @Test
+    public void testIscooldown_false() throws Exception {
+        // arrange
+        Player player = mock(Player.class);
+        TriggerCooldownProxy proxy = mock(TriggerCooldownProxy.class);
+
+        JsTest test = new PlaceholderTest(engine, "iscooldown")
+                .addVariable("cooldown", proxy)
+                .addVariable("player", player);
+
+        // act
+        boolean result = (boolean) test.test();
+
+        // assert
+        Assert.assertFalse(result);
+    }
+
+    @Test
+    public void testIscooldown_true() throws Exception {
+        // arrange
+        Player player = mock(Player.class);
+        TriggerCooldownProxy proxy = mock(TriggerCooldownProxy.class);
+
+        when(proxy.isCooldown(any())).thenReturn(true);
+
+        JsTest test = new PlaceholderTest(engine, "iscooldown")
+                .addVariable("cooldown", proxy)
+                .addVariable("player", player);
+
+        // act
+        boolean result = (boolean) test.test();
+
+        // assert
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void testCooldownuntil() throws Exception {
+        // arrange
+        Player player = mock(Player.class);
+        TriggerCooldownProxy proxy = mock(TriggerCooldownProxy.class);
+
+        JsTest test = new PlaceholderTest(engine, "cooldownuntil")
+                .addVariable("cooldown", proxy)
+                .addVariable("player", player);
+
+        // act
+        test.test();
+
+        // assert
+        verify(proxy).getCooldown(any(), any());
+    }
+
+    @Test
+    public void testCooldownuntil_seconds() throws Exception {
+        // arrange
+        Player player = mock(Player.class);
+        TriggerCooldownProxy proxy = mock(TriggerCooldownProxy.class);
+
+        JsTest test = new PlaceholderTest(engine, "cooldownuntil")
+                .addVariable("cooldown", proxy)
+                .addVariable("player", player)
+                .withArgs("seconds");
+
+        // act
+        test.test();
+
+        // assert
+        verify(proxy).getCooldown(any(), eq(TimeUnit.SECONDS));
     }
 }
