@@ -36,7 +36,7 @@ allprojects {
                     "guice-assistedinject-5.1.0.jar",
                     "javax.inject-1.jar",
                     "aopalliance-1.0.jar",
-                    "mysql-connector-java-5.1.13.jar",
+                    "mysql-connector-j-8.0.33.jar",
             ]
 
             configurations.runtimeClasspath
