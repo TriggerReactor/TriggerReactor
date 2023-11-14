@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core;
 
+@FunctionalInterface
 public interface IEventHook {
     /**
      * Get the priority of this hook. Lesser value means it will handle the event earlier. The specific mapping of the
