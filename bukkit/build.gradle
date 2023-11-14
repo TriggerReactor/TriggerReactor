@@ -34,6 +34,7 @@ allprojects {
                     "commons-lang3-3.12.0.jar",
                     "guice-5.1.0.jar",
                     "guice-assistedinject-5.1.0.jar",
+                    "javax.inject-1.jar",
                     "aopalliance-1.0.jar",
                     "mysql-connector-java-5.1.13.jar",
             ]
