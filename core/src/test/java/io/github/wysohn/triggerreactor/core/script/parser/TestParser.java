@@ -744,6 +744,35 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
     }
 
+    @Test
+    public void testLineComment() throws Exception {
+        // arrange
+        final String text = String.join(
+                "\n",
+                "{?$playername+\".CaptureScore\"} = {?$playername+\".CaptureScore\"} + cScore\n",
+                "                \n",
+                "                //점령시 알림 반복문\n",
+                "                FOR p = getPlayers() //플레이어 리스트 불러오기\n",
+                "                    IF {?p.getName()+\".captureTeam\"} == 1 && p.getWorld().getName() == \"CaptureGame\"\n",
+                "                        #MESSAGE p.getName() + \"님이 \" + {?$playername+\".captureTeamName\"} + \"팀이 점령중인 지역을 점령했습니다!\"\n",
+                "                    ENDIF\n",
+                "                ENDFOR\n"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Queue<Node> queue = new LinkedList<>();
+
+        // act
+        final Node root = parser.parse();
+
+        serializeNode(queue, root);
+
+        // assert
+
+    }
+
     private void serializeNode(Queue<Node> queue, Node node) {
         for (Node child : node.getChildren()) {
             serializeNode(queue, child);

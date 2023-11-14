@@ -83,6 +83,9 @@ public class ExceptionHandle implements IExceptionHandle {
     }
 
     private void sendExceptionMessage(ICommandSender sender, Throwable e) {
+        if (!sender.hasPermissionToSeeExceptions())
+            return;
+
         taskSupervisor.runTask(() -> {
             Throwable ex = e;
             sender.sendMessage("&cCould not execute this trigger.");

@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.bridge;
 
+import io.github.wysohn.triggerreactor.core.Constants;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import org.bukkit.ChatColor;
 
@@ -34,6 +35,11 @@ public class BukkitCommandSender implements ICommandSender {
     @Override
     public boolean hasPermission(String permission) {
         return sender.hasPermission(permission);
+    }
+
+    @Override
+    public boolean hasPermissionToSeeExceptions() {
+        return hasPermission(Constants.PERMISSION_SEE_EXCEPTIONS);
     }
 
     @Override

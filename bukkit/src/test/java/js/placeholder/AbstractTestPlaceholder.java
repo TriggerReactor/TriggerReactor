@@ -17,6 +17,7 @@
 
 package js.placeholder;
 
+import com.google.inject.Injector;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
@@ -43,6 +44,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -920,6 +922,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         FakeMysqlHelper mysqlHelper = mock(FakeMysqlHelper.class);
         FakePlugin plugin = mock(FakePlugin.class);
+        Injector injector = mock(Injector.class);
         Player player = mock(Player.class);
 
         String key = "testKey";
@@ -927,8 +930,10 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         when(plugin.getMysqlHelper()).thenReturn(mysqlHelper);
         when(mysqlHelper.get(key)).thenReturn(value);
+        when(injector.getInstance(any(Class.class))).thenReturn(mysqlHelper);
 
         JsTest test = new PlaceholderTest(engine, "mysql")
+                .addVariable("injector", injector)
                 .addVariable("player", player)
                 .addVariable("plugin", plugin);
 

@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.core.main;
 
+import io.github.wysohn.triggerreactor.core.Constants;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -61,7 +62,6 @@ import java.util.stream.Collectors;
 
 @Singleton
 public class TRGCommandHandler {
-    public static final String PERMISSION = "triggerreactor.admin";
 
     @Inject
     private Logger logger;
@@ -166,7 +166,7 @@ public class TRGCommandHandler {
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
-            if (!sender.hasPermission(PERMISSION))
+            if (!sender.hasPermission(Constants.PERMISSION))
                 return true;
 
             if (!pluginManagement.isEnabled()) {
@@ -1520,7 +1520,7 @@ public class TRGCommandHandler {
 
     //only for /trg command
     public List<String> onTabComplete(ICommandSender sender, String[] args) {
-        if (!sender.hasPermission(PERMISSION))
+        if (!sender.hasPermission(Constants.PERMISSION))
             return Collections.singletonList("permission denied.");
 
         switch (args.length) {

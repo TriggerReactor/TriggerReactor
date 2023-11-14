@@ -49,6 +49,8 @@ public class ExceptionHandleTest {
     public void handleException() {
         // Arrange
         ICommandSender sender = mock(ICommandSender.class);
+
+        when(sender.hasPermissionToSeeExceptions()).thenReturn(true);
         when(pluginManagement.getConsoleSender()).thenReturn(sender);
 
         doAnswer(invocationOnMock -> {
@@ -72,6 +74,8 @@ public class ExceptionHandleTest {
     public void testHandleException() {
         // Arrange
         IPlayer sender = mock(IPlayer.class);
+
+        when(sender.hasPermissionToSeeExceptions()).thenReturn(true);
         when(pluginManagement.extractPlayerFromContext(any())).thenReturn(sender);
 
         doAnswer(invocationOnMock -> {

@@ -4,6 +4,7 @@ import com.google.inject.*;
 import com.google.inject.name.Names;
 import io.github.wysohn.gsoncopy.JsonElement;
 import io.github.wysohn.gsoncopy.JsonParser;
+import io.github.wysohn.triggerreactor.core.Constants;
 import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
@@ -17,6 +18,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
@@ -180,6 +182,14 @@ public class TriggerReactorCoreTest {
         Injector injector = Guice.createInjector(modules);
         injector.getInstance(TriggerReactorCore.class).initialize();
         return injector;
+    }
+
+    private String generateLongText(int length) {
+        StringBuilder longText = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            longText.append("This is a very long text content. ");
+        }
+        return longText.toString();
     }
 
     @Test
@@ -375,7 +385,7 @@ public class TriggerReactorCoreTest {
 
         TRGCommandHandler handler = createInjector().getInstance(TRGCommandHandler.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
@@ -395,7 +405,7 @@ public class TriggerReactorCoreTest {
 
         TRGCommandHandler handler = createInjector().getInstance(TRGCommandHandler.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(pluginManagement.getVersion()).thenReturn("1.3.4");
@@ -429,7 +439,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
         ClickTriggerManager clickTriggerManager = injector.getInstance(ClickTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
@@ -475,7 +485,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         ClickTriggerManager clickTriggerManager = injector.getInstance(ClickTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
@@ -516,7 +526,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
         WalkTriggerManager walkTriggerManager = injector.getInstance(WalkTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
@@ -562,7 +572,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         WalkTriggerManager walkTriggerManager = injector.getInstance(WalkTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
@@ -599,7 +609,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
@@ -644,7 +654,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION))
+        when(sender.hasPermission(Constants.PERMISSION))
                 .thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
@@ -678,7 +688,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
 
@@ -703,7 +713,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
 
@@ -729,7 +739,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         CommandTriggerManager cmdTriggerManager = injector.getInstance(CommandTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(commandHandler.register(any(), any())).thenReturn(mockCommand);
 
@@ -762,7 +772,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(sender.getItemInMainHand()).thenReturn(itemInHand);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(itemInHand.get()).thenReturn(sampleItem); // this should be a real item, but we don't care for this test
@@ -785,7 +795,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(sender.getLocation()).thenReturn(location);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(location.get()).thenReturn(sampleLocation); // this should be a real location, but we don't care for this test
@@ -805,7 +815,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -823,7 +833,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -841,7 +851,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -859,7 +869,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -877,7 +887,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         globalVariableManager.put("myKey", "myValue3346245");
 
@@ -895,7 +905,7 @@ public class TriggerReactorCoreTest {
         Injector injector = createInjector();
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -912,7 +922,7 @@ public class TriggerReactorCoreTest {
         Injector injector = createInjector();
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(gameManagement.getPlayer("target")).thenReturn(target);
 
@@ -931,7 +941,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         NamedTrigger namedTrigger = mock(NamedTrigger.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(taskSupervisor.submitSync(any())).thenAnswer(invocation -> {
             Callable callable = invocation.getArgument(0);
@@ -969,7 +979,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1001,7 +1011,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1026,7 +1036,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1057,7 +1067,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(inventoryTrigger.getInfo()).thenReturn(triggerInfo);
         when(triggerInfo.getSourceCodeFile()).thenReturn(sourceFile);
@@ -1087,7 +1097,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(sender.getItemInMainHand()).thenReturn(itemInHand);
         when(itemInHand.getType()).thenReturn("STONE"); // should be Material.STONE, but not necessary for test
         when(pluginManagement.isEnabled()).thenReturn(true);
@@ -1118,7 +1128,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1142,7 +1152,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1168,7 +1178,7 @@ public class TriggerReactorCoreTest {
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(sender.getItemInMainHand()).thenReturn(itemInHand);
         when(itemInHand.getType()).thenReturn("STONE"); // should be Material.STONE, but not necessary for test
         when(pluginManagement.isEnabled()).thenReturn(true);
@@ -1198,7 +1208,7 @@ public class TriggerReactorCoreTest {
         AreaSelectionManager areaSelectionManager = injector.getInstance(AreaSelectionManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1242,7 +1252,7 @@ public class TriggerReactorCoreTest {
         AreaTriggerManager areaTriggerManager = injector.getInstance(AreaTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(areaTrigger.getInfo()).thenReturn(triggerInfo);
         when(triggerInfo.getSourceCodeFile()).thenReturn(folder.newFile("MyArea.trg"));
@@ -1276,7 +1286,7 @@ public class TriggerReactorCoreTest {
         AreaTriggerManager areaTriggerManager = injector.getInstance(AreaTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(areaTrigger.getInfo()).thenReturn(triggerInfo);
         when(triggerInfo.getSourceCodeFile()).thenReturn(folder.newFile("MyArea.trg"));
@@ -1310,7 +1320,7 @@ public class TriggerReactorCoreTest {
         AreaTriggerManager areaTriggerManager = injector.getInstance(AreaTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(areaTrigger.getInfo()).thenReturn(triggerInfo);
         when(triggerInfo.getSourceCodeFile()).thenReturn(folder.newFile("MyArea.trg"));
@@ -1344,7 +1354,7 @@ public class TriggerReactorCoreTest {
         CustomTriggerManager customTriggerManager = injector.getInstance(CustomTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(customTrigger.getInfo()).thenReturn(triggerInfo);
         when(triggerInfo.getSourceCodeFile()).thenReturn(folder.newFile("MyCustomTrigger.trg"));
@@ -1373,7 +1383,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1405,7 +1415,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(pluginManagement.getConsoleSender()).thenReturn(sender);
 
@@ -1450,7 +1460,7 @@ public class TriggerReactorCoreTest {
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         GlobalVariableManager globalVariableManager = injector.getInstance(GlobalVariableManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -1469,6 +1479,37 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertJsonEquals(generateSampleJson(max), readContent("var.json"));
+    }
+
+    @Test
+    public void command_saveAll_commandTrigger() throws Exception {
+        // arrange
+        String longText = generateLongText(100000);
+
+        int max = 1000;
+        Injector injector = createInjector();
+
+        CommandTriggerManager commandTriggerManager = injector.getInstance(CommandTriggerManager.class);
+
+        TriggerInfo info = mock(TriggerInfo.class);
+        when(info.getSourceCodeFile()).thenReturn(folder.newFile("command.json"));
+        CommandTrigger trigger = mock(CommandTrigger.class);
+        when(trigger.getInfo()).thenReturn(info);
+        when(trigger.getScript()).thenReturn(longText);
+        when(trigger.getAliases()).thenReturn(new String[0]);
+
+        commandTriggerManager.put("command", trigger);
+
+        // act
+        for (int i = 0; i < max; i++) {
+            commandTriggerManager.saveAll();
+            commandTriggerManager.reload();
+        }
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
+        // assert
+        assertEquals(longText, readContent("command.json"));
     }
 
     private String generateSampleJson(int size) {

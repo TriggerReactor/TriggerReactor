@@ -187,7 +187,14 @@ public class GsonConfigSource implements IConfigSource {
         }
 
         try {
-            Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            // https://github.com/openjdk/jdk/blob/ecd25e7d6f9d69f9dbdbff0a4a9b9d6b19288593/src/java.base/windows/classes/sun/nio/fs/WindowsFileCopy.java#L320C17-L320C27
+            // In Windows environment, using Files.move() with ATOMIC_MOVE flag triggers MOVEFILE_REPLACE_EXISTING for windows
+            //   file system, which is actually desired than the behavior of REPLACE_EXISTING, which is to delete the target,
+            //   and then move the source to the target.
+            // https://github.com/openjdk/jdk/blob/ecd25e7d6f9d69f9dbdbff0a4a9b9d6b19288593/src/java.base/unix/classes/sun/nio/fs/UnixFileSystem.java#L874C17-L874C23
+            // Likewise, in Unix environment, using Files.move() with ATOMIC_MOVE flag triggers rename(), which, by default,
+            //   replaces the target if it exists. (https://man7.org/linux/man-pages/man2/rename.2.html)
+            Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             throw new RuntimeException("Failed to rename temp file to " + file.getName(), e);
         }

@@ -70,15 +70,27 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      *
      * @param playerName    name of the player
      * @param inventoryName name of the InventoryTrigger
+     * @param varMap        connect varMaps
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      * @throws IllegalArgumentException if the player is not online or not found
      */
-    public IInventory openGUI(String playerName, String inventoryName) {
+    public IInventory openGUI(String playerName, String inventoryName, Map<String, Object> varMap) {
         IPlayer player = gameManagement.getPlayer(playerName);
         if (player == null)
             throw new IllegalArgumentException("Player " + playerName + " not found!");
 
-        return openGUI(player, inventoryName);
+        return openGUI(player, inventoryName, varMap);
+    }
+
+    /**
+     * Read {@link #openGUI(String, String, Map)}
+     *
+     * @param playerName
+     * @param inventoryName
+     * @return
+     */
+    public IInventory openGUI(String playerName, String inventoryName) {
+        return openGUI(playerName, inventoryName, new HashMap<>());
     }
 
     /**
@@ -86,9 +98,10 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      *
      * @param player        target player
      * @param inventoryName name of the InventoryTrigger
+     * @param varMap        connect varMaps
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
-    public IInventory openGUI(IPlayer player, String inventoryName) {
+    public IInventory openGUI(IPlayer player, String inventoryName, Map<String, Object> varMap) {
         InventoryTrigger trigger = get(inventoryName);
         if (trigger == null)
             return null;
@@ -100,7 +113,6 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         IInventory inventory = inventoryHandle.createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
 
-        Map<String, Object> varMap = new HashMap<>();
         varMap.put("inventory", inventory.get());
         inventorySharedVars.put(inventory, varMap);
 
@@ -109,6 +121,17 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         player.openInventory(inventory);
 
         return inventory;
+    }
+
+    /**
+     * Read {@link #openGUI(IPlayer, String, Map)}
+     *
+     * @param player
+     * @param inventoryName
+     * @return
+     */
+    public IInventory openGUI(IPlayer player, String inventoryName) {
+        return openGUI(player, inventoryName, new HashMap<>());
     }
 
     /**

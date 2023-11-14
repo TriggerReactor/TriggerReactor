@@ -21,6 +21,8 @@ public interface ICommandSender extends IMinecraftObject {
 
     boolean hasPermission(String permission);
 
+    boolean hasPermissionToSeeExceptions();
+
     /**
      * hashCode() and equals() are needed for ScriptEditManager
      *
