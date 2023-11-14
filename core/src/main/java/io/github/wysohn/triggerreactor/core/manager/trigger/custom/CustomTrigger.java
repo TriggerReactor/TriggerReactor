@@ -88,6 +88,7 @@ public class CustomTrigger extends Trigger implements IEventHook {
         return eventName;
     }
 
+    @Override
     public int getPriority() {
         return getInfo().get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_PRIORITY, Integer.class).orElse(-1);
     }
