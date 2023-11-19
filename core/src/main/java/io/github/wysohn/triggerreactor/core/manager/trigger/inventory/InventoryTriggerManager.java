@@ -25,14 +25,15 @@ import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -43,6 +44,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
     public static final String TITLE = "Title";
 
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
+    final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
     @Inject
     private IGameManagement gameManagement;
@@ -99,8 +101,11 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         IInventory inventory = inventoryHandle.createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
 
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("inventory", inventory.get());
+        Map<String, Object> varMap = new ConcurrentHashMap<>();
+        varMap.put("inventory", Optional.of(inventory)
+                .map(IScriptObject::get)
+                .orElse(null));
+        inventorySharedVars.put(inventory, varMap);
 
         inventoryHandle.fillInventory(trigger, trigger.getItems().length, inventory);
 
@@ -146,8 +151,10 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
             return;
         InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
 
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player.get());
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        varMap.put("player", Optional.of(player)
+                .map(IScriptObject::get)
+                .orElse(null));
         varMap.put("trigger", "open");
 
         trigger.activate(eventInstance, varMap);
@@ -169,8 +176,11 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
         eventCancelled.accept(!trigger.canPickup());
 
-        Map<String, Object> varMap = trigger.getVarCopy();
-        varMap.put("item", clickedItem.clone().get());
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        varMap.put("item", Optional.of(clickedItem)
+                .map(IItemStack::clone)
+                .map(IScriptObject::get)
+                .orElse(null));
         varMap.put("slot", rawSlot);
         varMap.put("click", clickName);
         varMap.put("hotbar", hotbar);
@@ -190,13 +200,16 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
             return;
         InventoryTrigger trigger = inventoryMap.get(inventory);
 
-        Map<String, Object> varMap = trigger.getVarCopy();
-        varMap.put("player", player.get());
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        varMap.put("player", Optional.of(player)
+                .map(IScriptObject::get)
+                .orElse(null));
         varMap.put("trigger", "close");
 
         trigger.activate(e, varMap, true);
 
         inventoryMap.remove(inventory);
+        inventorySharedVars.remove(inventory);
     }
 
     public boolean hasInventoryOpen(IInventory inventory) {
