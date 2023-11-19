@@ -1176,6 +1176,7 @@ public class TriggerReactorCoreTest {
         Injector injector = createInjector();
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         IItemStack itemInHand = mock(IItemStack.class);
+        IInventory inventory = mock(IInventory.class);
 
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
@@ -1185,7 +1186,8 @@ public class TriggerReactorCoreTest {
         when(itemInHand.getType()).thenReturn("STONE"); // should be Material.STONE, but not necessary for test
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(itemInHand.clone()).thenReturn(itemInHand);
-        when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(mock(IInventory.class));
+        when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(inventory);
+        when(inventory.get()).thenReturn(new Object());
 
         inventoryTriggerManager.createTrigger(54, "MyInventory", "#MESSAGE \"Hello World\"");
 
@@ -1536,7 +1538,10 @@ public class TriggerReactorCoreTest {
         when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(platformInventory);
+        when(platformInventory.get()).thenReturn(new Object());
+        when(sender.get()).thenReturn(new Object());
         when(clickedItem.clone()).thenReturn(clickedItem);
+        when(clickedItem.get()).thenReturn(new Object());
         doAnswer(invocation -> {
             Runnable runnable = invocation.getArgument(0);
             runnable.run();
