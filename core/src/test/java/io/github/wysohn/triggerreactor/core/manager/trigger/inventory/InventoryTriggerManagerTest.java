@@ -119,6 +119,7 @@ public class InventoryTriggerManagerTest {
 
         IInventory mockInventory = mock(IInventory.class);
         when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
+        when(mockInventory.get()).thenReturn(new Object());
 
         IPlayer player = mock(IPlayer.class);
         String invName = "test";
@@ -144,6 +145,8 @@ public class InventoryTriggerManagerTest {
         IPlayer player = mock(IPlayer.class);
 
         when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
+        when(mockInventory.get()).thenReturn(new Object());
+        when(player.get()).thenReturn(new Object());
 
         IInventory inv = manager.openGUI(player, "test");
         manager.onOpen(eventInstance, inv, player);
@@ -164,6 +167,7 @@ public class InventoryTriggerManagerTest {
         when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
         when(item.clone()).thenReturn(item);
         when(item.get()).thenReturn(new ItemStack());
+        when(mockInventory.get()).thenReturn(new Object());
 
         IInventory inv = manager.openGUI(player, "test");
         manager.onClick(eventInstance,
@@ -190,6 +194,7 @@ public class InventoryTriggerManagerTest {
         when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
         when(item.clone()).thenReturn(item);
         when(item.get()).thenReturn(new ItemStack());
+        when(mockInventory.get()).thenReturn(new Object());
 
         IInventory inv = manager.openGUI(player, "test");
         manager.onClick(eventInstance,
@@ -214,6 +219,8 @@ public class InventoryTriggerManagerTest {
         IPlayer player = mock(IPlayer.class);
 
         when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
+        when(mockInventory.get()).thenReturn(new Object());
+        when(player.get()).thenReturn(new Object());
 
         IInventory inv = manager.openGUI(player, "test");
         manager.onInventoryClose(eventInstance, player, inv);
@@ -228,6 +235,7 @@ public class InventoryTriggerManagerTest {
 
         IInventory mockInventory = mock(IInventory.class);
         when(handle.createInventory(anyInt(), any())).thenReturn(mockInventory);
+        when(mockInventory.get()).thenReturn(new Object());
 
         assertFalse(manager.hasInventoryOpen(mockInventory));
 
