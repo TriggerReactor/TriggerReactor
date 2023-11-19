@@ -43,7 +43,6 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
     public static final String TITLE = "Title";
 
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
-    final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
     @Inject
     private IGameManagement gameManagement;
@@ -102,7 +101,6 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("inventory", inventory.get());
-        inventorySharedVars.put(inventory, varMap);
 
         inventoryHandle.fillInventory(trigger, trigger.getItems().length, inventory);
 
@@ -148,7 +146,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
             return;
         InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
 
-        Map<String, Object> varMap = getSharedVarsForInventory(inventory);
+        Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", player.get());
         varMap.put("trigger", "open");
 
@@ -171,7 +169,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
         eventCancelled.accept(!trigger.canPickup());
 
-        Map<String, Object> varMap = getSharedVarsForInventory(inventory);
+        Map<String, Object> varMap = trigger.getVarCopy();
         varMap.put("item", clickedItem.clone().get());
         varMap.put("slot", rawSlot);
         varMap.put("click", clickName);
@@ -192,14 +190,13 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
             return;
         InventoryTrigger trigger = inventoryMap.get(inventory);
 
-        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        Map<String, Object> varMap = trigger.getVarCopy();
         varMap.put("player", player.get());
         varMap.put("trigger", "close");
 
         trigger.activate(e, varMap, true);
 
         inventoryMap.remove(inventory);
-        inventorySharedVars.remove(inventory);
     }
 
     public boolean hasInventoryOpen(IInventory inventory) {
@@ -208,10 +205,6 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
 
     private InventoryTrigger getTriggerForOpenInventory(IInventory inventory) {
         return inventoryMap.get(inventory);
-    }
-
-    private Map<String, Object> getSharedVarsForInventory(IInventory inventory) {
-        return inventorySharedVars.get(inventory);
     }
 
 }
