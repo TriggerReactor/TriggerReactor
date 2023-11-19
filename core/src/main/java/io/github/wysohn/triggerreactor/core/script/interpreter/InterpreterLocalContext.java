@@ -60,7 +60,7 @@ public class InterpreterLocalContext {
      */
     private final Map<String, Object> extras = new HashMap<>();
 
-    private final Map<String, Object> vars = new HashMap<>();
+    private final Map<String, Object> vars;
     private ProcessInterrupter interrupter = null;
 
     private final Timings.Timing timing;
@@ -73,12 +73,13 @@ public class InterpreterLocalContext {
     private int callArgsSize = 0;
 
     public InterpreterLocalContext(Timings.Timing timing) {
-        this(timing, null);
+        this(timing, null, new HashMap<>());
     }
 
-    public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter) {
+    public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter, Map<String, Object> vars) {
         this.timing = timing;
         this.interrupter = interrupter;
+        this.vars = vars;
     }
 
     /**
@@ -93,10 +94,11 @@ public class InterpreterLocalContext {
         return tryOrThrow(() -> {
             // attach lambda timings to the caller timings
             InterpreterLocalContext context = new InterpreterLocalContext(
-                    Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO), interrupter);
+                    Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO),
+                    interrupter,
+                    vars);
 
             context.importMap.putAll(importMap);
-            context.vars.putAll(vars);
             //TODO what exactly it was used for?
             context.extras.putAll(extras);
 
