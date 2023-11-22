@@ -17,6 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import org.apache.commons.lang.Validate;
@@ -40,7 +42,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
         this.targetPluginName = targetPluginName;
 
-        this.logger = injector.getInstance(Logger.class);
+        this.logger = injector.getInstance(Key.get(Logger.class, Names.named("PluginLogger")));
         this.server = injector.getInstance(Server.class);
     }
 

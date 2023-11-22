@@ -17,6 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.coreprotect.CoreProtect;
@@ -36,7 +38,7 @@ public class CoreprotectSupport extends APISupport {
     public CoreprotectSupport(Injector injector) {
         super(injector, "CoreProtect");
 
-        logger = injector.getInstance(Logger.class);
+        logger = injector.getInstance(Key.get(Logger.class, Names.named("PluginLogger")));
     }
 
     @Override
