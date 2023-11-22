@@ -17,6 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.milkbowl.vault.chat.Chat;
@@ -38,7 +40,7 @@ public class VaultSupport extends APISupport {
 
     public VaultSupport(Injector injector) {
         super(injector, "Vault");
-        this.logger = injector.getInstance(Logger.class);
+        this.logger = injector.getInstance(Key.get(Logger.class, Names.named("PluginLogger")));
         this.plugin = injector.getInstance(Plugin.class);
     }
 
