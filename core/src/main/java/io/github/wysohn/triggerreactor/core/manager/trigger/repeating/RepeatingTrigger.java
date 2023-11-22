@@ -31,6 +31,7 @@ import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
@@ -76,9 +77,18 @@ public class RepeatingTrigger extends Trigger implements Runnable {
      * We don't use cooldown for this trigger. Just return false always
      */
     @Override
-    protected boolean checkCooldown(Object e) {
+    public boolean checkCooldown(UUID playerUuid) {
         return false;
     }
+
+    /**
+     * We don't use cooldown for this trigger. Just return 0 always
+     */
+    @Override
+    public long checkCooldownUntilMillis(UUID playerUuid) {
+        return 0;
+    }
+
 
     public long getInterval() {
         return info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Long.class)

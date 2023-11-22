@@ -107,7 +107,8 @@ public interface IPluginManagement {
      * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
      * the Inventory was closed, it is the iterrupter's responsibility to do that.
      *
-     * @param cooldowns    list of current cooldowns.
+     * @param cooldowns    the end of the cooldown in epoch, millisecond. If the cooldown is not set, it should be
+     *                     considered as no cooldown.
      * @param inventoryMap the inventory map that contains all the information about open inventories. As child class
      *                     that implements
      *                     IIventory should override hashCode() and equals() methods, you can assume that each

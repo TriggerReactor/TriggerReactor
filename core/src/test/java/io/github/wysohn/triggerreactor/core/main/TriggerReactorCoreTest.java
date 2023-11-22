@@ -1372,6 +1372,38 @@ public class TriggerReactorCoreTest {
     }
 
     @Test
+    public void command_customTrigger_setPriority() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+        CustomTrigger customTrigger = mock(CustomTrigger.class);
+        TriggerInfo triggerInfo = mock(TriggerInfo.class);
+
+        CustomTriggerManager customTriggerManager = injector.getInstance(CustomTriggerManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+        when(customTrigger.getInfo()).thenReturn(triggerInfo);
+        when(triggerInfo.getSourceCodeFile()).thenReturn(folder.newFile("MyCustomTrigger.trg"));
+        when(customTrigger.getScript()).thenReturn("#MESSAGE \"Hello World\"");
+        doReturn(Object.class).when(eventRegistry).getEvent("onJoin");
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"custom", "onJoin", "MyCustomTrigger", "#MESSAGE \"Hello World\""});
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"priority", "MyCustomTrigger", "normal"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
+        // assert
+        assertNotNull(customTriggerManager.get("MyCustomTrigger"));
+        assertEquals("#MESSAGE \"Hello World\"", customTriggerManager.get("MyCustomTrigger").getScript());
+        assertEquals(300, customTriggerManager.get("MyCustomTrigger").getPriority());
+    }
+
+    @Test
     public void command_repeatTrigger_create() throws Exception {
         // arrange
         UUID uuid = UUID.randomUUID();
