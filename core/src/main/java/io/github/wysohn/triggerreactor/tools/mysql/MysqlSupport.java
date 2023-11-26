@@ -1,7 +1,6 @@
-package io.github.wysohn.triggerreactor.bukkit.main;
+package io.github.wysohn.triggerreactor.tools.mysql;
 
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
-import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -27,7 +26,7 @@ public class MysqlSupport {
     private MysqlSupport() {
     }
 
-    void connect(String address, String dbName, String userName, String password) throws SQLException {
+    public void connect(String address, String dbName, String userName, String password) throws SQLException {
         this.address = address;
         this.dbName = dbName;
 

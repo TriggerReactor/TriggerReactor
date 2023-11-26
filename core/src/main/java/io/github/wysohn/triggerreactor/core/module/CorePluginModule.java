@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.main.ExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.module.manager.ManagerModule;
+import io.github.wysohn.triggerreactor.tools.mysql.MysqlSupport;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class CorePluginModule extends AbstractModule {
         install(new ManagerModule());
         install(new APISupportModule());
 
+        bind(MysqlSupport.class);
         bind(IExceptionHandle.class).to(ExceptionHandle.class);
     }
 
