@@ -3,18 +3,25 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.mysql.MysqlSupport;
 import org.apache.commons.lang3.ClassUtils;
 
+import javax.inject.Inject;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.*;
 
 public class CommonFunctions implements SelfReference {
     private static final Random rand = new Random();
+
+    @Inject
+    private MysqlSupport mysqlSupport;
 
     /**
      * get a random integer value between 0 to end
@@ -548,4 +555,33 @@ public class CommonFunctions implements SelfReference {
         }
     }
 
+    /**
+     * Insert new value or replace existing value in the mysql database.
+     * <p>
+     * This is a blocking operation where you should not call it in the main thread.
+     * Example)
+     * ASYNC
+     * mysqlPut("key", "value");
+     * #MESSAGE "Saved";
+     * END
+     *
+     * @param key   the unique key
+     * @param value the value to save
+     */
+    public void mysqlPut(String key, Serializable value) {
+        try {
+            mysqlSupport.set(key, value);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Object mysqlGet(String key) {
+        try {
+            return mysqlSupport.get(key);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
