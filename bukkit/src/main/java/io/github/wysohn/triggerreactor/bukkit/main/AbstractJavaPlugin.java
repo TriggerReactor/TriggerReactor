@@ -237,6 +237,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         bungeeConnectionThread.start();
     }
 
+    /**
+     * @deprecated migrate config.yml to config.json and use {@link GsonConfigSource} instead.
+     */
+    @Deprecated
     private void initMysql() {
         FileConfiguration config = getConfig();
         if (config.getBoolean("Mysql.Enable", false)) {
