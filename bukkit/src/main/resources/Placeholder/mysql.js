@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var MysqlSupport = Java.type('io.github.wysohn.triggerreactor.bukkit.main.MysqlSupport');
+var MysqlSupport = Java.type('io.github.wysohn.triggerreactor.tools.mysql.MysqlSupport');
 
 var validation = {
   overloads: [
