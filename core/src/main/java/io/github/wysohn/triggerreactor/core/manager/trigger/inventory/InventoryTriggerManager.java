@@ -91,7 +91,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      * @return
      */
     public IInventory openGUI(String playerName, String inventoryName) {
-        return openGUI(playerName, inventoryName, new HashMap<>());
+        return openGUI(playerName, inventoryName, new ConcurrentHashMap<>());
     }
 
     /**
@@ -114,7 +114,6 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         IInventory inventory = inventoryHandle.createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
 
-        Map<String, Object> varMap = new ConcurrentHashMap<>();
         varMap.put("inventory", Optional.of(inventory)
                 .map(IScriptObject::get)
                 .orElse(null));
@@ -135,7 +134,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      * @return
      */
     public IInventory openGUI(IPlayer player, String inventoryName) {
-        return openGUI(player, inventoryName, new HashMap<>());
+        return openGUI(player, inventoryName, new ConcurrentHashMap<>());
     }
 
     /**

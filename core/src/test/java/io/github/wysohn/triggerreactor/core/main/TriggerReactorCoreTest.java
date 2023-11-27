@@ -1568,7 +1568,7 @@ public class TriggerReactorCoreTest {
 
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(platformInventory);
         when(platformInventory.get()).thenReturn(new Object());
