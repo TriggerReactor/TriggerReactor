@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -260,7 +261,13 @@ public abstract class Trigger implements Cloneable, IObservable {
      * Start interpreting the code.
      *
      * @param e           The Event associated with this Trigger
-     * @param scriptVars  temporary variables
+     * @param scriptVars  temporary variables.
+     *                    <p>
+     *                    Special behavior info: If the scriptVars is instance of
+     *                    {@link ConcurrentMap}, then the scriptVars will be used as it is so that the
+     *                    changes made in the scriptVars will be visible to other threads. If the scriptVars
+     *                    is not instance of {@link ConcurrentMap}, then the scriptVars will be copied
+     *                    into a new HashMap and not visible to other threads.
      * @param interpreter The Interpreter
      * @param sync        set it true will make this method run in the thread that
      *                    has called this method. This is useful when this trigger has to cancel an Event;
@@ -271,12 +278,19 @@ public abstract class Trigger implements Cloneable, IObservable {
                                        Map<String, Object> scriptVars,
                                        Interpreter interpreter,
                                        boolean sync) {
+        Map<String, Object> varMap;
+        if (scriptVars instanceof ConcurrentMap) {
+            varMap = scriptVars;
+        } else {
+            varMap = new HashMap<>(scriptVars);
+        }
+
         ExecutingTrigger executingTrigger = new ExecutingTrigger(
                 exceptionHandle,
                 info,
                 e,
                 interpreter,
-                scriptVars,
+                varMap,
                 createInterrupter(),
                 getTimingId()
         );
@@ -434,9 +448,11 @@ public abstract class Trigger implements Cloneable, IObservable {
             this.interpreter = interpreter;
             this.timingId = timingId;
 
-            this.localContext = new InterpreterLocalContext(Timings.getTiming(timingId))
-                    .putAllVars(initialVars);
-            this.localContext.setInterrupter(interrupter);
+            this.localContext = new InterpreterLocalContext(
+                    Timings.getTiming(timingId),
+                    interrupter,
+                    initialVars
+            );
         }
 
         @Override

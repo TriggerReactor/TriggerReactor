@@ -60,7 +60,7 @@ public class InterpreterLocalContext {
      */
     private final Map<String, Object> extras = new HashMap<>();
 
-    private final Map<String, Object> vars = new HashMap<>();
+    private final Map<String, Object> vars;
     private ProcessInterrupter interrupter = null;
 
     private final Timings.Timing timing;
@@ -73,16 +73,24 @@ public class InterpreterLocalContext {
     private int callArgsSize = 0;
 
     public InterpreterLocalContext(Timings.Timing timing) {
-        this(timing, null);
+        this(timing, null, new HashMap<>());
     }
 
-    public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter) {
+    public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter, Map<String, Object> vars) {
         this.timing = timing;
         this.interrupter = interrupter;
+        this.vars = vars;
     }
 
     /**
-     * Copy current state, except for the current stack.
+     * Copy current state, except for the current stack. The main use case of this method
+     * is to make a copy of the LocalContext that diverges the current execution flow,
+     * such as when executing the ASYNC block or LAMBDA block where we copy the current state
+     * of the executing interpreter and execute the rest of the AST in the new interpreter.
+     * <p>
+     * Notice that even if the variable map is instantiated with a reference to the
+     * original map in {@link InterpreterLocalContext#InterpreterLocalContext(Timings.Timing, ProcessInterrupter, Map)},
+     * this method will create a new HashMap anyway and copy all the entries.
      *
      * @param timingsName name to be used as the timing. Since the context will be
      *                    inherited from 'this' context, the timing will be attached
@@ -93,10 +101,11 @@ public class InterpreterLocalContext {
         return tryOrThrow(() -> {
             // attach lambda timings to the caller timings
             InterpreterLocalContext context = new InterpreterLocalContext(
-                    Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO), interrupter);
+                    Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO),
+                    interrupter,
+                    new HashMap<>(vars));
 
             context.importMap.putAll(importMap);
-            context.vars.putAll(vars);
             //TODO what exactly it was used for?
             context.extras.putAll(extras);
 

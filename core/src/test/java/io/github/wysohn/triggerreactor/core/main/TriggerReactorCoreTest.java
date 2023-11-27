@@ -1,6 +1,8 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import com.google.inject.*;
+import com.google.inject.multibindings.ProvidesIntoMap;
+import com.google.inject.multibindings.StringMapKey;
 import com.google.inject.name.Names;
 import io.github.wysohn.gsoncopy.JsonElement;
 import io.github.wysohn.gsoncopy.JsonParser;
@@ -30,6 +32,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.junit.Before;
@@ -1174,6 +1177,7 @@ public class TriggerReactorCoreTest {
         Injector injector = createInjector();
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         IItemStack itemInHand = mock(IItemStack.class);
+        IInventory inventory = mock(IInventory.class);
 
         InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
 
@@ -1183,7 +1187,8 @@ public class TriggerReactorCoreTest {
         when(itemInHand.getType()).thenReturn("STONE"); // should be Material.STONE, but not necessary for test
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(itemInHand.clone()).thenReturn(itemInHand);
-        when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(mock(IInventory.class));
+        when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(inventory);
+        when(inventory.get()).thenReturn(new Object());
 
         inventoryTriggerManager.createTrigger(54, "MyInventory", "#MESSAGE \"Hello World\"");
 
@@ -1542,6 +1547,68 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertEquals(longText, readContent("command.json"));
+    }
+
+    @Test
+    public void inventoryTrigger_shares_variable() throws Exception {
+        // arrange
+        Executor testExecutor = mock(Executor.class);
+
+        Injector injector = createInjector(new AbstractModule() {
+            @ProvidesIntoMap
+            @StringMapKey("TEST")
+            public Executor testExecutor() {
+                return testExecutor;
+            }
+        });
+
+        IPlayer sender = mock(IPlayer.class);
+        IInventory platformInventory = mock(IInventory.class);
+        IItemStack clickedItem = mock(IItemStack.class);
+
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+        when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(platformInventory);
+        when(platformInventory.get()).thenReturn(new Object());
+        when(sender.get()).thenReturn(new Object());
+        when(clickedItem.clone()).thenReturn(clickedItem);
+        when(clickedItem.get()).thenReturn(new Object());
+        doAnswer(invocation -> {
+            Runnable runnable = invocation.getArgument(0);
+            runnable.run();
+            return null;
+        }).when(taskSupervisor).submitAsync(any());
+
+        // act
+        inventoryTriggerManager.createTrigger(54, "test", "" +
+                "IF trigger==\"open\";" +
+                "    myvar = 17;" +
+                "ENDIF;" +
+                ";" +
+                "IF trigger==\"click\";" +
+                "    #TEST myvar;" +
+                "ENDIF;");
+        IInventory ref = inventoryTriggerManager.openGUI(sender, "test");
+        inventoryTriggerManager.onOpen(
+                new Object(),
+                ref,
+                sender
+        );
+        inventoryTriggerManager.onClick(
+                new Object(),
+                ref,
+                clickedItem,
+                0,
+                "LEFT",
+                -1,
+                (b) -> {
+                });
+
+        // assert
+        assertNotNull(ref);
+        verify(testExecutor).evaluate(any(), any(), any(), eq(17));
     }
 
     private String generateSampleJson(int size) {
