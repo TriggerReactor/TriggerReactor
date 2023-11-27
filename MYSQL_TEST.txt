@@ -1,0 +1,5 @@
+docker run --name some-mysql\
+ -e MYSQL_ROOT_PASSWORD=1234\
+ -e MYSQL_DATABASE=TriggerReactor\
+ -p 3306:3306\
+ -it --rm mysql --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
