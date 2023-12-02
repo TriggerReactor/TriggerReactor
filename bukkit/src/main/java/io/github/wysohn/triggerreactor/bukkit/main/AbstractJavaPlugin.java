@@ -16,11 +16,6 @@
  */
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import com.google.inject.Module;
 import com.google.inject.*;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
@@ -37,7 +32,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerLi
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitExecutorModule;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitScriptEngineModule;
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TRGCommandHandler;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -58,14 +52,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.inject.Named;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -190,6 +185,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         areaTriggerListener = injector.getInstance(AreaTriggerListener.class);
         areaSelectionListener = injector.getInstance(AreaSelectionListener.class);
 
+        bungeeHelper = injector.getInstance(BungeeCordHelper.class);
         mysqlHelper = injector.getInstance(MysqlSupport.class);
 
         managers = injector.getInstance(new Key<Set<Manager>>() {
@@ -230,7 +226,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     private Thread bungeeConnectionThread;
 
     private void initBungeeHelper() {
-        bungeeHelper = new BungeeCordHelper();
         bungeeConnectionThread = new Thread(bungeeHelper);
         bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
         bungeeConnectionThread.start();
@@ -318,104 +313,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     public void registerEvents(Listener listener) {
         if (listener != null)
             Bukkit.getPluginManager().registerEvents(listener, this);
-    }
-
-    public class BungeeCordHelper implements PluginMessageListener, Runnable {
-        private final String CHANNEL = "BungeeCord";
-
-        private final String SUB_SERVERLIST = "ServerList";
-        private final String SUB_USERCOUNT = "UserCount";
-
-        private final Map<String, Integer> playerCounts = new ConcurrentHashMap<>();
-
-        /**
-         * constructor should only be called from onEnable()
-         */
-        private BungeeCordHelper() {
-            Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(AbstractJavaPlugin.this, CHANNEL);
-            Bukkit.getServer().getMessenger().registerIncomingPluginChannel(AbstractJavaPlugin.this, CHANNEL, this);
-        }
-
-        @Override
-        public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-            if (!channel.equals(CHANNEL)) {
-                return;
-            }
-
-            ByteArrayDataInput in = ByteStreams.newDataInput(message);
-            String subchannel = in.readUTF();
-            if (subchannel.equals(SUB_SERVERLIST)) {
-                String[] serverList = in.readUTF().split(", ");
-                Set<String> serverListSet = Sets.newHashSet(serverList);
-
-                for (String server : serverListSet) {
-                    if (!playerCounts.containsKey(server))
-                        playerCounts.put(server, -1);
-                }
-
-                Set<String> deleteServer = new HashSet<>();
-                for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
-                    if (!serverListSet.contains(entry.getKey()))
-                        deleteServer.add(entry.getKey());
-                }
-
-                for (String delete : deleteServer) {
-                    playerCounts.remove(delete);
-                }
-            } else if (subchannel.equals(SUB_USERCOUNT)) {
-                String server = in.readUTF(); // Name of server, as given in the arguments
-                int playercount = in.readInt();
-
-                playerCounts.put(server, playercount);
-            }
-        }
-
-        public void sendToServer(Player player, String serverName) {
-            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF("Connect");
-            out.writeUTF(serverName);
-
-            player.sendPluginMessage(AbstractJavaPlugin.this, CHANNEL, out.toByteArray());
-        }
-
-        public String[] getServerNames() {
-            String[] servers = playerCounts.keySet().toArray(new String[playerCounts.size()]);
-            return servers;
-        }
-
-        public int getPlayerCount(String serverName) {
-            return playerCounts.getOrDefault(serverName, -1);
-        }
-
-        @Override
-        public void run() {
-            while (!Thread.interrupted()) {
-                Player player = Iterables.getFirst(BukkitUtil.getOnlinePlayers(), null);
-                if (player == null)
-                    return;
-
-                ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                out.writeUTF(SUB_SERVERLIST);
-                out.writeUTF("GetServers");
-                player.sendPluginMessage(AbstractJavaPlugin.this, SUB_SERVERLIST, out.toByteArray());
-
-                if (!playerCounts.isEmpty()) {
-                    for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
-                        ByteArrayDataOutput out2 = ByteStreams.newDataOutput();
-                        out2.writeUTF(SUB_USERCOUNT);
-                        out2.writeUTF("PlayerCount");
-                        out2.writeUTF(entry.getKey());
-                        player.sendPluginMessage(AbstractJavaPlugin.this, SUB_USERCOUNT, out2.toByteArray());
-                    }
-                }
-
-                try {
-                    Thread.sleep(5 * 1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     static class CommandSenderEvent extends Event {
