@@ -1,0 +1,32 @@
+.block-cotroller {
+    background-color: #252525;
+  
+    position: absolute;
+    left: 48px;
+  
+    width: 260px;
+    height: max(calc(100vh - 50px), calc(50px + 40px + 34.4px + 16px + 2px + 3.2px + 16px + 1.5px + 30px));
+}
+
+.block-cotroller-title {
+    width: 100%;
+  
+    margin: 20px 0px;
+    
+    text-align: center;
+    color: #ffffff;
+  
+    font-size: 26px;
+    font-weight: 500;
+}
+  
+
+.block-divider {
+    border: 0px;
+    height: 1.5px;
+  
+    margin: 15px auto;
+  
+    background-color: #ffffff;
+    width: 95%;
+}

@@ -1,0 +1,31 @@
+.app {
+    margin: 0;
+}
+
+.globalheader {
+    background-color: #303030;
+    height: 50px;
+
+    position: relative;
+
+    z-index: 2;
+}
+
+.search {
+    display: block;
+
+    background-color: #191919;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #000000;
+
+    margin: 0 auto;
+
+    width: 90%;
+
+    color: #ffffff;
+}
+
+.search:focus {
+    outline: 1px solid #3F84C5;
+}

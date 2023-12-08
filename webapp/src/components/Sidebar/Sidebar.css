@@ -1,0 +1,134 @@
+.sidemenu {
+    display: flex;
+}
+
+.sidemenu-nav {
+    float: left;
+  
+    position:absolute;
+  
+    background: #1C1C1C;
+    width: max-content;
+    height: max(calc(100vh - 50px), calc(50px + 40px + 34.4px + 16px + 2px + 3.2px + 16px + 1.5px + 30px));
+  
+    overflow: auto;
+  
+    margin: 0;
+}
+
+.sidemenu-nav::-webkit-scrollbar {
+    width: 0px;
+}
+
+.sidemenu-list {
+    list-style: none;
+
+    margin: 0;
+    padding: 2px 12px 0px 12px;
+}
+
+.sidemenu-item {
+    display: flex;
+  
+    position: relative;
+    margin: 18px 0;
+}
+
+/* hover highlighting */
+.sidemenu-item::before {
+    content: "";
+    position: absolute;
+  
+    width: 100%;
+    height: 100%;
+  
+    padding: 6px;
+    border-radius: 5px;
+  
+    opacity: 0;
+    background: #ffffff;
+  
+    transform: translate(-6px, -6px);
+    transition: all .25s ease-out;
+}
+
+.sidemenu-item:hover::before {
+    opacity: 0.1;
+}
+
+.sidemenu-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.sidemenu-text {
+    color: white;
+  
+    transition: all 0.25s ease-in-out;
+}
+
+.sidemenu-text-close {
+    margin: 0;
+    opacity: 0;
+    width: 0px;
+}
+
+.sidemenu-text-open {
+    margin: 0 10px 0 20px;
+    opacity: 1;
+    width: 100px;
+}
+
+.sidemenu-divider {
+    border: 0px;
+    height: 1.5px;
+
+    background-color: #ffffff;
+    width: 85%;
+}
+
+.sidemenu-selector {
+    position: absolute;
+    top: 13.5px;
+  
+    height: calc(28px + 9px);
+    width: 2px;
+    background-color: white;
+}
+
+.sidemenu-shadow-bg {
+    position: fixed;
+    width: 100vw;
+    height: calc(100vh);
+    top: 0;
+  
+    background-color: #000000;
+    opacity: 0;
+    
+    pointer-events: none;
+    z-index: 0;
+  
+    transition: all 0.25s ease-in-out;
+}
+
+.sidemenu-shadow-bg {
+    position: fixed;
+    width: 100vw;
+    height: calc(100vh);
+    top: 0;
+  
+    background-color: #000000;
+    z-index: 0;
+  
+    transition: all 0.25s ease-in-out;
+}
+
+.sidemenu-shadow-bg-show {
+    opacity: 0.5;
+    pointer-events: all;
+}
+
+.sidemenu-shadow-bg-hide {
+    opacity: 0;
+    pointer-events: none;
+}
