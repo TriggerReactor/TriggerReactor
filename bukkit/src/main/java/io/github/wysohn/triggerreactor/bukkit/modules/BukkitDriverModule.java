@@ -36,5 +36,8 @@ public class BukkitDriverModule extends AbstractModule {
         bind(IInventoryHandle.class).to(BukkitInventoryHandle.class);
         bind(IPluginManagement.class).to(BukkitPluginManagement.class);
         bind(TaskSupervisor.class).to(BukkitTaskSupervisor.class);
+
+        bind(BungeeCordHelper.class);
+        bind(MysqlSupport.class);
     }
 }

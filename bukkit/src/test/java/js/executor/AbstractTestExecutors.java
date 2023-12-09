@@ -1008,22 +1008,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
             }
         }
 
-        class FakePlugin {
-            public FakeBungeeHelper getBungeeHelper() {
-                return null;
-            }
-        }
-
         FakeBungeeHelper bungeeHelper = mock(FakeBungeeHelper.class);
-        FakePlugin plugin = mock(FakePlugin.class);
+        Injector injector = mock(Injector.class);
 
         Player player = mock(Player.class);
         String server = "SecondServer";
 
-        when(plugin.getBungeeHelper()).thenReturn(bungeeHelper);
+        when(injector.getInstance(any(Class.class))).thenReturn(bungeeHelper);
 
         JsTest test = new ExecutorTest(engine, "SERVER")
-                .addVariable("plugin", plugin)
+                .addVariable("injector", injector)
                 .addVariable("player", player);
 
         test.withArgs(server).test();
@@ -1040,22 +1034,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
             }
         }
 
-        class FakePlugin {
-            public FakeBungeeHelper getBungeeHelper() {
-                return null;
-            }
-        }
-
         FakeBungeeHelper bungeeHelper = mock(FakeBungeeHelper.class);
-        FakePlugin plugin = mock(FakePlugin.class);
+        Injector injector = mock(Injector.class);
 
         Player player = mock(Player.class);
         String server = "SecondServer";
 
-        when(plugin.getBungeeHelper()).thenReturn(bungeeHelper);
+        when(injector.getInstance(any(Class.class))).thenReturn(bungeeHelper);
 
         JsTest test = new ExecutorTest(engine, "SERVER")
-                .addVariable("plugin", plugin);
+                .addVariable("injector", injector);
 
         test.withArgs(player, server).test();
 

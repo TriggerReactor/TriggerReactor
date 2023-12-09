@@ -16,34 +16,34 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Player = Java.type('org.bukkit.entity.Player');
+var Player = Java.type("org.bukkit.entity.Player");
+var BungeeCordHelper = Java.type("io.github.wysohn.triggerreactor.bukkit.main.BungeeCordHelper");
 
 var validation = {
-  overloads: [
-    [
-      { type: 'string', name: 'server' }
+    overloads: [
+        [{ type: "string", name: "server" }],
+        [
+            { type: Player.class, name: "player" },
+            { type: "string", name: "server" },
+        ],
     ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: 'string', name: 'server' }
-    ]
-  ]
 };
 
 function SERVER(args) {
-  var target, server;
+    var helper = injector.getInstance(BungeeCordHelper.class);
+    var target, server;
 
-  if (overload === 0) {
-    target = player;
-    server = args[0];
-  } else if (overload === 1) {
-    target = args[0];
-    server = args[1];
-  }
+    if (overload === 0) {
+        target = player;
+        server = args[0];
+    } else if (overload === 1) {
+        target = args[0];
+        server = args[1];
+    }
 
-  if (!target) throw new Error('Player is null.');
+    if (!target) throw new Error("Player is null.");
 
-  plugin.getBungeeHelper().sendToServer(target, server);
+    helper.sendToServer(target, server);
 
-  return null;
+    return null;
 }
