@@ -2,10 +2,30 @@ plugins {
     id 'java'
     id 'groovy'
     id "com.dorongold.task-tree" version "2.1.0"
+    id "com.github.node-gradle.node" version "7.0.1"
 }
+
+apply plugin: 'com.github.node-gradle.node'
 
 repositories {
     mavenCentral()
+}
+
+node {
+    npmInstallCommand = "install"
+
+    version = '16.13.0'
+
+    download = true
+
+    nodeProjectDir = file("${rootDir}/web")
+    workDir = file("${rootDir}/.gradle/nodejs")
+    npmWorkDir = file("${project.projectDir}/.gradle/npm")
+}
+
+task buildForntend(type: NpmTask) {
+    dependsOn npmInstall
+    args = ['run', 'build', '--prod']
 }
 
 def javaVersionFromCli = providers.gradleProperty("java_version")

@@ -4,7 +4,7 @@ import { headerItems } from './HeaderItemsData'
 function HeaderItem({ name, imgPath, onClick, isIconOnly }: HeaderItemType ) {
     return (
         <li className='header-item' onClick={()=> onClick()}>
-            <img className='header-icon' src={ process.env.PUBLIC_URL + imgPath} alt={name} />
+            <img className='header-icon' src={imgPath} alt={name} />
             {isIconOnly ? null : <p className='header-text'>{name}</p>}
         </li>
     );
