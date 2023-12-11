@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d{HH:mm} %-5level %logger{36} - %msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.javalin" level="info"/>
+
+    <root level="debug">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

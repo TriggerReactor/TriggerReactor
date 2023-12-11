@@ -32,6 +32,7 @@ public class CorePluginModule extends AbstractModule {
     protected void configure() {
         install(new ManagerModule());
         install(new APISupportModule());
+        install(new TRBlockModule());
 
         bind(IExceptionHandle.class).to(ExceptionHandle.class);
     }

@@ -35,6 +35,8 @@ import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.trblock.main.TRBlock;
+import io.github.wysohn.triggerreactor.trblock.main.TRBlockManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -215,6 +217,22 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertTrue(dummyManager.initialized);
+    }
+
+    @Test
+    public void trblock_initialize_manager() {
+        // arrange
+        Injector injector = createInjector();
+
+        TRBlock trblock = injector.getInstance(TRBlock.class);
+        TRBlockManager manager = injector.getInstance(TRBlockManager.class);
+
+        // act
+        trblock.initialize();
+        trblock.shutdown();
+
+        // assert
+        assertTrue(manager.isStartedBefore());
     }
 
     private void createDummyInfo(File triggerInfoFile) throws IOException {
