@@ -4,7 +4,7 @@ import './Sidebar.css'
 import { sidebarItems } from './SidebarItemsData';
 import BlockPanel from '../BlockManager/BlockPanel/BlockPanel'
 
-const SidebarItem = ({contents, imgPath, onClick, showDetails}: SidebarItemPropsType) => {
+const SidebarItem = ({contents, imgPath, onClick, showDetails}: SidebarItemProps) => {
     return (
         <li className='sidemenu-item' onClick={onClick}>
             <img className='sidemenu-icon' src={imgPath} alt="" />

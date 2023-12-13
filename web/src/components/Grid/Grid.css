@@ -1,0 +1,13 @@
+.grid {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+
+    z-index: -1;
+
+    top: 0;
+
+    background-color: #1C1C1C;
+    background-size: 10px, 30px, 10px 10px, 30px 30px;
+    background-image: linear-gradient(90deg, #ffffff0f 1px, transparent 1px), linear-gradient(90deg, #ffffff0f 1px, transparent 1px), linear-gradient(#ffffff0f 1px, transparent 1px), linear-gradient(#ffffff0f 1px, transparent 1px);
+}

@@ -1,5 +1,3 @@
-import { TestBlockList } from '../BlockList/BlockManager'
-
 import './BlockPanel.css'
 
 function BlockTitle() {
@@ -17,7 +15,6 @@ function BlockPanel() {
     return (
         <div className='block-cotroller'>
             <BlockTitle />
-            <TestBlockList />
         </div>
     )
 }

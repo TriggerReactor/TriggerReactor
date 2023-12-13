@@ -1,6 +1,6 @@
 export const imgRoot = "./imgs/icons/headers/";
 
-export const headerItems: HeaderItemType[] = [
+export const headerItems: HeaderItemProps[] = [
     { name: "File", imgPath:(imgRoot + "file.svg"), onClick: () => {}, isIconOnly: false },
     { name: "Edit", imgPath:(imgRoot + "edit.svg"), onClick: () => {}, isIconOnly: false },
     { name: "Selection", imgPath:(imgRoot + "selection.svg"), onClick: () => {}, isIconOnly: false },

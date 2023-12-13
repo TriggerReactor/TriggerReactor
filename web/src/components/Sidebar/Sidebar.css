@@ -18,6 +18,7 @@
 
 .sidemenu-nav::-webkit-scrollbar {
     width: 0px;
+    height: 0px;
 }
 
 .sidemenu-list {

@@ -1,7 +1,7 @@
 import './Header.css'
 import { headerItems } from './HeaderItemsData'
 
-function HeaderItem({ name, imgPath, onClick, isIconOnly }: HeaderItemType ) {
+function HeaderItem({ name, imgPath, onClick, isIconOnly }: HeaderItemProps ) {
     return (
         <li className='header-item' onClick={()=> onClick()}>
             <img className='header-icon' src={imgPath} alt={name} />
@@ -13,7 +13,7 @@ function HeaderItem({ name, imgPath, onClick, isIconOnly }: HeaderItemType ) {
 
 function Header() {
 
-    const renderHeaderItems = (items: HeaderItemType[], filter: (item: HeaderItemType) => boolean) => (
+    const renderHeaderItems = (items: HeaderItemProps[], filter: (item: HeaderItemProps) => boolean) => (
         items
             .filter(filter)
             .map((item, index) => (

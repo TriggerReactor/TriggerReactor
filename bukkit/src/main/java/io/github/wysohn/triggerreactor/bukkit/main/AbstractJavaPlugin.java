@@ -44,7 +44,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
-import io.github.wysohn.triggerreactor.trblock.main.TRBlock;
+import io.github.wysohn.triggerreactor.trblock.main.TRBlockWebServiceProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -75,7 +75,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     private Server server;
     private TRGCommandHandler TRGCommandHandler;
 
-    private TRBlock trblock;
+    private TRBlockWebServiceProvider trblock;
 
     private ScriptEditListener scriptEditListener;
     private PlayerLocationListener playerLocationListener;
@@ -184,7 +184,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         core = injector.getInstance(TriggerReactorCore.class);
         server = injector.getInstance(Server.class);
 
-        trblock = injector.getInstance(TRBlock.class);
+        trblock = injector.getInstance(TRBlockWebServiceProvider.class);
 
         TRGCommandHandler = injector.getInstance(TRGCommandHandler.class);
         scriptEditListener = injector.getInstance(ScriptEditListener.class);

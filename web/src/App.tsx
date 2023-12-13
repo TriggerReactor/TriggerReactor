@@ -1,9 +1,11 @@
 import React from 'react';
 
-import Header from './components/Header/Header'
-
 import './App.css';
 import Sidebar from './components/Sidebar/Sidebar';
+import Header from './components/Header/Header';
+import Grid from './components/Grid/Grid';
+
+import DragTest from './test/DragTest';
 
 function App() {
     return (
@@ -12,6 +14,8 @@ function App() {
                 <Header />
             </header>
             <Sidebar />
+            <Grid />
+            {/* <DragTest /> */}
         </div>
     );
 }
