@@ -23,10 +23,10 @@ public class TRBlockWebServiceProvider implements IPluginLifecycle {
     @Named("PluginLogger")
     private Logger logger;
 
-    private boolean isStarted = false;
-    private boolean isStartedBefore = false; // test only
+    @Inject
+    TRBlockWebServiceImpl webService;
 
-    private final Javalin app = Javalin.create();
+    private boolean isStartedBefore = false; // test only
 
     private int port = 8000;
 
@@ -43,19 +43,15 @@ public class TRBlockWebServiceProvider implements IPluginLifecycle {
                     new MainPageHandler(),
             };
 
-            // init handlers
-            for (TRBlockHandlerImpl handler: handlers) {
-                handler.add(app);
-            }
+            webService.init(port);
+            webService.registriesHandlers(handlers);
 
-            app.start(port);
-
-            isStarted = true;
+            webService.start();
             isStartedBefore = true;
+
             logger.info("TRBlock has been successfully started.");
         } catch (Exception e) {
             e.printStackTrace();
-            logger.warning("TRBlock startup failed.");
         }
 
         Thread.currentThread().setContextClassLoader(classLoader);
@@ -68,22 +64,8 @@ public class TRBlockWebServiceProvider implements IPluginLifecycle {
 
     @Override
     public void shutdown() {
-        app.stop();
-
-        isStarted = false;
+        webService.stop();
         logger.info("TRBlock has been successfully stoped");
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public boolean isStarted() {
-        return isStarted;
     }
 
     public boolean isStartedBefore() {
