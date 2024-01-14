@@ -122,12 +122,6 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
         trigger.setCommand(command);
         command.setTabCompleterMap(trigger.getTabCompleterMap());
         command.setExecutor((sender, label, args, original) -> {
-            //TODO: remove this if we allow to use the command trigger in the console.
-            if (!(sender instanceof IPlayer)) {
-                sender.sendMessage("CommandTrigger works only for Players.");
-                return;
-            }
-
             execute(eventManagement.createPlayerCommandEvent(sender, label, args),
                     sender,
                     label,
