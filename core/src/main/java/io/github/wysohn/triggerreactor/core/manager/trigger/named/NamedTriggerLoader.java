@@ -17,13 +17,11 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.SaveWorker;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 

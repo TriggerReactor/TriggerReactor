@@ -16,13 +16,10 @@
  */
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.IInventoryTriggerFactory;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
@@ -52,8 +49,7 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
     }
 
     /**
-     * @param name this can contain color code &, but you should specify exact
-     *             name for the title.
+     * @param name name of "Named Trigger" you want to create
      * @return true on success; false if already exist
      * @throws ParserException See {@link Trigger#init()}
      * @throws LexerException  See {@link Trigger#init()}
@@ -71,7 +67,4 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
         loader.save(trigger);
         return true;
     }
-
-
-
 }
