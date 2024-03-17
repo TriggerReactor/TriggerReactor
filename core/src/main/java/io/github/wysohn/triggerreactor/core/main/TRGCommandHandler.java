@@ -475,6 +475,22 @@ public class TRGCommandHandler {
                         Trigger trigger = commandTriggerManager.createTempCommandTrigger(script);
                         Trigger targetTrigger = namedTriggerManager.get(namedTriggerName);
                         if (targetTrigger == null) {
+                            int sizeCopy = 0;
+                            scriptEditManager.startEdit(sender, "Named Trigger", script, new ScriptEditor.SaveHandler() {
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        if (inventoryTriggerManager.createTrigger(sizeCopy, namedTriggerName, script)) {
+                                            sender.sendMessage("&aNamed Trigger created!");
+                                        } else {
+                                            sender.sendMessage(
+                                                    "&7Another Named Trigger with that name already exists");
+                                        }
+                                    } catch (Exception e) {
+                                        exceptionHandle.handleException(sender, e);
+                                    }
+                                }
+                            });
                             sender.sendMessage(
                                     "&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
                                             " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
