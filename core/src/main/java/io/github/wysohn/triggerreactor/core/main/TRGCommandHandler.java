@@ -480,7 +480,7 @@ public class TRGCommandHandler {
                                 @Override
                                 public void onSave(String script) {
                                     try {
-                                        if (inventoryTriggerManager.createTrigger(sizeCopy, namedTriggerName, script)) {
+                                        if (namedTriggerManager.createTrigger(sizeCopy, namedTriggerName, script)) {
                                             sender.sendMessage("&aNamed Trigger created!");
                                         } else {
                                             sender.sendMessage(
