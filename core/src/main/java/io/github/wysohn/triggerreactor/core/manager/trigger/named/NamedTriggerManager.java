@@ -56,7 +56,7 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
      * @throws LexerException  See {@link Trigger#init()}
      * @throws IOException     See {@link Trigger#init()}
      */
-    public boolean createTrigger(int size, String name, String script)
+    public boolean createTrigger(String name, String script)
             throws TriggerInitFailedException {
         if (has(name))
             return false;

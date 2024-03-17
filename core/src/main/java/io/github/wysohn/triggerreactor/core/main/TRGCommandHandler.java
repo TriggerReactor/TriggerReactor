@@ -475,12 +475,11 @@ public class TRGCommandHandler {
                         Trigger trigger = commandTriggerManager.createTempCommandTrigger(script);
                         Trigger targetTrigger = namedTriggerManager.get(namedTriggerName);
                         if (targetTrigger == null) {
-                            int sizeCopy = 0;
                             scriptEditManager.startEdit(sender, "Named Trigger", script, new ScriptEditor.SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
-                                        if (namedTriggerManager.createTrigger(sizeCopy, namedTriggerName, script)) {
+                                        if (namedTriggerManager.createTrigger(namedTriggerName, script)) {
                                             sender.sendMessage("&aNamed Trigger created!");
                                         } else {
                                             sender.sendMessage(
@@ -491,9 +490,6 @@ public class TRGCommandHandler {
                                     }
                                 }
                             });
-                            sender.sendMessage(
-                                    "&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
-                                            " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
                             return true;
                         }
 
