@@ -999,14 +999,19 @@ public class TriggerReactorCoreTest {
     }
 
     @Test
-    public void command_call() {
+    public void command_call() throws IOException {
         // arrange
         IPlayer sender = mock(IPlayer.class);
         Injector injector = createInjector();
         TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
         NamedTrigger namedTrigger = mock(NamedTrigger.class);
+        TriggerInfo mockInfo = mock(TriggerInfo.class);
+        File sourceCodeFile = folder.newFile("MyNamedTrigger.trg");
 
         when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
+        when(namedTrigger.getInfo()).thenReturn(mockInfo);
+        when(namedTrigger.getScript()).thenReturn("#MESSAGE \"Hello World\"");
+        when(mockInfo.getSourceCodeFile()).thenReturn(sourceCodeFile);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(taskSupervisor.submitSync(any())).thenAnswer(invocation -> {
             Callable callable = invocation.getArgument(0);
