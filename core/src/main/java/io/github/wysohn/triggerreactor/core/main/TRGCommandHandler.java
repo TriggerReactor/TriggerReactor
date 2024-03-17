@@ -474,7 +474,7 @@ public class TRGCommandHandler {
                     try {
                         Trigger trigger = commandTriggerManager.createTempCommandTrigger(script);
                         Trigger targetTrigger = namedTriggerManager.get(namedTriggerName);
-                        if (targetTrigger == null) {
+                        if (args.length != 2 || targetTrigger == null) {
                             scriptEditManager.startEdit(sender, "Named Trigger", script, new ScriptEditor.SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
