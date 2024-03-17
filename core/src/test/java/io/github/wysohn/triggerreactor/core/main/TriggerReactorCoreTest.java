@@ -947,7 +947,7 @@ public class TriggerReactorCoreTest {
         ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
 
         // act
@@ -981,7 +981,7 @@ public class TriggerReactorCoreTest {
         NamedTriggerManager namedTriggerManager = injector.getInstance(NamedTriggerManager.class);
 
         when(sender.getUniqueId()).thenReturn(uuid);
-        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.hasPermission(Constants.PERMISSION)).thenReturn(true);
         when(pluginManagement.isEnabled()).thenReturn(true);
         when(namedTrigger.getInfo()).thenReturn(triggerInfo);
         when(triggerInfo.getSourceCodeFile()).thenReturn(sourceFile);
