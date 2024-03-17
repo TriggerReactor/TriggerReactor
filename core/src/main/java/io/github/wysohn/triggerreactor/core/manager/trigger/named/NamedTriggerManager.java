@@ -43,6 +43,9 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
     @Inject
     private INamedTriggerFactory factory;
 
+    @Inject
+    private NamedTriggerLoader loader;
+
     @Override
     public void initialize() {
 
@@ -58,9 +61,6 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
      */
     public boolean createTrigger(String name, String script)
             throws TriggerInitFailedException {
-        if (has(name))
-            return false;
-
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = getConfigSource(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
@@ -68,7 +68,7 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
 
         trigger.init();
         put(name, trigger);
-
+        loader.save(trigger);
         return true;
     }
 

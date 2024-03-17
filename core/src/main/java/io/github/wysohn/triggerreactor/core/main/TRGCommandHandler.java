@@ -472,18 +472,18 @@ public class TRGCommandHandler {
                     String script = args.length > 2 ? ArgumentUtil.mergeArguments(args, 2, args.length - 1) : "";
 
                     try {
-                        Trigger trigger = commandTriggerManager.createTempCommandTrigger(script);
+                        Trigger trigger = commandTriggerManager.createTempCommandTrigger(namedTriggerName);
                         Trigger targetTrigger = namedTriggerManager.get(namedTriggerName);
-                        if (args.length != 2 || targetTrigger == null) {
+                        if (!script.isEmpty() || targetTrigger == null) {
                             scriptEditManager.startEdit(sender, "Named Trigger", script, new ScriptEditor.SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
                                         if (namedTriggerManager.createTrigger(namedTriggerName, script)) {
-                                            sender.sendMessage("&aNamed Trigger created!");
+                                            sender.sendMessage("&aNamed Trigger saved!");
                                         } else {
                                             sender.sendMessage(
-                                                    "&7Another Named Trigger with that name already exists");
+                                                    "&7Failed to save Named Trigger");
                                         }
                                     } catch (Exception e) {
                                         exceptionHandle.handleException(sender, e);
