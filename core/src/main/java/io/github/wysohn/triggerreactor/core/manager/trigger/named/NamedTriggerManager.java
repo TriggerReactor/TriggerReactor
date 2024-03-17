@@ -16,18 +16,12 @@
  */
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
-import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
-import java.io.IOException;
 
 @Singleton
 public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
@@ -37,34 +31,9 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
                                 @Named("NamedTriggerManagerFolder") String folderName) {
         super(new File(folder, folderName));
     }
-    @Inject
-    private INamedTriggerFactory factory;
-
-    @Inject
-    private NamedTriggerLoader loader;
 
     @Override
     public void initialize() {
 
-    }
-
-    /**
-     * @param name name of "Named Trigger" you want to create
-     * @return true on success; false if already exist
-     * @throws ParserException See {@link Trigger#init()}
-     * @throws LexerException  See {@link Trigger#init()}
-     * @throws IOException     See {@link Trigger#init()}
-     */
-    public boolean createTrigger(String name, String script)
-            throws TriggerInitFailedException {
-        File file = getTriggerFile(folder, name, true);
-        IConfigSource config = getConfigSource(folder, name);
-        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        NamedTrigger trigger = factory.create(info, script);
-
-        trigger.init();
-        put(name, trigger);
-        loader.save(trigger);
-        return true;
     }
 }

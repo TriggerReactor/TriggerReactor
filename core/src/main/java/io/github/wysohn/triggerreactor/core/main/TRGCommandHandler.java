@@ -472,24 +472,12 @@ public class TRGCommandHandler {
                     String script = args.length > 2 ? ArgumentUtil.mergeArguments(args, 2, args.length - 1) : "";
 
                     try {
-                        Trigger trigger = commandTriggerManager.createTempCommandTrigger(namedTriggerName);
+                        Trigger trigger = commandTriggerManager.createTempCommandTrigger(script);
                         Trigger targetTrigger = namedTriggerManager.get(namedTriggerName);
-                        if (!script.isEmpty() || targetTrigger == null) {
-                            scriptEditManager.startEdit(sender, "Named Trigger", script, new ScriptEditor.SaveHandler() {
-                                @Override
-                                public void onSave(String script) {
-                                    try {
-                                        if (namedTriggerManager.createTrigger(namedTriggerName, script)) {
-                                            sender.sendMessage("&aNamed Trigger saved!");
-                                        } else {
-                                            sender.sendMessage(
-                                                    "&7Failed to save Named Trigger");
-                                        }
-                                    } catch (Exception e) {
-                                        exceptionHandle.handleException(sender, e);
-                                    }
-                                }
-                            });
+                        if (targetTrigger == null) {
+                            sender.sendMessage(
+                                    "&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
+                                            " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
                             return true;
                         }
 
@@ -1380,10 +1368,6 @@ public class TRGCommandHandler {
                         || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
                     switch (args[1]) {
-                        case "call":
-                            namedTriggerManager.remove(key);
-                            sender.sendMessage("&aRemoved the named trigger &6" + key);
-                            break;
                         case "vars":
                         case "variables":
                             globalVariableManager.remove(key);
@@ -1620,7 +1604,7 @@ public class TRGCommandHandler {
                         return filter(new ArrayList<>(eventRegistry.getAbbreviations()), args[1]);
                     case "delete":
                     case "del":
-                        return filter(Arrays.asList("cmd", "command", "custom", "call", "vars", "variables"), args[1]);
+                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
                     case "inventory":
                     case "i":
                         return filter(triggerNames(inventoryTriggerManager), args[1]);
@@ -1666,9 +1650,6 @@ public class TRGCommandHandler {
                                 break;
                             case "custom":
                                 manager = customTriggerManager;
-                                break;
-                            case "call":
-                                manager = namedTriggerManager;
                                 break;
                             //"vars" and "variables" also possible, but I won't be offering completions for these
                             default:
