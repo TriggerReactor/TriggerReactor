@@ -52,8 +52,7 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
     }
 
     /**
-     * @param name this can contain color code &, but you should specify exact
-     *             name for the title.
+     * @param name name of "Named Trigger" you want to create
      * @return true on success; false if already exist
      * @throws ParserException See {@link Trigger#init()}
      * @throws LexerException  See {@link Trigger#init()}
@@ -71,7 +70,4 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
         loader.save(trigger);
         return true;
     }
-
-
-
 }
