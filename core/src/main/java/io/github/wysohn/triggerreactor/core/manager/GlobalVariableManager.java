@@ -218,10 +218,19 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
                     throw new RuntimeException(ex);
                 }
             } else if (key instanceof TemporaryGlobalVariableKey) {
-                temp_map.remove(key);
+                TemporaryGlobalVariableKey[] keys = getContainedKeys((TemporaryGlobalVariableKey) key);
+                for (int i = 0; i < keys.length; i++) {
+                    temp_map.remove(key);
+                }
             }
 
             return null;
+        }
+
+        private TemporaryGlobalVariableKey[] getContainedKeys(TemporaryGlobalVariableKey key) {
+            return temp_map.keySet().stream()
+                    .filter(k -> k.getKey().startsWith(key.getKey()))
+                    .toArray(TemporaryGlobalVariableKey[]::new);
         }
     };
 
