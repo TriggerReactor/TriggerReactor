@@ -165,14 +165,13 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     }
 
     private final GlobalVariableAdapter adapter = new GlobalVariableAdapter() {
-        private final ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
 
         @Override
         public Object get(Object key) {
             if (key instanceof String) {
                 return GlobalVariableManager.this.get((String) key);
             } else if (key instanceof TemporaryGlobalVariableKey) {
-                return temp_map.get(key);
+                return super.get(key);
             } else {
                 return null;
             }
@@ -183,7 +182,7 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
             if (key instanceof String) {
                 return GlobalVariableManager.this.has((String) key);
             } else if (key instanceof TemporaryGlobalVariableKey) {
-                return temp_map.contains(key);
+                return super.containsKey(key);
             } else {
                 return false;
             }
@@ -191,19 +190,19 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
 
         @Override
         public Object put(Object key, Object value) {
-            if (value == null) {
-                remove(key);
-                return null;
-            }
-
             if (key instanceof String) {
+                if (value == null) {
+                    remove(key);
+                    return null;
+                }
+
                 try {
                     GlobalVariableManager.this.put((String) key, value);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
             } else if (key instanceof TemporaryGlobalVariableKey) {
-                temp_map.put((TemporaryGlobalVariableKey) key, value);
+                super.put(key, value);
             }
 
             return null;
@@ -218,19 +217,10 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
                     throw new RuntimeException(ex);
                 }
             } else if (key instanceof TemporaryGlobalVariableKey) {
-                TemporaryGlobalVariableKey[] keys = getContainedKeys((TemporaryGlobalVariableKey) key);
-                for (int i = 0; i < keys.length; i++) {
-                    temp_map.remove(key);
-                }
+                super.remove(key);
             }
 
             return null;
-        }
-
-        private TemporaryGlobalVariableKey[] getContainedKeys(TemporaryGlobalVariableKey key) {
-            return temp_map.keySet().stream()
-                    .filter(k -> k.getKey().startsWith(key.getKey()))
-                    .toArray(TemporaryGlobalVariableKey[]::new);
         }
     };
 
@@ -262,17 +252,44 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
 
     @SuppressWarnings("serial")
     public static abstract class GlobalVariableAdapter extends HashMap<Object, Object> {
+
+        private final ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
         protected GlobalVariableAdapter() {
 
         }
 
         @Override
-        public abstract Object get(Object key);
+        public Object get(Object key){
+            return temp_map.get(key);
+        }
 
         @Override
-        public abstract boolean containsKey(Object key);
+        public boolean containsKey(Object key) {
+            return temp_map.contains(key);
+        }
 
         @Override
-        public abstract Object put(Object key, Object value);
+        public Object put(Object key, Object value) {
+            if (value == null) {
+                remove(key);
+                return null;
+            }
+
+            temp_map.put((TemporaryGlobalVariableKey) key, value);
+            return null;
+        }
+
+        @Override
+        public Object remove(Object key) {
+            TemporaryGlobalVariableKey[] treeKeys = temp_map.keySet().stream()
+                    .filter(k -> k.getKey().startsWith(((TemporaryGlobalVariableKey) key).getKey()))
+                    .toArray(TemporaryGlobalVariableKey[]::new);
+
+            for (TemporaryGlobalVariableKey k : treeKeys) {
+                temp_map.remove(k);
+            }
+
+            return null;
+        }
     }
 }
