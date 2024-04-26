@@ -21,6 +21,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -36,6 +37,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -93,7 +95,45 @@ public class InterpreterTest {
                                 @Provides
                                 public IGlobalVariableManager provideGlobalVariableManager() {
                                     IGlobalVariableManager mock = mock(IGlobalVariableManager.class);
-                                    when(mock.getGlobalVariableAdapter()).thenReturn(new HashMap<>());
+                                    when(mock.getGlobalVariableAdapter()).thenReturn(new GlobalVariableManager.GlobalVariableAdapter() {
+                                        private final ConcurrentHashMap<Object, Object> gvarMap = new ConcurrentHashMap<>();
+
+                                        @Override
+                                        public Object get(Object key) {
+                                            if (key instanceof TemporaryGlobalVariableKey) {
+                                                return super.get(key);
+                                            } else {
+                                                return gvarMap.get(key);
+                                            }
+                                        }
+
+                                        @Override
+                                        public boolean containsKey(Object key) {
+                                            if (key instanceof TemporaryGlobalVariableKey) {
+                                                return super.containsKey(key);
+                                            } else {
+                                                return gvarMap.contains(key);
+                                            }
+                                        }
+
+                                        @Override
+                                        public Object put(Object key, Object value) {
+                                            if (key instanceof TemporaryGlobalVariableKey) {
+                                                return super.put(key, value);
+                                            } else {
+                                                return gvarMap.put(key, value);
+                                            }
+                                        }
+
+                                        @Override
+                                        public Object remove(Object key) {
+                                            if (key instanceof TemporaryGlobalVariableKey) {
+                                                return super.remove(key);
+                                            } else {
+                                                return gvarMap.remove(key);
+                                            }
+                                        }
+                                    });
                                     return mock;
                                 }
 
