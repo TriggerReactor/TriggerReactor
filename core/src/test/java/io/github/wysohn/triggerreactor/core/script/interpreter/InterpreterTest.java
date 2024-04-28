@@ -95,45 +95,8 @@ public class InterpreterTest {
                                 @Provides
                                 public IGlobalVariableManager provideGlobalVariableManager() {
                                     IGlobalVariableManager mock = mock(IGlobalVariableManager.class);
-                                    when(mock.getGlobalVariableAdapter()).thenReturn(new GlobalVariableManager.GlobalVariableAdapter() {
-                                        private final ConcurrentHashMap<Object, Object> gvarMap = new ConcurrentHashMap<>();
-
-                                        @Override
-                                        public Object get(Object key) {
-                                            if (key instanceof TemporaryGlobalVariableKey) {
-                                                return super.get(key);
-                                            } else {
-                                                return gvarMap.get(key);
-                                            }
-                                        }
-
-                                        @Override
-                                        public boolean containsKey(Object key) {
-                                            if (key instanceof TemporaryGlobalVariableKey) {
-                                                return super.containsKey(key);
-                                            } else {
-                                                return gvarMap.contains(key);
-                                            }
-                                        }
-
-                                        @Override
-                                        public Object put(Object key, Object value) {
-                                            if (key instanceof TemporaryGlobalVariableKey) {
-                                                return super.put(key, value);
-                                            } else {
-                                                return gvarMap.put(key, value);
-                                            }
-                                        }
-
-                                        @Override
-                                        public Object remove(Object key) {
-                                            if (key instanceof TemporaryGlobalVariableKey) {
-                                                return super.remove(key);
-                                            } else {
-                                                return gvarMap.remove(key);
-                                            }
-                                        }
-                                    });
+                                    when(mock.getGlobalVariableAdapter()).thenReturn(new TemporaryGlobalVariableAdapter());
+                                    when(mock.getTempGlobalVariableAdapter()).thenReturn(new TemporaryGlobalVariableAdapter());
                                     return mock;
                                 }
 
@@ -210,7 +173,7 @@ public class InterpreterTest {
         public Builder addTemporaryGlobalVariable(String key, Object value) {
             ValidationUtil.notNull(key);
             ValidationUtil.notNull(value);
-            test.interpreter.globalContext.gvars.put(new TemporaryGlobalVariableKey(key), value);
+            test.interpreter.globalContext.tempGvars.put(key, value);
             return this;
         }
 
