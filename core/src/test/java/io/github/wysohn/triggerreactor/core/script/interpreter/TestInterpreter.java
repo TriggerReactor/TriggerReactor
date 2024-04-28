@@ -273,8 +273,8 @@ public class TestInterpreter {
         // Arrange
         String text = "key = \"test\";" +
                 "{?key} = 1;" +
-                "#TEST1 {?key};" +
                 "{key} = 2;" +
+                "#TEST1 {?key};" +
                 "#TEST2 {key};";
 
         Executor mockExecutor = mock(Executor.class);
@@ -305,6 +305,36 @@ public class TestInterpreter {
                 "{?parents+\".\"+child} = 1;" +
                 "#TEST1 {?parents+\".\"+child};" +
                 "{?parents} = null;" +
+                "#TEST2 {?parents+\".\"+child};";
+
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor2 = mock(Executor.class);
+        when(mockExecutor2.evaluate(any(), any(), any(), any())).thenReturn(null);
+
+        InterpreterTest test = InterpreterTest.Builder.of(text)
+                .putExecutor("TEST1", mockExecutor)
+                .putExecutor("TEST2", mockExecutor2)
+                .build();
+
+        // Act
+
+        test.test();
+
+        // Assert
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor2).evaluate(any(), anyMap(), any(), eq(null));
+        assertNull(test.getGlobalVar("temp"));
+    }
+
+    @Test
+    public void testTempGlobalVarHoldTreeStructure() throws Exception {
+        // Arrange
+        String text = "parents = \"parents\";" +
+                "child = \"child\";" +
+                "{?parents+\".\"+child} = 1;" +
+                "#TEST1 {?parents+\".\"+child};" +
+                "{?parents} = 2;" +
                 "#TEST2 {?parents+\".\"+child};";
 
         Executor mockExecutor = mock(Executor.class);

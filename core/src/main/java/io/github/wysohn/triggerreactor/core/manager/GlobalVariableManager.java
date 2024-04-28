@@ -26,7 +26,7 @@ import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.StatefulObject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableAdapter;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -160,49 +160,38 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      * @return
      */
     @Override
-    public HashMap<Object, Object> getGlobalVariableAdapter() {
+    public HashMap<String, Object> getGlobalVariableAdapter() {
         return adapter;
+    }
+
+    @Override
+    public HashMap<String, Object> getTempGlobalVariableAdapter() {
+        return new TemporaryGlobalVariableAdapter();
     }
 
     private final GlobalVariableAdapter adapter = new GlobalVariableAdapter() {
 
         @Override
         public Object get(Object key) {
-            if (key instanceof String) {
-                return GlobalVariableManager.this.get((String) key);
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                return super.get(key);
-            } else {
-                return null;
-            }
+            return GlobalVariableManager.this.get((String) key);
         }
 
         @Override
         public boolean containsKey(Object key) {
-            if (key instanceof String) {
-                return GlobalVariableManager.this.has((String) key);
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                return super.containsKey(key);
-            } else {
-                return false;
-            }
+            return GlobalVariableManager.this.has((String) key);
         }
 
         @Override
-        public Object put(Object key, Object value) {
-            if (key instanceof String) {
-                if (value == null) {
-                    remove(key);
-                    return null;
-                }
+        public Object put(String key, Object value) {
+            if (value == null) {
+                remove(key);
+                return null;
+            }
 
-                try {
-                    GlobalVariableManager.this.put((String) key, value);
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                super.put(key, value);
+            try {
+                GlobalVariableManager.this.put((String) key, value);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
 
             return null;
@@ -210,14 +199,10 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
 
         @Override
         public Object remove(Object key) {
-            if (key instanceof String) {
-                try {
-                    GlobalVariableManager.this.remove((String) key);
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                super.remove(key);
+            try {
+                GlobalVariableManager.this.remove((String) key);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
 
             return null;
@@ -251,45 +236,22 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     }
 
     @SuppressWarnings("serial")
-    public static abstract class GlobalVariableAdapter extends HashMap<Object, Object> {
+    public static abstract class GlobalVariableAdapter extends HashMap<String, Object> {
 
-        private final ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
         protected GlobalVariableAdapter() {
 
         }
 
         @Override
-        public Object get(Object key){
-            return temp_map.get(key);
-        }
+        public abstract Object get(Object key);
 
         @Override
-        public boolean containsKey(Object key) {
-            return temp_map.contains(key);
-        }
+        public abstract boolean containsKey(Object key);
 
         @Override
-        public Object put(Object key, Object value) {
-            if (value == null) {
-                remove(key);
-                return null;
-            }
-
-            temp_map.put((TemporaryGlobalVariableKey) key, value);
-            return null;
-        }
+        public abstract Object put(String key, Object value);
 
         @Override
-        public Object remove(Object key) {
-            TemporaryGlobalVariableKey[] treeKeys = temp_map.keySet().stream()
-                    .filter(k -> k.getKey().startsWith(((TemporaryGlobalVariableKey) key).getKey()))
-                    .toArray(TemporaryGlobalVariableKey[]::new);
-
-            for (TemporaryGlobalVariableKey k : treeKeys) {
-                temp_map.remove(k);
-            }
-
-            return null;
-        }
+        public abstract Object remove(Object key);
     }
 }

@@ -45,7 +45,8 @@ public class InterpreterGlobalContext {
 
     final Map<String, Executor> executorMap;
     final Map<String, Placeholder> placeholderMap;
-    final Map<Object, Object> gvars;
+    final Map<String, Object> gvars;
+    final Map<String, Object> tempGvars;
 
     @Inject
     private InterpreterGlobalContext(IBackedMapProvider<Executor> executorManager,
@@ -54,6 +55,7 @@ public class InterpreterGlobalContext {
         executorMap = DelegatingExecutorMap.wrap(executorManager.getBackedMap());
         placeholderMap = placeholderManager.getBackedMap();
         gvars = IGlobalVariableManager.getGlobalVariableAdapter();
+        tempGvars = IGlobalVariableManager.getTempGlobalVariableAdapter();
     }
 
     /**
