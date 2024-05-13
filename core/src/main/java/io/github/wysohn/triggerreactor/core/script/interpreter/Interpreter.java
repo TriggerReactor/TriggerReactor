@@ -353,14 +353,6 @@ public class Interpreter {
         }
     }
 
-    private Token tryUnwrapVariable(final Token mayVariableToken, final InterpreterLocalContext localContext) throws InterpreterException {
-        if (isVariable(mayVariableToken)) {
-            return unwrapVariable(mayVariableToken, localContext);
-        }
-
-        return mayVariableToken;
-    }
-
     public Token parseValue(Object var, Token origin) {
         if (var == null) {
             return new Token(Type.NULLVALUE, null, origin);
@@ -377,10 +369,6 @@ public class Interpreter {
         } else {
             return new Token(Type.OBJECT, var, origin);
         }
-    }
-
-    private Integer testInterpret(Node node, InterpreterLocalContext localContext) throws InterpreterException {
-
     }
 
     /**
