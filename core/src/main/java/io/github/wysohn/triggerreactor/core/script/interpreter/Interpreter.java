@@ -19,26 +19,35 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
-import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaParameter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.statement.*;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.tools.ExceptionUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Interpreter {
-    InterpreterGlobalContext globalContext;
+    public InterpreterGlobalContext globalContext;
+
+    private Map<Type, InterpreterExecutionUnit> statements = new HashMap<Type, InterpreterExecutionUnit>() {{
+        put(Type.IF ,new IfConditionalStatement());
+        put(Type.TRY, new TryCatchStatement());
+        put(Type.WHILE, new WhileLoopStatement());
+        put(Type.FOR, new ForLoopStatement());
+        put(Type.LAMBDA, new LambdaStatement());
+        put(Type.SWITCH, new SwitchStatement());
+        put(Type.SYNC, new SyncStatement());
+        put(Type.ASYNC, new ASyncStatement());
+        put(Type.SHORT_CIRCUIT, new ShortCircuitStatement());
+    }};
+
     private Node root;
 
     Interpreter(Node root) {
@@ -86,7 +95,7 @@ public class Interpreter {
                 .getTiming("Code Interpretation")
                 .begin(globalContext.task.isServerThread())) {
             for (int i = 0; i < root.getChildren().size(); i++)
-                start(root.getChildren().get(i), context);
+                next(root.getChildren().get(i), context);
         }
     }
 
@@ -113,532 +122,27 @@ public class Interpreter {
     }
 
     //Check if stopFlag is on before pop Token from stack.
-    private void start(Node node, InterpreterLocalContext localContext) throws InterpreterException {
+    public void next(Node node, InterpreterLocalContext localContext) throws InterpreterException {
         if (localContext.isStopFlag())
             return;
 
-        //IF children -- [0] : condition , [1] : true body , [2] : false body(may not exist)
-        if ("ELSEIF".equals(node.getToken().value) || "IF".equals(node.getToken().value)) {
-            start(node.getChildren().get(0), localContext);//[0] condition
-            if (localContext.isStopFlag())
-                return;
+        // Verify that the current node token is Statement and execute.
+        boolean isMatched = false;
+        List<InterpreterExecutionUnit> statementIterator = statements.values().stream()
+                .filter(s -> !s.isExclusive()) // if isExclusive is true, take off Statement instance.
+                .collect(Collectors.toList());
 
-            Token resultToken = localContext.popToken();
+        for (InterpreterExecutionUnit state : statementIterator) {
+            if (state.isCallable(node.getToken())) {
+                // if return is ture. continue returning process.
+                if (state.evaluate(this, node, localContext)) return;
 
-            if (isVariable(resultToken)) {
-                resultToken = unwrapVariable(resultToken, localContext);
+                isMatched = true;
+                break;
             }
+        }
 
-            if (resultToken.type == Type.NULLVALUE) { // null check failed
-                if (node.getChildren().size() > 2) {
-                    start(node.getChildren().get(2), localContext);
-                }
-            } else { // normal IF statement
-                if (resultToken.isBoolean()) {
-                    boolean result = (boolean) resultToken.value;
-                    if (result) {
-                        start(node.getChildren().get(1), localContext);//[1] true body
-                    } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2), localContext);//[2] false body
-                    }
-                } else if (resultToken.isInteger()) {
-                    int value = resultToken.toInteger();
-                    if (value != 0) {
-                        start(node.getChildren().get(1), localContext);
-                    } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2), localContext);
-                    }
-                } else if (resultToken.isDecimal()) {
-                    double value = resultToken.toDecimal();
-                    if (value != 0.0) {
-                        start(node.getChildren().get(1), localContext);
-                    } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2), localContext);
-                    }
-                } else if (resultToken.value != null) {//always true if not null
-                    start(node.getChildren().get(1), localContext);
-                } else {
-                    throw new InterpreterException("Unexpected token for IF statement! -- " + resultToken);
-                }
-            }
-        } else if ("TRY".equals(node.getToken().value)) {
-            if (node.getChildren().size() == 2 || node.getChildren().size() == 3) {
-                try {
-                    start(node.getChildren().get(0), localContext);
-                } catch (Throwable e) {
-                    if (node.getChildren().get(1).getToken().type == Type.CATCHBODY) {
-                        Node catchBody = node.getChildren().get(1);
-
-                        start(catchBody.getChildren().get(0), localContext);
-
-                        Throwable throwable = e;
-
-                        Token idToken = localContext.popToken();
-                        Token valueToken = new Token(Type.OBJECT, throwable);
-
-                        while ((throwable = throwable.getCause()) != null) {
-                            valueToken = new Token(Type.OBJECT, throwable);
-                        }
-
-                        assignValue(idToken, valueToken, localContext);
-
-                        start(catchBody.getChildren().get(1), localContext);
-                    } else {
-                        throw e;
-                    }
-                } finally {
-                    if ((node.getChildren().size() == 2
-                            && node.getChildren().get(1).getToken().type == Type.FINALLYBODY)) {
-                        start(node.getChildren().get(1), localContext);
-                    } else if (node.getChildren().size() == 3
-                            && node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
-                        start(node.getChildren().get(2), localContext);
-                    }
-                }
-            } else if (node.getChildren().size() == 1) {
-                throw new InterpreterException("Expected CATCH or FINALLY statement! -- " + node.getToken());
-            } else {
-                throw new InterpreterException("Unexpected token for TRY statement! -- " + node.getToken());
-            }
-        } else if ("WHILE".equals(node.getToken().value)) {
-            long start = System.currentTimeMillis();
-
-            Token resultToken = null;
-            do {
-                start(node.getChildren().get(0), localContext);
-
-                if (localContext.stackEmpty())
-                    throw new InterpreterException("Could not find condition for WHILE statement!");
-
-                resultToken = localContext.popToken();
-
-                if (isVariable(resultToken)) {
-                    resultToken = unwrapVariable(resultToken, localContext);
-                }
-
-                if (!(resultToken.value instanceof Boolean))
-                    throw new InterpreterException("Unexpected token for WHILE statement! -- " + resultToken);
-
-                if ((boolean) resultToken.value) {
-                    start(node.getChildren().get(1), localContext);
-                    if (localContext.isBreakFlag()) {
-                        localContext.setBreakFlag(false);
-                        break;
-                    }
-
-                    localContext.setBreakFlag(false);
-                    localContext.setContinueFlag(false);
-                } else {
-                    break;
-                }
-
-                if (globalContext.task.isServerThread()) {
-                    long timeTook = System.currentTimeMillis() - start;
-                    if (timeTook > 3000L)
-                        throw new InterpreterException(
-                                "WHILE loop took more than 3 seconds in Server Thread. This is usually "
-                                        + "considered as 'too long' and can crash the server.");
-                }
-            } while (!localContext.isStopFlag());
-        } else if ("FOR".equals(node.getToken().value)) {
-            start(node.getChildren().get(0), localContext);
-
-
-            if (localContext.isStopFlag())
-                return;
-            Token idToken = localContext.popToken();
-
-            if (idToken == null)
-                throw new InterpreterException("Iteration variable for FOR statement not found!");
-
-            if (node.getChildren().get(1).getToken().type != Type.ITERATOR)
-                throw new InterpreterException("Expected <ITERATOR> but found " + node.getChildren().get(1).getToken());
-            Node iterNode = node.getChildren().get(1);
-
-            if (iterNode.getChildren().size() == 1) {
-                start(iterNode.getChildren().get(0), localContext);
-
-                if (localContext.isStopFlag())
-                    return;
-                Token valueToken = localContext.popToken();
-
-                if (isVariable(valueToken)) {
-                    valueToken = unwrapVariable(valueToken, localContext);
-                }
-
-                if (!valueToken.isIterable())
-                    throw new InterpreterException(valueToken + " is not iterable!");
-
-                if (valueToken.isArray()) {
-                    for (int i = 0; i < Array.getLength(valueToken.value); i++) {
-                        Object obj = Array.get(valueToken.value, i);
-                        if (localContext.isStopFlag())
-                            break;
-
-                        assignValue(idToken, parseValue(obj, valueToken), localContext);
-                        start(node.getChildren().get(2), localContext);
-                        if (localContext.isBreakFlag()) {
-                            localContext.setBreakFlag(false);
-                            break;
-                        }
-
-                        localContext.setBreakFlag(false);
-                        localContext.setContinueFlag(false);
-                    }
-                } else {
-                    for (Object obj : (Iterable<?>) valueToken.value) {
-                        if (localContext.isStopFlag())
-                            break;
-
-                        assignValue(idToken, parseValue(obj, valueToken), localContext);
-                        start(node.getChildren().get(2), localContext);
-                        if (localContext.isBreakFlag()) {
-                            localContext.setBreakFlag(false);
-                            break;
-                        }
-
-                        localContext.setBreakFlag(false);
-                        localContext.setContinueFlag(false);
-                    }
-                }
-            } else if (iterNode.getChildren().size() == 3) {
-                // # Init
-                Node initNode = iterNode.getChildren().get(0);
-                start(initNode, localContext);
-
-                if (localContext.isStopFlag()) {
-                    return;
-                }
-
-                Token initToken = localContext.popToken();
-                if (isVariable(initToken)) {
-                    initToken = unwrapVariable(initToken, localContext);
-                }
-
-                if (!initToken.isInteger())
-                    throw new InterpreterException("Init value must be an Integer value! -- " + initToken);
-
-                // # Bound
-                final Node boundNode = iterNode.getChildren().get(1);
-                start(boundNode, localContext);
-
-                if (localContext.isStopFlag()) {
-                    return;
-                }
-
-                Token boundToken = localContext.popToken();
-                if (isVariable(boundToken)) {
-                    boundToken = unwrapVariable(boundToken, localContext);
-                }
-
-                final String boundVal = (String) boundToken.getValue();
-                final boolean inclusive = "<RANGE_INCLUSIVE>".equals(boundVal);
-                if (!(inclusive || "<RANGE_EXCLUSIVE>".equals(boundVal))) {
-                    throw new InterpreterException("Range expression must be a '<RANGE_INCLUSIVE>' or '<RANGE_EXCLUSIVE>'. Actual is " + boundVal);
-                }
-
-                final int bound = inclusive ? 1 : 0;
-
-                // # Limit
-                Node limitNode = iterNode.getChildren().get(2);
-                start(limitNode, localContext);
-
-                if (localContext.isStopFlag()) {
-                    return;
-                }
-
-                Token limitToken = localContext.popToken();
-                if (isVariable(limitToken)) {
-                    limitToken = unwrapVariable(limitToken, localContext);
-                }
-
-                if (!limitToken.isInteger()) {
-                    throw new InterpreterException("Limitation value must be an Integer value! Actual is " + limitToken);
-                }
-
-                final int start = initToken.toInteger();
-                final int end = limitToken.toInteger();
-                final boolean reversed = start > end;
-
-                for (int i = start; ; ) {
-                    if (reversed && i <= end - bound) break;
-                    else if (!reversed && i >= end + bound) break;
-
-                    assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()), localContext);
-                    start(node.getChildren().get(2), localContext);
-                    if (localContext.isBreakFlag()) {
-                        localContext.setBreakFlag(false);
-                        break;
-                    }
-
-                    localContext.setBreakFlag(false);
-                    localContext.setContinueFlag(false);
-
-                    if (reversed) i--;
-                    else i++;
-                }
-            } else {
-                throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
-            }
-
-        } else if (node.getToken().getType() == Type.LAMBDA) {
-            if (node.getChildren().size() != 2)
-                throw new InterpreterException(
-                        "The LAMBDA node has " + node.getChildren().size() + " children instead of 2. " +
-                                "Report this to us: " + node);
-
-            Node parameters = node.getChildren().get(0);
-            if (parameters.getToken().getType() != Type.PARAMETERS)
-                throw new InterpreterException("Expected parameters but found " + node);
-
-            Node lambdaBody = node.getChildren().get(1);
-            if (lambdaBody.getToken().getType() != Type.LAMBDABODY)
-                throw new InterpreterException("Expected lambda expression body but found " + node);
-
-            LambdaParameter[] lambdaParameters = new LambdaParameter[parameters.getChildren().size()];
-            for (int i = 0; i < lambdaParameters.length; i++) {
-                Node idNode = parameters.getChildren().get(i);
-                if (idNode.getToken().getType() != Type.ID)
-                    throw new InterpreterException("Expected lambda parameter to be an id but found " + idNode);
-
-                lambdaParameters[i] = new LambdaParameter(idNode);
-            }
-
-            localContext.pushToken(new Token(Type.EPS,
-                    new LambdaFunction(lambdaParameters, lambdaBody, localContext, globalContext),
-                    node.getToken()));
-        } else if (node.getToken().getType() == Type.SWITCH) {
-            if (node.getChildren().size() < 2) {
-                throw new InterpreterException("Too few children in SWITCH expression! Expected at least 2 children but actual is " + node.getChildren().size());
-            }
-
-            final Node variableNameNode = node.getChildren().get(0);
-            start(variableNameNode, localContext);
-
-            if (localContext.isStopFlag()) {
-                return;
-            }
-
-            final Token variableNameToken = tryUnwrapVariable(localContext.popToken(), localContext);
-            final Type variableType = variableNameToken.getType();
-
-            boolean matches = false;
-            iterCaseOrDefaultNodes:
-            for (int i = 1; i < node.getChildren().size(); i++) {
-                final Node caseNode = node.getChildren().get(i);
-                if (!Type.CASE.equals(caseNode.getToken().getType())) {
-                    throw new InterpreterException("Expected case but found " + caseNode);
-                }
-
-                final Node parameters = caseNode.getChildren().get(0);
-                if (!Type.PARAMETERS.equals(parameters.getToken().getType())) {
-                    throw new InterpreterException("Expected parameters but found " + parameters);
-                }
-
-                // Handle `default` clause first because DEFAULT statement does not have parameters.
-                final boolean isDefaultClause = "<DEFAULT>".equals(caseNode.getToken().value);
-                if (isDefaultClause) {
-                    final Node caseBody = caseNode.getChildren().get(1);
-                    if (!Type.CASEBODY.equals(caseBody.getToken().getType())) {
-                        throw new InterpreterException("Expected case body but found " + parameters);
-                    }
-
-                    matches = true;
-                    start(caseBody, localContext);
-                    break;
-                }
-
-                // Handle RANGE token.
-                if (parameters.getChildren().size() == 3 && parameters.getChildren().get(1).getToken().type == Type.RANGE) {
-                    // The expression's value should be numeric type.
-                    if (!variableNameToken.isInteger() && !variableNameToken.isDecimal()) {
-                        throw new InterpreterException("Variable value must be numeric type! Actual is " + variableNameToken);
-                    }
-
-                    // # Init
-                    final Node initNode = parameters.getChildren().get(0);
-                    start(initNode, localContext);
-
-                    if (localContext.isStopFlag()) {
-                        return;
-                    }
-
-                    final Token initToken = tryUnwrapVariable(localContext.popToken(), localContext);
-                    if (!initToken.isInteger() && !initToken.isDecimal()) {
-                        throw new InterpreterException("Init value must be an numeric value! Actual is " + initToken);
-                    }
-
-                    // # Bound
-                    final Node boundNode = parameters.getChildren().get(1);
-                    start(boundNode, localContext);
-
-                    if (localContext.isStopFlag()) {
-                        return;
-                    }
-
-                    final Token boundToken = tryUnwrapVariable(localContext.popToken(), localContext);
-
-                    final String boundVal = (String) boundToken.getValue();
-                    final boolean inclusive = "<RANGE_INCLUSIVE>".equals(boundVal);
-                    if (!(inclusive || "<RANGE_EXCLUSIVE>".equals(boundVal))) {
-                        throw new InterpreterException("Range expression must be a '<RANGE_INCLUSIVE>' or '<RANGE_EXCLUSIVE>'. Actual is " + boundVal);
-                    }
-
-                    // # Limit
-                    final Node limitNode = parameters.getChildren().get(2);
-                    start(limitNode, localContext);
-
-                    if (localContext.isStopFlag()) {
-                        return;
-                    }
-
-                    final Token limitToken = tryUnwrapVariable(localContext.popToken(), localContext);
-                    if (!limitToken.isInteger() && !limitToken.isDecimal()) {
-                        throw new InterpreterException("Limitation value must be numeric value! Actual is " + limitToken);
-                    }
-
-                    final boolean shouldRun;
-                    if (variableNameToken.isInteger()) {
-                        final int maybeStart = initToken.toInteger();
-                        final int maybeEnd = limitToken.toInteger();
-                        final int start = Integer.min(maybeStart, maybeEnd);
-                        final int end = Integer.max(maybeStart, maybeEnd);
-                        final int delta = variableNameToken.toInteger();
-
-                        if (inclusive) {
-                            shouldRun = start <= delta && delta <= end;
-                        } else {
-                            shouldRun = start <= delta && delta < end;
-                        }
-                    } else {
-                        final double maybeStart = initToken.toDecimal();
-                        final double maybeEnd = limitToken.toDecimal();
-                        final double start = Double.min(maybeStart, maybeEnd);
-                        final double end = Double.max(maybeStart, maybeEnd);
-                        final double delta = variableNameToken.toDecimal();
-
-                        if (inclusive) {
-                            shouldRun = start <= delta && delta <= end;
-                        } else {
-                            shouldRun = start <= delta && delta < end;
-                        }
-                    }
-
-                    if (shouldRun) {
-                        final Node caseBody = caseNode.getChildren().get(1);
-                        if (!Type.CASEBODY.equals(caseBody.getToken().getType())) {
-                            throw new InterpreterException("Expected case body but found " + parameters);
-                        }
-
-                        matches = true;
-                        start(caseBody, localContext);
-                        break;
-                    }
-                } else {
-                    for (int j = 0; j < parameters.getChildren().size(); j++) {
-                        final Node parameter = parameters.getChildren().get(j);
-                        start(parameter, localContext);
-
-                        if (localContext.isStopFlag()) {
-                            return;
-                        }
-
-                        final Token rawParameterToken = localContext.popToken();
-                        final Token parameterToken;
-                        // Smart casting for enum types, otherwise do default conversions.
-                        if (variableNameToken.isEnum() && rawParameterToken.isString()) {
-                            Token maybeParameterToken;
-                            try {
-                                final Class<Enum> enumClass = (Class<Enum>) variableNameToken.value.getClass();
-                                maybeParameterToken = parseValue(
-                                        Enum.valueOf(enumClass, rawParameterToken.value.toString()),
-                                        rawParameterToken
-                                );
-                            } catch (final IllegalArgumentException ignored) {
-                                maybeParameterToken = tryUnwrapVariable(rawParameterToken, localContext);
-                            }
-
-                            parameterToken = maybeParameterToken;
-                        } else {
-                            parameterToken = tryUnwrapVariable(rawParameterToken, localContext);
-                        }
-
-                        final Type parameterType = parameterToken.getType();
-                        if (variableType != Type.EPS && parameterType != Type.EPS && !variableType.equals(parameterType)) {
-                            throw new InterpreterException("Mismatched type for parameter " + rawParameterToken + "! Expected " + variableType + " but found " + parameterType);
-                        }
-
-                        if (variableNameToken.getValue().equals(parameterToken.getValue())) {
-                            final Node caseBody = caseNode.getChildren().get(1);
-                            if (!Type.CASEBODY.equals(caseBody.getToken().getType())) {
-                                throw new InterpreterException("Expected case body but found " + parameters);
-                            }
-
-                            matches = true;
-                            start(caseBody, localContext);
-                            break iterCaseOrDefaultNodes;
-                        }
-                    }
-                }
-            }
-
-            if (!matches) {
-                throw new InterpreterException("No matched arm");
-            }
-        } else if (node.getToken().getType() == Type.SYNC) {
-            try {
-                try (Timings.Timing t = localContext.getTiming()
-                        .getTiming("SYNC (WAITING)")
-                        .begin(globalContext.task.isServerThread())) {
-                    globalContext.task.submitSync(new Callable<Void>() {
-
-                        @Override
-                        public Void call() throws Exception {
-                            try (Timings.Timing t = localContext.getTiming()
-                                    .getTiming("SYNC (RUNNING)")
-                                    .begin(globalContext.task.isServerThread())) {
-                                for (Node node : node.getChildren()) {
-                                    //ignore whatever returns as it's impossible
-                                    //to handle it from the caller
-                                    start(node, localContext);
-                                }
-                            }
-                            return null;
-                        }
-
-                    }).get();
-                }
-                return;
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new InterpreterException("Synchronous task error.", ex);
-            }
-        } else if (node.getToken().getType() == Type.ASYNC) {
-            // WARNING) Remember that 'localContext' is not thread-safe. It should not be
-            //          used in the asynchronous task.
-            final Object triggerCause = localContext.getTriggerCause();
-            final InterpreterLocalContext copiedContext = localContext.copyState("ASYNC");
-            final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            globalContext.task.submitAsync(() -> {
-                Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
-                rootCopy.getChildren().addAll(node.getChildren());
-
-                Interpreter copy = InterpreterBuilder.start(globalContext, rootCopy)
-                        .build();
-
-                try {
-                    copy.start(triggerCause, copiedContext);
-                } catch (InterpreterException e) {
-                    ExceptionUtil.appendStackTraceAfter(e, ExceptionUtil.pushStackTrace(stackTrace,
-                            new StackTraceElement(InterpreterException.class.getName(),
-                                    "[TriggerReactor ASYNC]",
-                                    "Interpreter.java",
-                                    -1),
-                            0));
-                    globalContext.exceptionHandle.handleException(triggerCause, e);
-                }
-            });
-            return;
-        } else {
+        if (!isMatched) {
             for (int i = 0; i < node.getChildren().size(); i++) {
                 //ignore rest of body and continue if continue flag is set
                 if (localContext.isContinueFlag())
@@ -648,40 +152,15 @@ public class Interpreter {
                     break;
 
                 Node child = node.getChildren().get(i);
-                start(child, localContext);
+                next(child, localContext);
 
                 if (i == 0) {
-                    if ("&&".equals(node.getToken().value)) {
-                        Token leftBool = localContext.popToken();
-                        if (isVariable(leftBool)) {
-                            leftBool = unwrapVariable(leftBool, localContext);
-                        }
-                        localContext.pushToken(leftBool);
-
-                        if (!leftBool.isBoolean())
-                            throw new InterpreterException("Left of && operator should be Boolean but was " + leftBool);
-
-                        boolean result = leftBool.toBoolean();
-
-                        if (!result) { //false anyway
-                            return;
-                        }
-                    } else if ("||".equals(node.getToken().value)) {
-                        Token leftBool = localContext.popToken();
-                        if (isVariable(leftBool)) {
-                            leftBool = unwrapVariable(leftBool, localContext);
-                        }
-                        localContext.pushToken(leftBool);
-
-                        if (!leftBool.isBoolean())
-                            throw new InterpreterException("Left of || operator should be Boolean but was " + leftBool);
-
-                        boolean result = leftBool.toBoolean();
-
-                        if (result) { //true anyway
-                            return;
-                        }
+                    /* Short-Circuit Evaluation */
+                    InterpreterExecutionUnit shortCircuit = statements.get(Type.SHORT_CIRCUIT);
+                    if (shortCircuit.isCallable(node.getToken())) {
+                        if (shortCircuit.evaluate(this, node, localContext)) return;
                     }
+
                 }
             }
         }
@@ -716,7 +195,7 @@ public class Interpreter {
         }
     }
 
-    private void assignValue(Token id, Token value, InterpreterLocalContext localContext) throws InterpreterException {
+    public void assignValue(Token id, Token value, InterpreterLocalContext localContext) throws InterpreterException {
         if (id.type == Type.ACCESS) {
             Accessor accessor = (Accessor) id.value;
             try {
@@ -835,14 +314,14 @@ public class Interpreter {
                 || obj.getClass() == String.class;
     }
 
-    private boolean isVariable(Token token) {
+    public boolean isVariable(Token token) {
         return token.type == Type.ID
                 || token.type == Type.GID
                 || token.type == Type.GID_TEMP
                 || token.type == Type.ACCESS;
     }
 
-    private Token unwrapVariable(Token varToken, InterpreterLocalContext localContext) throws InterpreterException {
+    public Token unwrapVariable(Token varToken, InterpreterLocalContext localContext) throws InterpreterException {
         if (varToken.type == Type.ID) {
             if (localContext.hasImport((String) varToken.value)) {
                 Class<?> clazz = localContext.getImport((String) varToken.value);
@@ -882,7 +361,7 @@ public class Interpreter {
         return mayVariableToken;
     }
 
-    private Token parseValue(Object var, Token origin) {
+    public Token parseValue(Object var, Token origin) {
         if (var == null) {
             return new Token(Type.NULLVALUE, null, origin);
         } else if (var.getClass() == Integer.class) {
@@ -898,6 +377,10 @@ public class Interpreter {
         } else {
             return new Token(Type.OBJECT, var, origin);
         }
+    }
+
+    private Integer testInterpret(Node node, InterpreterLocalContext localContext) throws InterpreterException {
+
     }
 
     /**

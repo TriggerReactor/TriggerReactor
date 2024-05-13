@@ -37,11 +37,11 @@ import java.util.Map;
 @Singleton
 public class InterpreterGlobalContext {
     @Inject
-    TaskSupervisor task;
+    public TaskSupervisor task;
     @Inject
     SelfReference selfReference;
     @Inject
-    IExceptionHandle exceptionHandle;
+    public IExceptionHandle exceptionHandle;
 
     final Map<String, Executor> executorMap;
     final Map<String, Placeholder> placeholderMap;
