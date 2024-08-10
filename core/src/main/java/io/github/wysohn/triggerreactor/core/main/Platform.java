@@ -12,6 +12,10 @@ public enum Platform {
         return this == CraftBukkit || this == Spigot || this == Paper;
     }
 
+    public boolean isPaper() {
+        return this == Paper;
+    }
+
     public boolean isSponge() {
         return this == Sponge;
     }
