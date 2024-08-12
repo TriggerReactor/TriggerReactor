@@ -9,7 +9,7 @@ import static io.github.wysohn.triggerreactor.core.util.ClassUtils.classExists;
 
 @Singleton
 public class PlatformManager extends Manager {
-    private Platform currentPlatform = Platform.Unknown;
+    private Platform currentPlatform = null;
 
     @Inject
     public PlatformManager() {
@@ -18,7 +18,7 @@ public class PlatformManager extends Manager {
 
     @Override
     public void initialize() {
-        currentPlatform = getCurrentPlatform();
+
     }
 
     @Override
@@ -31,26 +31,26 @@ public class PlatformManager extends Manager {
 
     }
 
-    public Platform current() {
-        return currentPlatform;
-    }
-
     /**
      * Obtains the current running platform type for the server implementation.
      *
      * @return the current running platform type
      */
-    public static Platform getCurrentPlatform() {
-        if (classExists("org.spongepowered.api.Sponge")) {
-            return Platform.Sponge;
-        } else if (classExists("io.papermc.paper.plugin.loader.PluginLoader") || classExists("com.destroystokyo.paper.utils.PaperPluginLogger")) {
-            return Platform.Paper;
-        } else if (classExists("org.spigotmc.SpigotConfig")) {
-            return Platform.Spigot;
-        } else if (classExists("org.bukkit.craftbukkit.CraftServer") || classExists("org.bukkit.craftbukkit.Main")) {
-            return Platform.CraftBukkit;
+    public Platform getCurrentPlatform() {
+        if (currentPlatform == null) {
+            if (classExists("org.spongepowered.api.Sponge")) {
+                currentPlatform = Platform.Sponge;
+            } else if (classExists("io.papermc.paper.plugin.loader.PluginLoader") || classExists("com.destroystokyo.paper.utils.PaperPluginLogger")) {
+                currentPlatform = Platform.Paper;
+            } else if (classExists("org.spigotmc.SpigotConfig")) {
+                currentPlatform = Platform.Spigot;
+            } else if (classExists("org.bukkit.craftbukkit.CraftServer") || classExists("org.bukkit.craftbukkit.Main")) {
+                currentPlatform = Platform.CraftBukkit;
+            } else {
+                currentPlatform = Platform.Unknown;
+            }
         }
 
-        return Platform.Unknown;
+        return currentPlatform;
     }
 }

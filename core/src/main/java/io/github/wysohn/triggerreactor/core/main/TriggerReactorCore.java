@@ -67,7 +67,7 @@ public class TriggerReactorCore implements IPluginLifecycle {
 
     @Override
     public void initialize() {
-        if(!platformManager.current().isPaper()) {
+        if(!platformManager.getCurrentPlatform().isPaper()) {
             // Paper has their own trick to load classes, so doing this will cause a problem.
             //   The 'trick' seem to be correctly loading the JavaScript engine, so it's not a problem.
             Thread.currentThread().setContextClassLoader(pluginClassLoader);
