@@ -1,11 +1,8 @@
 package js.executor;
 
 import com.google.inject.Injector;
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.main.Platform;
 import io.github.wysohn.triggerreactor.core.manager.PlatformManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
@@ -747,7 +744,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Injector injector = mock(Injector.class);
 
         when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
-        when(platformManager.current()).thenReturn(platform);
+        when(platformManager.getCurrentPlatform()).thenReturn(platform);
 
         // act
         JsTest test = new ExecutorTest(engine, "BROADCAST")
@@ -783,7 +780,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         // when(Platform.Unknown.supports(eq(Dependency.MiniMessage))).thenReturn(false);
         when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
-        when(platformManager.current()).thenReturn(platform);
+        when(platformManager.getCurrentPlatform()).thenReturn(platform);
 
         // act
         JsTest test = new ExecutorTest(engine, "MESSAGE")
@@ -820,7 +817,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Injector injector = mock(Injector.class);
 
         when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
-        when(platformManager.current()).thenReturn(platform);
+        when(platformManager.getCurrentPlatform()).thenReturn(platform);
 
         // act
         JsTest test = new ExecutorTest(engine, "LOG")
