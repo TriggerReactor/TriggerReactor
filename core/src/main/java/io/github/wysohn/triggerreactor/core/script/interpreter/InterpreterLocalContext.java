@@ -144,7 +144,7 @@ public class InterpreterLocalContext {
         return tryOrThrow(() -> importMap.get(name));
     }
 
-    Timings.Timing getTiming() {
+    public Timings.Timing getTiming() {
         return tryOrThrow(() -> timing);
     }
 
@@ -200,11 +200,11 @@ public class InterpreterLocalContext {
         tryOrThrow(() -> extras.put(key, val));
     }
 
-    boolean isBreakFlag() {
+    public boolean isBreakFlag() {
         return tryOrThrow(() -> breakFlag);
     }
 
-    void setBreakFlag(boolean breakFlag) {
+    public void setBreakFlag(boolean breakFlag) {
         tryOrThrow(() -> this.breakFlag = breakFlag);
     }
 
@@ -212,11 +212,11 @@ public class InterpreterLocalContext {
         return tryOrThrow(() -> continueFlag);
     }
 
-    void setContinueFlag(boolean continueFlag) {
+    public void setContinueFlag(boolean continueFlag) {
         tryOrThrow(() -> this.continueFlag = continueFlag);
     }
 
-    boolean isStopFlag() {
+    public boolean isStopFlag() {
         return tryOrThrow(() -> stopFlag);
     }
 
@@ -232,15 +232,15 @@ public class InterpreterLocalContext {
         tryOrThrow(() -> this.waitFlag = waitFlag);
     }
 
-    Token popToken() {
+    public Token popToken() {
         return tryOrThrow(this.stack::pop);
     }
 
-    Token pushToken(Token token) {
+    public Token pushToken(Token token) {
         return tryOrThrow(() -> this.stack.push(token));
     }
 
-    boolean stackEmpty() {
+    public boolean stackEmpty() {
         return tryOrThrow(this.stack::empty);
     }
 
