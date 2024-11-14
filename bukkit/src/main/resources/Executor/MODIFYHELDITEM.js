@@ -32,19 +32,19 @@ var validation = {
     [
       { type: 'string', name: 'type', matches: 'LORE' },
       { type: 'string', name: 'subType', matches: 'ADD' },
-      { type: 'integer', name: 'index' },
+      { type: 'int', name: 'index' },
       { type: 'string', name: 'lore' }
     ],
     [
       { type: 'string', name: 'type', matches: 'LORE' },
       { type: 'string', name: 'subType', matches: 'SET' },
-      { type: 'integer', name: 'index' },
+      { type: 'int', name: 'index' },
       { type: 'string', name: 'lore' }
     ],
     [
       { type: 'string', name: 'type', matches: 'LORE' },
       { type: 'string', name: 'subType', matches: 'REMOVE' },
-      { type: 'integer', name: 'index' }
+      { type: 'int', name: 'index' }
     ]
   ]
 };
@@ -73,7 +73,7 @@ function MODIFYHELDITEM(args) {
   }
 
   item.setItemMeta(meta);
-  player.getInventory().setItemInHand(helditem);
+  player.getInventory().setItemInHand(item);
 
   return null;
 }
