@@ -17,6 +17,7 @@
  *******************************************************************************/
 
 var ChatColor = Java.type('org.bukkit.ChatColor');
+var ArrayList = Java.type('java.util.ArrayList')
 
 var validation = {
   overloads: [
@@ -32,19 +33,19 @@ var validation = {
     [
       { type: 'string', name: 'type', matches: 'LORE' },
       { type: 'string', name: 'subType', matches: 'ADD' },
-      { type: 'integer', name: 'index' },
+      { type: 'int', name: 'index' },
       { type: 'string', name: 'lore' }
     ],
     [
       { type: 'string', name: 'type', matches: 'LORE' },
       { type: 'string', name: 'subType', matches: 'SET' },
-      { type: 'integer', name: 'index' },
+      { type: 'int', name: 'index' },
       { type: 'string', name: 'lore' }
     ],
     [
       { type: 'string', name: 'type', matches: 'LORE' },
       { type: 'string', name: 'subType', matches: 'REMOVE' },
-      { type: 'integer', name: 'index' }
+      { type: 'int', name: 'index' }
     ]
   ]
 };
@@ -63,17 +64,17 @@ function MODIFYHELDITEM(args) {
     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', args[1]));
   } else {
     var lore = meta.getLore();
-
-    if (overload === 1) lore.add(args[2]);
-    else if (overload === 2) lore.add(args[2], args[3]);
-    else if (overload === 3) lore.set(args[2], args[3]);
-    else if (overload === 4) lore.set(args[2]);
+	if (!lore) lore = new ArrayList();
+    if (overload === 1) lore.add(ChatColor.translateAlternateColorCodes('&', args[2]));
+    else if (overload === 2) lore.add(args[2], ChatColor.translateAlternateColorCodes('&', args[3]));
+    else if (overload === 3) lore.set(args[2], ChatColor.translateAlternateColorCodes('&', args[3]));
+    else if (overload === 4) lore.set(ChatColor.translateAlternateColorCodes('&', args[2]));
 
     meta.setLore(lore);
   }
 
   item.setItemMeta(meta);
-  player.getInventory().setItemInHand(helditem);
+  player.getInventory().setItemInHand(item);
 
   return null;
 }
