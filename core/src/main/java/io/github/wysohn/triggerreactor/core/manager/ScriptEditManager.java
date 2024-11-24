@@ -128,25 +128,33 @@ public class ScriptEditManager extends Manager {
             } else if (message.length() > 0 && message.charAt(0) == 'u' && message.charAt(1) == ' ') {
                 String[] split = message.split(" ");
 
-                int lines = 1;
-                try {
-                    lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
-                } catch (NumberFormatException ex) {
-                    pluginManagement.handleException(null, ex);
-                }
+                if (split[1].matches("[+-]?\\d*(\\.\\d+)?")) {
+                    int lines = 1;
+                    try {
+                        lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
+                    } catch (NumberFormatException ex) {
+                        pluginManagement.handleException(null, ex);
+                    }
 
-                editor.up(lines);
-            } else if (message.length() > 0 && message.charAt(0) == 'd' && messsage.charAt(1) == ' ') {
+                    editor.up(lines);
+                } else {
+                    editor.intput(message.replaceAll("\\^", " "));
+                }
+            } else if (message.length() > 0 && message.charAt(0) == 'd') {
                 String[] split = message.split(" ");
 
-                int lines = 1;
-                try {
-                    lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
-                } catch (NumberFormatException ex) {
-                    pluginManagement.handleException(null, ex);
+                if (split[1].matches("[+-]?\\d*(\\.\\d+)?")) {
+                    int lines = 1;
+                    try {
+                        lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
+                    } catch (NumberFormatException ex) {
+                        pluginManagement.handleException(null, ex);
+                    }
+    
+                    editor.down(lines);
+                } else {
+                    editor.intput(message.replaceAll("\\^", " "));
                 }
-
-                editor.down(lines);
             } else {
                 if (!exitDoublecheck.remove(editorUser)) {
                     editor.intput(message.replaceAll("\\^", " "));
