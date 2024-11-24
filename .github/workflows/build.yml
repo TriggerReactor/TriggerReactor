@@ -163,7 +163,7 @@ jobs:
 
       - name: Build Jars
         if: fromJSON(steps.determine.outputs.result).action == 'build'
-        run: ./gradlew build -x test -P java_version=${{ matrix.java }} -P version=pr-${{ fromJSON(steps.determine.outputs.result).pr }} --stacktrace
+        run: ./gradlew build -x test -P java_version=${{ matrix.java }} -P version=pr-${{ fromJSON(steps.determine.outputs.result).pr }} --stacktrace --scan
 
       - name: Upload Jars
         if: fromJSON(steps.determine.outputs.result).action == 'build' && success()
