@@ -125,10 +125,9 @@ public class ScriptEditManager extends Manager {
                 editor.insertNewLine();
             } else if (message.equals("dl")) {
                 editor.deleteLine();
-            } else if (message.length() > 0 && message.charAt(0) == 'u' ) {
+            } else if (message.length() > 0 && message.charAt(0) == 'u' && message.charAt(1) == ' ') {
                 String[] split = message.split(" ");
 
-                if (split[1].matches("[+-]?\\d*(\\.\\d+)?")) {
                     int lines = 1;
                     try {
                         lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
@@ -137,13 +136,10 @@ public class ScriptEditManager extends Manager {
                     }
 
                     editor.up(lines);
-                } else {
-                    editor.intput(message.replaceAll("\\^", " "));
-                }
-            } else if (message.length() > 0 && message.charAt(0) == 'd') {
+
+            } else if (message.length() > 0 && message.charAt(0) == 'd' && message.charAt(1) == ' ' ) {
                 String[] split = message.split(" ");
 
-                if (split[1].matches("[+-]?\\d*(\\.\\d+)?")) {
                     int lines = 1;
                     try {
                         lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
@@ -152,9 +148,6 @@ public class ScriptEditManager extends Manager {
                     }
     
                     editor.down(lines);
-                } else {
-                    editor.intput(message.replaceAll("\\^", " "));
-                }
             } else {
                 if (!exitDoublecheck.remove(editorUser)) {
                     editor.intput(message.replaceAll("\\^", " "));
