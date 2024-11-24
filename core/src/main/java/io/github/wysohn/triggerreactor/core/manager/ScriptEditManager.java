@@ -125,7 +125,7 @@ public class ScriptEditManager extends Manager {
                 editor.insertNewLine();
             } else if (message.equals("dl")) {
                 editor.deleteLine();
-            } else if (message.length() > 0 && message.charAt(0) == 'u' && message.charAt(1) == ' ') {
+            } else if (message.length() > 0 && message.charAt(0) == 'u' ) {
                 String[] split = message.split(" ");
 
                 if (split[1].matches("[+-]?\\d*(\\.\\d+)?")) {
