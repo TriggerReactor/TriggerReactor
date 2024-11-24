@@ -125,7 +125,7 @@ public class ScriptEditManager extends Manager {
                 editor.insertNewLine();
             } else if (message.equals("dl")) {
                 editor.deleteLine();
-            } else if (message.length() > 0 && message.charAt(0) == 'u' && messsage.charAt(1) == ' ' ) {
+            } else if (message.length() > 0 && message.charAt(0) == 'u' && message.charAt(1) == ' ') {
                 String[] split = message.split(" ");
 
                 int lines = 1;
@@ -136,7 +136,7 @@ public class ScriptEditManager extends Manager {
                 }
 
                 editor.up(lines);
-            } else if (message.length() > 0 && message.charAt(0) == 'd' && messsage.charAt(1) == ' ' ) {
+            } else if (message.length() > 0 && message.charAt(0) == 'd' && messsage.charAt(1) == ' ') {
                 String[] split = message.split(" ");
 
                 int lines = 1;
