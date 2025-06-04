@@ -26,7 +26,7 @@ import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.StatefulObject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableAdapter;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -160,50 +160,38 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
      * @return
      */
     @Override
-    public HashMap<Object, Object> getGlobalVariableAdapter() {
+    public HashMap<String, Object> getGlobalVariableAdapter() {
         return adapter;
     }
 
+    @Override
+    public HashMap<String, Object> getTempGlobalVariableAdapter() {
+        return new TemporaryGlobalVariableAdapter();
+    }
+
     private final GlobalVariableAdapter adapter = new GlobalVariableAdapter() {
-        private final ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
 
         @Override
         public Object get(Object key) {
-            if (key instanceof String) {
-                return GlobalVariableManager.this.get((String) key);
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                return temp_map.get(key);
-            } else {
-                return null;
-            }
+            return GlobalVariableManager.this.get((String) key);
         }
 
         @Override
         public boolean containsKey(Object key) {
-            if (key instanceof String) {
-                return GlobalVariableManager.this.has((String) key);
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                return temp_map.contains(key);
-            } else {
-                return false;
-            }
+            return GlobalVariableManager.this.has((String) key);
         }
 
         @Override
-        public Object put(Object key, Object value) {
+        public Object put(String key, Object value) {
             if (value == null) {
                 remove(key);
                 return null;
             }
 
-            if (key instanceof String) {
-                try {
-                    GlobalVariableManager.this.put((String) key, value);
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                temp_map.put((TemporaryGlobalVariableKey) key, value);
+            try {
+                GlobalVariableManager.this.put((String) key, value);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
 
             return null;
@@ -211,14 +199,10 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
 
         @Override
         public Object remove(Object key) {
-            if (key instanceof String) {
-                try {
-                    GlobalVariableManager.this.remove((String) key);
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else if (key instanceof TemporaryGlobalVariableKey) {
-                temp_map.remove(key);
+            try {
+                GlobalVariableManager.this.remove((String) key);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
 
             return null;
@@ -252,7 +236,8 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
     }
 
     @SuppressWarnings("serial")
-    public static abstract class GlobalVariableAdapter extends HashMap<Object, Object> {
+    public static abstract class GlobalVariableAdapter extends HashMap<String, Object> {
+
         protected GlobalVariableAdapter() {
 
         }
@@ -264,6 +249,9 @@ public class GlobalVariableManager extends Manager implements IMigratable, IGlob
         public abstract boolean containsKey(Object key);
 
         @Override
-        public abstract Object put(Object key, Object value);
+        public abstract Object put(String key, Object value);
+
+        @Override
+        public abstract Object remove(Object key);
     }
 }

@@ -21,7 +21,6 @@ import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -89,7 +88,7 @@ public class VariablePlaceholder implements IVariablePlaceholder {
             }
         }
 
-        Map<Object, Object> adapter = globalVariableManager.getGlobalVariableAdapter();
+        Map<String, Object> adapter = globalVariableManager.getTempGlobalVariableAdapter();
 
         Object value = null;
 
@@ -101,9 +100,8 @@ public class VariablePlaceholder implements IVariablePlaceholder {
         if (variableName.startsWith("?")) {
             //%tr_?<variable name>% - temporary global variable
             variableName = variableName.substring(1).replace('_', '.');
-            TemporaryGlobalVariableKey tempKey = new TemporaryGlobalVariableKey(variableName);
 
-            value = adapter.get(tempKey);
+            value = adapter.get(variableName);
         } else {
             // %tr_<variable name>%
             //if(identifier.contains("")){return "";}

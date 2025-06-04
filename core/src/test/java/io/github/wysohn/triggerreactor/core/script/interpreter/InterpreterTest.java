@@ -21,6 +21,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -36,6 +37,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -93,7 +95,8 @@ public class InterpreterTest {
                                 @Provides
                                 public IGlobalVariableManager provideGlobalVariableManager() {
                                     IGlobalVariableManager mock = mock(IGlobalVariableManager.class);
-                                    when(mock.getGlobalVariableAdapter()).thenReturn(new HashMap<>());
+                                    when(mock.getGlobalVariableAdapter()).thenReturn(new TemporaryGlobalVariableAdapter());
+                                    when(mock.getTempGlobalVariableAdapter()).thenReturn(new TemporaryGlobalVariableAdapter());
                                     return mock;
                                 }
 
@@ -170,7 +173,7 @@ public class InterpreterTest {
         public Builder addTemporaryGlobalVariable(String key, Object value) {
             ValidationUtil.notNull(key);
             ValidationUtil.notNull(value);
-            test.interpreter.globalContext.gvars.put(new TemporaryGlobalVariableKey(key), value);
+            test.interpreter.globalContext.tempGvars.put(key, value);
             return this;
         }
 

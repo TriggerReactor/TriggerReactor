@@ -53,7 +53,7 @@ public class Interpreter {
         return globalContext.placeholderMap;
     }
 
-    public Map<Object, Object> getGvars() {
+    public Map<String, Object> getGvars() {
         return globalContext.gvars;
     }
 
@@ -736,17 +736,22 @@ public class Interpreter {
             }
         } else if (id.type == Type.GID || id.type == Type.GID_TEMP) {
             if (value.type == Type.NULLVALUE) {
-                globalContext.gvars.remove(id.type == Type.GID
-                        ? id.value.toString()
-                        : new TemporaryGlobalVariableKey(id.value.toString()));
+                if (id.type == Type.GID) {
+                    globalContext.gvars.remove(id.value.toString());
+                } else {
+                    globalContext.tempGvars.remove(id.value.toString());
+                }
+
             } else {
                 if (isVariable(value)) {
                     value = unwrapVariable(value, localContext);
                 }
 
-                globalContext.gvars.put(
-                        id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()),
-                        value.value);
+                if (id.type == Type.GID) {
+                    globalContext.gvars.put(id.value.toString(), value.value);
+                } else {
+                    globalContext.tempGvars.put(id.value.toString(), value.value);
+                }
             }
         } else if (id.type == Type.ID) {
             if (isVariable(value)) {
@@ -853,9 +858,9 @@ public class Interpreter {
 
             return parseValue(var, varToken);
         } else if (varToken.type == Type.GID) {
-            return parseValue(globalContext.gvars.get(varToken.value), varToken);
+            return parseValue(globalContext.gvars.get((String) varToken.value), varToken);
         } else if (varToken.type == Type.GID_TEMP) {
-            return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)),
+            return parseValue(globalContext.tempGvars.get((String) varToken.value),
                     varToken);
         } else if (varToken.type == Type.ACCESS) {
             Accessor accessor = (Accessor) varToken.value;

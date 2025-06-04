@@ -167,7 +167,7 @@ jobs:
 
       - name: Upload Jars
         if: fromJSON(steps.determine.outputs.result).action == 'build' && success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: TriggerReactor-${{ fromJSON(steps.determine.outputs.result).pr }}
           path: |
