@@ -16,10 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.main;
 
-import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
-import io.github.wysohn.triggerreactor.core.manager.ScriptEngineManagerProxy;
+import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.Lag;
 
@@ -62,13 +59,19 @@ public class TriggerReactorCore implements IPluginLifecycle {
     private IGlobalVariableManager IGlobalVariableManager;
     @Inject
     private Lag lag;
+    @Inject
+    private PlatformManager platformManager;
 
     @Inject
     private Set<Manager> managers;
 
     @Override
     public void initialize() {
-        Thread.currentThread().setContextClassLoader(pluginClassLoader);
+        if(!platformManager.getCurrentPlatform().isPaper()) {
+            // Paper has their own trick to load classes, so doing this will cause a problem.
+            //   The 'trick' seem to be correctly loading the JavaScript engine, so it's not a problem.
+            Thread.currentThread().setContextClassLoader(pluginClassLoader);
+        }
 
         try {
             managers.forEach(Manager::initialize);
