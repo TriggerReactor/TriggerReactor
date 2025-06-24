@@ -936,6 +936,68 @@ public class TriggerReactorCoreTest {
         verify(eventManagement).createEmptyPlayerEvent(target);
     }
 
+    public void command_namedTrigger_create() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+
+        NamedTriggerManager namedTriggerManager = injector.getInstance(NamedTriggerManager.class);
+        ScriptEditManager scriptEditManager = injector.getInstance(ScriptEditManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"call", "say_hi", "#MESSAGE", "\"HI\""});
+        boolean result1 = scriptEditManager.isEditing(sender);
+        scriptEditManager.onChat(sender, "anystring");
+        scriptEditManager.onChat(sender, "save");
+        boolean result2 = scriptEditManager.isEditing(sender);
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
+        // assert
+        assertTrue(result1);
+        assertFalse(result2);
+        assertNotNull(namedTriggerManager.get("say_hi"));
+        assertEquals("#MESSAGE \"HI\"", namedTriggerManager.get("say_hi").getScript());
+    }
+
+    @Test
+    public void command_namedTrigger_delete() throws Exception {
+        // arrange
+        File sourceFile = folder.newFile("say_goodbye.trg");
+
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+        NamedTrigger namedTrigger = mock(NamedTrigger.class);
+        TriggerInfo triggerInfo = mock(TriggerInfo.class);
+
+        NamedTriggerManager namedTriggerManager = injector.getInstance(NamedTriggerManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+        when(namedTrigger.getInfo()).thenReturn(triggerInfo);
+        when(triggerInfo.getSourceCodeFile()).thenReturn(sourceFile);
+        when(namedTrigger.getScript()).thenReturn("#MESSAGE \"Hello World\"");
+
+        namedTriggerManager.put("say_goodbye", namedTrigger);
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"del", "call", "say_goodbye"});
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
+
+        // assert
+        assertNull(namedTriggerManager.get("say_goodbye"));
+    }
+
     @Test
     public void command_call() throws IOException {
         // arrange
