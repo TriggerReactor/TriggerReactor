@@ -172,6 +172,12 @@ public class Token {
         THIS, ITERATOR,
 
         /**
+         * statement identifier
+         */
+        IF, WHILE, FOR, TRY,
+        SHORT_CIRCUIT,
+
+        /**
          * Parenthesis, Blocks
          **/
         OPERATOR,
