@@ -20,23 +20,30 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.ProvidesIntoMap;
 import com.google.inject.multibindings.StringMapKey;
+import io.github.wysohn.triggerreactor.core.manager.PlatformManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.Callable;
 
 public class BukkitExecutorModule extends AbstractModule {
     @ProvidesIntoMap
     @StringMapKey("CMDOP")
-    public Executor provideExecutorOverride(TaskSupervisor taskSupervisor) {
+    public Executor provideExecutorOverride(TaskSupervisor taskSupervisor, PlatformManager platformManager, JavaPlugin plugin) {
         return (timing, variables, e, args) -> {
             Object player = variables.get("player");
             if (!(player instanceof Player))
                 return null;
 
-            DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
+            DispatchCommandAsOP call;
+            if (platformManager.getCurrentPlatform().isPaper()) {
+                call = new PaperDispatchCommandAsOP((Player) player, String.valueOf(args[0]), plugin);
+            } else {
+                call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
+            }
             if (taskSupervisor.isServerThread()) {
                 call.call();
             } else {
@@ -52,7 +59,7 @@ public class BukkitExecutorModule extends AbstractModule {
         };
     }
 
-    private class DispatchCommandAsOP implements Callable<Void> {
+    private static class DispatchCommandAsOP implements Callable<Void> {
         private final Player player;
         private final String cmd;
 
@@ -84,6 +91,40 @@ public class BukkitExecutorModule extends AbstractModule {
             }
             return null;
         }
+    }
 
+    /**
+     * Paper offloads part of command processing (e.g. the permission-level resync
+     * triggered by {@code setOp()}) onto its own async command thread pool. A
+     * reentrant {@code dispatchCommand()} call issued from within an
+     * already-executing command (e.g. #CMDOP invoked by a SYNC-mode
+     * CommandTrigger, which runs inline on the same call stack as the original
+     * command dispatch) can race that resync and see the player as not-yet-op.
+     * <p>
+     * We break the reentrancy by always hopping to a fresh scheduler tick. This
+     * must NOT block-wait for that tick: if {@link #call()} is already running on
+     * the main thread (the exact case we're fixing), waiting on the future here
+     * would deadlock the server, since the scheduled task can only run once we
+     * return control to the tick loop. So the actual dispatch is fired and
+     * forgotten; the caller no longer gets a "finished" guarantee on Paper.
+     */
+    private static class PaperDispatchCommandAsOP extends DispatchCommandAsOP {
+        private final JavaPlugin plugin;
+
+        PaperDispatchCommandAsOP(Player player, String cmd, JavaPlugin plugin) {
+            super(player, cmd);
+            this.plugin = plugin;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                try {
+                    super.call();
+                } catch (Exception ignored) {
+                }
+            });
+            return null;
+        }
     }
 }
