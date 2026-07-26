@@ -34,7 +34,8 @@ subprojects {
                 'Kuiprux',
                 'Ioloolo',
                 'Sayakie',
-                'soshimee'
+                'soshimee',
+                'DoubleDeltas'
         ]
     }
 
