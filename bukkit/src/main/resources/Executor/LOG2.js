@@ -34,7 +34,7 @@ function LOG2(args) {
   var message = args[0].toString();
   message = ChatColor.translateAlternateColorCodes("&", message);
 
-  var platform = injector.getInstance(PlatformManager.class).current();
+  var platform = injector.getInstance(PlatformManager.class).getCurrentPlatform();
   if (platform.supports(Dependency.MiniMessage)) {
     var mm = Java.type(
       "net.kyori.adventure.text.minimessage.MiniMessage"

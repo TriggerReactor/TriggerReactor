@@ -47,7 +47,7 @@ function MESSAGE2(args) {
     message = PlaceholderAPI.setPlaceholders(player, message);
   }
 
-  var platform = injector.getInstance(PlatformManager.class).current();
+  var platform = injector.getInstance(PlatformManager.class).getCurrentPlatform();
   if (platform.supports(Dependency.MiniMessage)) {
     var mm = Java.type(
       "net.kyori.adventure.text.minimessage.MiniMessage"
