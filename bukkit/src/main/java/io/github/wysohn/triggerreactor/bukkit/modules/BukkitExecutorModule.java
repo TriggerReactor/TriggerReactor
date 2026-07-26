@@ -39,14 +39,14 @@ public class BukkitExecutorModule extends AbstractModule {
                 return null;
 
             DispatchCommandAsOP call;
-            if (platformManager.getCurrentPlatform().isPaper()) {
-                call = new PaperDispatchCommandAsOP((Player) player, String.valueOf(args[0]), plugin);
-            } else {
-                call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
-            }
             if (taskSupervisor.isServerThread()) {
+                // On Paper, processing command in the server thread is offloaded to own async command thread pool
+                call = platformManager.getCurrentPlatform().isPaper()
+                        ? new PaperServerThreadDispatchCommandAsOP((Player) player, String.valueOf(args[0]), plugin)
+                        : new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
                 call.call();
             } else {
+                call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
                 try {
                     taskSupervisor.submitSync(call).get();
                 } catch (Exception ex) {
@@ -108,10 +108,10 @@ public class BukkitExecutorModule extends AbstractModule {
      * return control to the tick loop. So the actual dispatch is fired and
      * forgotten; the caller no longer gets a "finished" guarantee on Paper.
      */
-    private static class PaperDispatchCommandAsOP extends DispatchCommandAsOP {
+    private static class PaperServerThreadDispatchCommandAsOP extends DispatchCommandAsOP {
         private final JavaPlugin plugin;
 
-        PaperDispatchCommandAsOP(Player player, String cmd, JavaPlugin plugin) {
+        PaperServerThreadDispatchCommandAsOP(Player player, String cmd, JavaPlugin plugin) {
             super(player, cmd);
             this.plugin = plugin;
         }
