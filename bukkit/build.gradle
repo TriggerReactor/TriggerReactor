@@ -37,6 +37,19 @@ allprojects {
                     "javax.inject-1.jar",
                     "aopalliance-1.0.jar",
                     "mysql-connector-j-8.0.33.jar",
+
+                    // graaljs
+                    "js-language-24.1.0.jar",
+                    "polyglot-24.1.0.jar",
+                    "regex-24.1.0.jar",
+                    "collections-24.1.0.jar",
+                    "jniutils-24.1.0.jar",
+                    "nativeimage-24.1.0.jar",
+                    "word-24.1.0.jar",
+                    "icu4j-24.1.0.jar",
+                    "truffle-api-24.1.0.jar",
+                    "truffle-compiler-24.1.0.jar",
+                    "truffle-runtime-24.1.0.jar"
             ]
 
             configurations.runtimeClasspath

@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -38,7 +39,7 @@ public class JSPlaceholder extends Evaluable<Object> implements Placeholder {
 
     @Inject
     private JSPlaceholder(@Assisted String placeholderName,
-                          @Assisted ScriptEngine engine,
+                          @Assisted IJSEvaluator engine,
                           @Assisted InputStream file) throws ScriptException,
             IOException {
         super("$", "Placeholders", placeholderName, FileUtil.readFromStream(file), engine);

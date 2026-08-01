@@ -4,6 +4,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.TypeLiteral;
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.CompiledScriptEngine;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,11 +49,11 @@ public class ScriptEngineProviderTest {
         // arrange
 
         // act
-        ScriptEngine engine = scriptEngineProvider.getEngine();
+        IJSEvaluator engine = scriptEngineProvider.getEngine();
 
         // assert
         assertNotNull(engine);
-        assertEquals(engine2, engine);
+        assertEquals(new CompiledScriptEngine(engine2).hashCode(), engine.hashCode());
     }
 
     private class Gateway implements IScriptEngineGateway {

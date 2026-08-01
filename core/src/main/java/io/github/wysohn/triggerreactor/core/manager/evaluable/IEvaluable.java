@@ -45,7 +45,7 @@ public interface IEvaluable {
      *
      * @param bindings current bindings for the execution context
      */
-    default void registerValidationInfo(Bindings bindings) {
+    default void registerValidationInfo(Map<String, Object> bindings) {
         //do nothing
     }
 

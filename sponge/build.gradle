@@ -34,7 +34,20 @@ jar {
         String[] include = [
                 "bstats-sponge-lite-1.4.jar",
                 "${project(':core').archivesBaseName}-${project.version}.jar",
-                "commons-lang3-3.12.0.jar"
+                "commons-lang3-3.12.0.jar",
+
+                // graaljs
+                "js-language-24.1.0.jar",
+                "polyglot-24.1.0.jar",
+                "regex-24.1.0.jar",
+                "collections-24.1.0.jar",
+                "jniutils-24.1.0.jar",
+                "nativeimage-24.1.0.jar",
+                "word-24.1.0.jar",
+                "icu4j-24.1.0.jar",
+                "truffle-api-24.1.0.jar",
+                "truffle-compiler-24.1.0.jar",
+                "truffle-runtime-24.1.0.jar"
         ]
 
         configurations.compile

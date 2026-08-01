@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 public class TestExecutors extends AbstractTestExecutors {
     protected void before() throws Exception {
-        register(sem, engine, BukkitUtil.class);
+        register(engine, BukkitUtil.class);
     }
 
     @Ignore("Simple test to make sure that tests ran in legacy environment")

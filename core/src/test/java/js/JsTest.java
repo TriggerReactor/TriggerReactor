@@ -3,6 +3,7 @@ package js;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 
 import javax.script.ScriptEngine;
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.mock;
 public abstract class JsTest {
     protected final String name;
     protected final InputStream stream;
-    protected final ScriptEngine engine;
+    protected final IJSEvaluator engine;
     protected List<Module> modules = new ArrayList<>();
     protected Map<String, Object> varMap;
     protected Object[] args;
@@ -35,7 +36,7 @@ public abstract class JsTest {
      * @param otherDirectories list of directories to go through to reach the file, such as PLAYER for PLAYER/SETFLYMODE
      * @throws FileNotFoundException
      */
-    protected JsTest(ScriptEngine engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
+    protected JsTest(IJSEvaluator engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
         this.name = name;
 
         StringBuilder builder = new StringBuilder();

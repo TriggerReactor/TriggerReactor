@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.core.manager.js.executor;
 
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 
 import javax.script.ScriptEngine;
 import java.io.InputStream;
@@ -25,5 +26,5 @@ import java.io.InputStream;
 public interface IJSExecutorFactory {
 //    JSExecutor create(String name, ScriptEngine engine, File file);
 
-    JSExecutor create(String name, ScriptEngine engine, InputStream file);
+    JSExecutor create(String name, IJSEvaluator engine, InputStream file);
 }

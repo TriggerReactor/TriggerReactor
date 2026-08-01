@@ -21,6 +21,7 @@ import com.google.inject.Guice;
 import com.google.inject.Module;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.IJSPlaceholderFactory;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
@@ -36,7 +37,7 @@ public class PlaceholderTest extends JsTest {
     public static final Map<String, Boolean> coverage = new TreeMap<>();
     private JSPlaceholder placeholder;
 
-    public PlaceholderTest(ScriptEngine engine, String name, String... directories) throws ScriptException,
+    public PlaceholderTest(IJSEvaluator engine, String name, String... directories) throws ScriptException,
             IOException {
         super(engine, name, "Placeholder", directories);
     }

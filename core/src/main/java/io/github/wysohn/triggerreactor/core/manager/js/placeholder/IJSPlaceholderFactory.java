@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.core.manager.js.placeholder;
 
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 
 import javax.script.ScriptEngine;
 import java.io.InputStream;
@@ -25,5 +26,5 @@ import java.io.InputStream;
 public interface IJSPlaceholderFactory {
 //    JSPlaceholder create(String name, ScriptEngine engine, File file);
 
-    JSPlaceholder create(String name, ScriptEngine engine, InputStream file);
+    JSPlaceholder create(String name, IJSEvaluator engine, InputStream file);
 }

@@ -1,6 +1,8 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.CompiledScriptEngine;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -20,11 +22,11 @@ public class ScriptEngineProvider {
         this.gateways.sort(Comparator.comparingInt(IScriptEngineGateway::getPriority).reversed());
     }
 
-    public ScriptEngine getEngine() {
+    public IJSEvaluator getEngine() {
         for (IScriptEngineGateway gateway : gateways) {
             ScriptEngine engine = gateway.getEngine();
             if (engine != null)
-                return engine;
+                return new CompiledScriptEngine(engine);
         }
 
         throw new RuntimeException("No JavaScript engine found! " + gateways.stream()
