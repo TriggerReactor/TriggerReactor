@@ -28,6 +28,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.List;
 public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
     @Inject
     private INamedTriggerFactory factory;
+
 
     @Inject
     private NamedTriggerLoader() {
@@ -83,6 +85,11 @@ public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
 
     @Override
     public void save(NamedTrigger trigger) {
-        // we don't save NamedTrigger
+        try {
+            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
