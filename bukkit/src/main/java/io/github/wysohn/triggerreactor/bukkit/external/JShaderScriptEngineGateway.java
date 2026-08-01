@@ -8,9 +8,11 @@ import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.script.*;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,7 +28,12 @@ public class JShaderScriptEngineGateway implements IScriptEngineGateway {
     @Inject
     private Set<ScriptEngineInitializer> scriptEngineInitializers;
 
+    @Inject
+    @Named("PluginClassLoader")
+    private ClassLoader pluginClassLoader;
+
     private boolean initialized = false;
+    private Method getEngineMethod;
     private ScriptEngineFactory factory;
     private Bindings globalScope = new SimpleBindings();
 
@@ -47,6 +54,8 @@ public class JShaderScriptEngineGateway implements IScriptEngineGateway {
                 Constructor<?> constructor = clazz.getConstructor();
                 Object factoryObj = constructor.newInstance();
                 factory = (ScriptEngineFactory) factoryObj;
+                getEngineMethod = factoryObj
+                        .getClass().getDeclaredMethod("getScriptEngine", ClassLoader.class);
 
                 try {
                     for (ScriptEngineInitializer initializer : scriptEngineInitializers) {
@@ -65,9 +74,16 @@ public class JShaderScriptEngineGateway implements IScriptEngineGateway {
             }
         }
 
-        return Optional.ofNullable(factory)
-                .map(ScriptEngineFactory::getScriptEngine)
-                .map(engine -> {
+        return Optional.ofNullable(getEngineMethod)
+                .flatMap(f -> {
+                    try {
+                        ScriptEngine engine = (ScriptEngine) f.invoke(factory, pluginClassLoader);
+                        return Optional.ofNullable(engine);
+                    } catch (Exception e) {
+                        exceptionHandle.handleException(null, e);
+                        return Optional.empty();
+                    }
+                }).map(engine -> {
                     engine.setBindings(globalScope, ScriptContext.GLOBAL_SCOPE);
                     return engine;
                 })
