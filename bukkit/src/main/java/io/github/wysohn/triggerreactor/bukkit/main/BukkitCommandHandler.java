@@ -66,7 +66,7 @@ public class BukkitCommandHandler implements ICommandHandler {
             rawCommandMap.put(alias, command);
         }
 
-        commandMapHandler.synchronizeCommandMap();
+        // commandMapHandler.synchronizeCommandMap();
         return new BukkitCommand(command, overridden);
     }
 
@@ -94,6 +94,11 @@ public class BukkitCommandHandler implements ICommandHandler {
         return true;
     }
 
+    /**
+     * Avoid continuous calls to synchronizeCommandMap().
+     * In Paper, using exclusive Command Builder Async Thread Pool,
+     * using Map#put while syncing is likely to cause ConcurrentModificationException
+     */
     @Override
     public void sync() {
         commandMapHandler.synchronizeCommandMap();
