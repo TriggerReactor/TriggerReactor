@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.manager.InventoryEditManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -41,10 +42,12 @@ public class InventoryTriggerListener
         implements BukkitTriggerManager {
 
     private final InventoryTriggerManager manager;
+    private final InventoryEditManager<?> editManager;
 
     @Inject
-    public InventoryTriggerListener(InventoryTriggerManager manager) {
+    public InventoryTriggerListener(InventoryTriggerManager manager, InventoryEditManager<?> editManager) {
         this.manager = manager;
+        this.editManager = editManager;
     }
 
     @EventHandler
@@ -94,7 +97,10 @@ public class InventoryTriggerListener
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
         IPlayer bukkitPlayer = new BukkitPlayer((Player) e.getPlayer());
-        manager.onInventoryClose(e, bukkitPlayer, new BukkitInventory(e.getInventory()));
+        IInventory bukkitInventory = new BukkitInventory(e.getInventory());
+
+        editManager.onInventoryClose(bukkitPlayer, bukkitInventory);
+        manager.onInventoryClose(e, bukkitPlayer, bukkitInventory);
     }
 
 
