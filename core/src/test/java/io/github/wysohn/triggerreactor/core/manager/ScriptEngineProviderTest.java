@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.manager.js.engine.CompiledScriptEngine;
@@ -9,6 +10,7 @@ import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.inject.Named;
 import javax.script.ScriptEngine;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,6 +41,12 @@ public class ScriptEngineProviderTest {
                         bind(new TypeLiteral<Set<IScriptEngineGateway>>() {
                         })
                                 .toInstance(gateways);
+                    }
+
+                    @Provides
+                    @Named("PluginClassLoader")
+                    public ClassLoader provideClassLoader() {
+                        return getClass().getClassLoader();
                     }
                 }
         ).getInstance(ScriptEngineProvider.class);

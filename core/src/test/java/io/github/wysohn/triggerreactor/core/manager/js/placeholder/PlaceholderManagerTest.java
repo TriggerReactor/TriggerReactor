@@ -17,6 +17,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.inject.Named;
 import javax.script.ScriptEngine;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.*;
 public class PlaceholderManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
+    ClassLoader pluginClassLoader;
 
     IPluginManagement mockPluginManagement;
     TaskSupervisor taskSupervisor;
@@ -45,6 +47,7 @@ public class PlaceholderManagerTest {
         mockCopyHelper = mock(IJSFolderContentCopyHelper.class);
         mockFileLoader = mock(IJavascriptFileLoader.class);
         mockScriptEngineGateway = mock(IScriptEngineGateway.class);
+        pluginClassLoader = getClass().getClassLoader();
 
         placeholderManager = Guice.createInjector(
                 new MockPluginManagementModule(mockPluginManagement),
@@ -69,6 +72,12 @@ public class PlaceholderManagerTest {
                     @Provides
                     public IJavascriptFileLoader provideJavascriptFileLoader() {
                         return mockFileLoader;
+                    }
+
+                    @Provides
+                    @Named("PluginClassLoader")
+                    public ClassLoader provideClassLoader() {
+                        return pluginClassLoader;
                     }
                 }
         ).getInstance(PlaceholderManager.class);

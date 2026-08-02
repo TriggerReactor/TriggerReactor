@@ -1,8 +1,10 @@
 package io.github.wysohn.triggerreactor.core.manager.js.engine;
 
+import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import org.graalvm.polyglot.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PolyglotJSEngine implements IJSEvaluator {
@@ -93,22 +95,11 @@ public class PolyglotJSEngine implements IJSEvaluator {
         }
 
         Value result = function.execute(argObj);
-
         return convertValue(result);
     }
 
     private Object convertValue(Value value) {
-        if (value == null || value.isNull()) {
-            return null;
-        } else if (value.isBoolean()) {
-            return value.asBoolean();
-        } else if (value.isNumber()) {
-            if (value.fitsInInt()) return value.asInt();
-            if (value.fitsInLong()) return value.asLong();
-            return value.asDouble();
-        } else if (value.isString()) {
-            return value.asString();
-        }
+        if (value == null || value.isNull()) return null;
         return value.as(Object.class);
     }
 }
