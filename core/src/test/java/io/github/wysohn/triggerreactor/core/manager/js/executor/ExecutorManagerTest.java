@@ -20,6 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.inject.Named;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.io.File;
@@ -33,6 +34,7 @@ public class ExecutorManagerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     ScriptEngineManager sem;
+    ClassLoader pluginClassLoader;
 
     Executor mockExecutor;
     Placeholder mockPlaceholder;
@@ -58,6 +60,7 @@ public class ExecutorManagerTest {
         mockCopyHelper = mock(IJSFolderContentCopyHelper.class);
         mockFileLoader = mock(IJavascriptFileLoader.class);
         mockScriptEngineGateway = mock(IScriptEngineGateway.class);
+        pluginClassLoader = getClass().getClassLoader();
 
         executorManager = Guice.createInjector(
                 new MockPluginManagementModule(mockPluginManagement),
@@ -78,6 +81,12 @@ public class ExecutorManagerTest {
                     @Provides
                     public IJavascriptFileLoader provideFileLoader() {
                         return mockFileLoader;
+                    }
+
+                    @Provides
+                    @Named("PluginClassLoader")
+                    public ClassLoader provideClassLoader() {
+                        return pluginClassLoader;
                     }
 
                     @ProvidesIntoSet

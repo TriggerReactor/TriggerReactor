@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -37,7 +38,7 @@ public class JSExecutor extends Evaluable<Integer> implements Executor {
 
     @Inject
     private JSExecutor(@Assisted String executorName,
-                       @Assisted ScriptEngine engine,
+                       @Assisted IJSEvaluator engine,
                        @Assisted InputStream file) throws ScriptException, IOException {
         super("#", "Executors", executorName, FileUtil.readFromStream(file), engine);
     }

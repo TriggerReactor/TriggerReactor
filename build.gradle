@@ -68,6 +68,9 @@ subprojects {
         // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
         api group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
+        api 'org.graalvm.sdk:graal-sdk:20.2.0'
+        api 'org.graalvm.js:js:20.2.0'
+
         // https://mvnrepository.com/artifact/org.graalvm.js/js
         //implementation group: 'org.graalvm.js', name: 'js', version: '21.1.0'
         // https://mvnrepository.com/artifact/org.graalvm.js/js-scriptengine

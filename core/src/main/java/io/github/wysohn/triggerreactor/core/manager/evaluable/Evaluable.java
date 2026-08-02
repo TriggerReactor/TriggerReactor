@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
 import com.google.inject.Inject;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.manager.js.engine.IJSEvaluator;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
@@ -26,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -40,9 +42,11 @@ abstract class Evaluable<R> implements IEvaluable {
     private final String functionName;
     private final String sourceCode;
 
-    private final ScriptEngine engine;
+    private final IJSEvaluator engine;
 
-    private CompiledScript compiled = null;
+    //private final ScriptEngine engine;
+
+    // private CompiledScript compiled = null;
     private boolean firstRun = true;
     private Validator validator = null;
     private boolean slowExecution = false;
@@ -51,7 +55,7 @@ abstract class Evaluable<R> implements IEvaluable {
                      String timingsGroup,
                      String functionName,
                      String sourceCode,
-                     ScriptEngine engine) throws ScriptException {
+                     IJSEvaluator engine) throws ScriptException {
         this.indentifier = indentifier;
         this.timingsGroup = timingsGroup;
         this.functionName = functionName;
@@ -59,21 +63,8 @@ abstract class Evaluable<R> implements IEvaluable {
 
         this.engine = engine;
 
-        synchronized (this.engine) {
-            if (this.engine instanceof Compilable) {
-                Compilable compiler = (Compilable) this.engine;
-                compiled = compiler.compile(sourceCode);
-            } else {
-                slowExecution = true;
-            }
-        }
-    }
-
-    private void eval(ScriptContext context) throws ScriptException {
-        if (compiled != null)
-            compiled.eval(context);
-        else
-            engine.eval(sourceCode, context);
+        this.engine.compile(sourceCode);
+        this.slowExecution = !this.engine.isCompiled();
     }
 
     @Override
@@ -84,28 +75,23 @@ abstract class Evaluable<R> implements IEvaluable {
         Timings.Timing time = timing.getTiming(timingsGroup).getTiming(functionName);
         time.setDisplayName(indentifier + functionName);
 
-        final ScriptContext scriptContext = new SimpleScriptContext();
-        final Bindings bindings = engine.createBindings();
+        engine.clearBindings();
 
-        scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-        scriptContext.setBindings(engine.getBindings(ScriptContext.GLOBAL_SCOPE),
-                ScriptContext.GLOBAL_SCOPE);
-
-        bindings.put("event", event);
+        engine.putBindings("event", event);
         for (Map.Entry<String, Object> entry : variables.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            bindings.put(key, value);
+            engine.putBindings(key, value);
         }
 
         try (Timings.Timing t = time.getTiming("JS <eval>").begin()) {
-            eval(scriptContext);
+            engine.eval();
         } catch (ScriptException e2) {
             e2.printStackTrace();
         }
 
         if (firstRun) {
-            registerValidationInfo(bindings);
+            registerValidationInfo(engine.getBindings());
             firstRun = false;
         }
 
@@ -115,13 +101,12 @@ abstract class Evaluable<R> implements IEvaluable {
             if (overload == -1) {
                 throw new ValidationException(result.getError());
             }
-            bindings.put("overload", overload);
+            engine.putBindings("overload", overload);
         } else {
-            bindings.put("overload", null);
+            engine.putBindings("overload", null);
         }
 
-        Object jsObject = bindings.get(functionName);
-        if (jsObject == null)
+        if (!engine.hasBindings(functionName))
             throw new Exception(functionName + ".js does not have 'function " + functionName + "()'.");
 
         Callable<R> call = () -> {
@@ -129,8 +114,7 @@ abstract class Evaluable<R> implements IEvaluable {
             Object result = null;
 
             try (Timings.Timing t = time.begin(true)) {
-                engine.setContext(scriptContext);
-                result = ((Invocable) engine).invokeFunction(functionName, argObj);
+                result = engine.invokeFunction(functionName, argObj);
             }
 
             return (R) result;
@@ -174,7 +158,7 @@ abstract class Evaluable<R> implements IEvaluable {
     }
 
     @Override
-    public void registerValidationInfo(Bindings bindings) {
+    public void registerValidationInfo(Map<String, Object> bindings) {
         Map<String, Object> validation = (Map<String, Object>) bindings.get("validation");
         if (validation == null) {
             return;
